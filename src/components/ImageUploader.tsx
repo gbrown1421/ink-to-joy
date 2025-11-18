@@ -6,9 +6,10 @@ import { toast } from "sonner";
 
 interface ImageUploaderProps {
   onImagesUploaded: (files: File[]) => void;
+  maxFiles?: number;
 }
 
-export const ImageUploader = ({ onImagesUploaded }: ImageUploaderProps) => {
+export const ImageUploader = ({ onImagesUploaded, maxFiles = 20 }: ImageUploaderProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
@@ -36,12 +37,23 @@ export const ImageUploader = ({ onImagesUploaded }: ImageUploaderProps) => {
       return;
     }
 
+    if (selectedFiles.length + files.length > maxFiles) {
+      toast.error(`Maximum ${maxFiles} images allowed`);
+      return;
+    }
+
     setSelectedFiles(prev => [...prev, ...files]);
     toast.success(`${files.length} image(s) added`);
-  }, []);
+  }, [selectedFiles.length, maxFiles]);
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    
+    if (selectedFiles.length + files.length > maxFiles) {
+      toast.error(`Maximum ${maxFiles} images allowed`);
+      return;
+    }
+
     setSelectedFiles(prev => [...prev, ...files]);
     toast.success(`${files.length} image(s) added`);
   };
@@ -77,7 +89,7 @@ export const ImageUploader = ({ onImagesUploaded }: ImageUploaderProps) => {
           </div>
           <h3 className="text-xl font-semibold mb-2">Upload Your Photos</h3>
           <p className="text-muted-foreground mb-4">
-            Drag and drop images here, or click to browse
+            Drag and drop images here, or click to browse (up to {maxFiles} images)
           </p>
           <input
             type="file"

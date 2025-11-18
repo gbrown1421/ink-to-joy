@@ -1,4 +1,7 @@
-export const convertToColoringPage = async (file: File): Promise<string> => {
+export const convertToColoringPage = async (
+  file: File,
+  lineThickness: number = 3
+): Promise<string> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const canvas = document.createElement("canvas");
@@ -29,10 +32,11 @@ export const convertToColoringPage = async (file: File): Promise<string> => {
         data[i + 2] = gray;
       }
 
-      // Apply edge detection (Sobel operator)
+      // Apply edge detection with adjustable line thickness
       const width = canvas.width;
       const height = canvas.height;
       const outputData = ctx.createImageData(width, height);
+      const thickness = Math.max(1, Math.round(lineThickness));
       
       for (let y = 1; y < height - 1; y++) {
         for (let x = 1; x < width - 1; x++) {
@@ -67,7 +71,33 @@ export const convertToColoringPage = async (file: File): Promise<string> => {
         }
       }
 
-      ctx.putImageData(outputData, 0, 0);
+      // Apply line thickness
+      if (thickness > 1) {
+        const thickened = ctx.createImageData(width, height);
+        for (let i = 0; i < outputData.data.length; i++) {
+          thickened.data[i] = outputData.data[i];
+        }
+
+        for (let y = thickness; y < height - thickness; y++) {
+          for (let x = thickness; x < width - thickness; x++) {
+            const idx = (y * width + x) * 4;
+            if (outputData.data[idx] === 0) {
+              for (let dy = -thickness + 1; dy < thickness; dy++) {
+                for (let dx = -thickness + 1; dx < thickness; dx++) {
+                  const ni = ((y + dy) * width + (x + dx)) * 4;
+                  thickened.data[ni] = 0;
+                  thickened.data[ni + 1] = 0;
+                  thickened.data[ni + 2] = 0;
+                  thickened.data[ni + 3] = 255;
+                }
+              }
+            }
+          }
+        }
+        ctx.putImageData(thickened, 0, 0);
+      } else {
+        ctx.putImageData(outputData, 0, 0);
+      }
       resolve(canvas.toDataURL("image/png"));
     };
 
