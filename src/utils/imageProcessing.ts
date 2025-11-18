@@ -24,7 +24,7 @@ export const convertToColoringPage = async (
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
 
-      // Convert to grayscale first
+      // Convert to grayscale
       for (let i = 0; i < data.length; i += 4) {
         const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
         data[i] = gray;
@@ -32,37 +32,43 @@ export const convertToColoringPage = async (
         data[i + 2] = gray;
       }
 
-      // Apply edge detection with adjustable line thickness
+      // Apply Gaussian blur to smooth the image and reduce noise
+      const blurred = applyGaussianBlur(data, canvas.width, canvas.height, 2);
+
+      // Apply edge detection with much higher threshold
       const width = canvas.width;
       const height = canvas.height;
       const outputData = ctx.createImageData(width, height);
       const thickness = Math.max(1, Math.round(lineThickness));
       
-      for (let y = 1; y < height - 1; y++) {
-        for (let x = 1; x < width - 1; x++) {
+      // Adaptive threshold based on difficulty
+      const baseThreshold = 120 + (lineThickness * 10);
+      
+      for (let y = 2; y < height - 2; y++) {
+        for (let x = 2; x < width - 2; x++) {
           const idx = (y * width + x) * 4;
 
-          // Sobel kernels
+          // Sobel kernels with larger radius for smoother edges
           const gx =
-            -data[((y - 1) * width + (x - 1)) * 4] +
-            data[((y - 1) * width + (x + 1)) * 4] +
-            -2 * data[(y * width + (x - 1)) * 4] +
-            2 * data[(y * width + (x + 1)) * 4] +
-            -data[((y + 1) * width + (x - 1)) * 4] +
-            data[((y + 1) * width + (x + 1)) * 4];
+            -blurred[((y - 1) * width + (x - 1)) * 4] +
+            blurred[((y - 1) * width + (x + 1)) * 4] +
+            -2 * blurred[(y * width + (x - 1)) * 4] +
+            2 * blurred[(y * width + (x + 1)) * 4] +
+            -blurred[((y + 1) * width + (x - 1)) * 4] +
+            blurred[((y + 1) * width + (x + 1)) * 4];
 
           const gy =
-            -data[((y - 1) * width + (x - 1)) * 4] +
-            -2 * data[((y - 1) * width + x) * 4] +
-            -data[((y - 1) * width + (x + 1)) * 4] +
-            data[((y + 1) * width + (x - 1)) * 4] +
-            2 * data[((y + 1) * width + x) * 4] +
-            data[((y + 1) * width + (x + 1)) * 4];
+            -blurred[((y - 1) * width + (x - 1)) * 4] +
+            -2 * blurred[((y - 1) * width + x) * 4] +
+            -blurred[((y - 1) * width + (x + 1)) * 4] +
+            blurred[((y + 1) * width + (x - 1)) * 4] +
+            2 * blurred[((y + 1) * width + x) * 4] +
+            blurred[((y + 1) * width + (x + 1)) * 4];
 
           const magnitude = Math.sqrt(gx * gx + gy * gy);
           
-          // Threshold and invert for black lines on white
-          const value = magnitude > 50 ? 0 : 255;
+          // Much higher threshold to only capture main outlines
+          const value = magnitude > baseThreshold ? 0 : 255;
 
           outputData.data[idx] = value;
           outputData.data[idx + 1] = value;
@@ -104,6 +110,67 @@ export const convertToColoringPage = async (
     img.onerror = () => reject(new Error("Failed to load image"));
     img.src = URL.createObjectURL(file);
   });
+};
+
+// Gaussian blur helper function
+const applyGaussianBlur = (
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  radius: number
+): Uint8ClampedArray => {
+  const output = new Uint8ClampedArray(data.length);
+  const kernelSize = radius * 2 + 1;
+  const kernel: number[] = [];
+  let kernelSum = 0;
+
+  // Generate Gaussian kernel
+  for (let i = 0; i < kernelSize; i++) {
+    const x = i - radius;
+    const g = Math.exp(-(x * x) / (2 * radius * radius));
+    kernel.push(g);
+    kernelSum += g;
+  }
+
+  // Normalize kernel
+  for (let i = 0; i < kernelSize; i++) {
+    kernel[i] /= kernelSum;
+  }
+
+  // Apply horizontal blur
+  const temp = new Uint8ClampedArray(data.length);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let sum = 0;
+      for (let k = 0; k < kernelSize; k++) {
+        const sx = Math.min(Math.max(x + k - radius, 0), width - 1);
+        sum += data[(y * width + sx) * 4] * kernel[k];
+      }
+      const idx = (y * width + x) * 4;
+      temp[idx] = sum;
+      temp[idx + 1] = sum;
+      temp[idx + 2] = sum;
+      temp[idx + 3] = 255;
+    }
+  }
+
+  // Apply vertical blur
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let sum = 0;
+      for (let k = 0; k < kernelSize; k++) {
+        const sy = Math.min(Math.max(y + k - radius, 0), height - 1);
+        sum += temp[(sy * width + x) * 4] * kernel[k];
+      }
+      const idx = (y * width + x) * 4;
+      output[idx] = sum;
+      output[idx + 1] = sum;
+      output[idx + 2] = sum;
+      output[idx + 3] = 255;
+    }
+  }
+
+  return output;
 };
 
 export const downloadImage = (dataUrl: string, fileName: string) => {
