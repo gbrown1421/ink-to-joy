@@ -112,7 +112,7 @@ serve(async (req) => {
         original_image_url: publicUrl,
         mimi_key: mimiKey,
         status: 'processing',
-        order_index: orderIndex,
+        page_order: orderIndex,
       })
       .select()
       .single();
