@@ -14,7 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      books: {
+        Row: {
+          created_at: string
+          difficulty: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          difficulty?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      pages: {
+        Row: {
+          book_id: string
+          border_style: string | null
+          coloring_image_url: string | null
+          created_at: string
+          heading_text: string | null
+          id: string
+          original_image_url: string
+          page_order: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          book_id: string
+          border_style?: string | null
+          coloring_image_url?: string | null
+          created_at?: string
+          heading_text?: string | null
+          id?: string
+          original_image_url: string
+          page_order: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          book_id?: string
+          border_style?: string | null
+          coloring_image_url?: string | null
+          created_at?: string
+          heading_text?: string | null
+          id?: string
+          original_image_url?: string
+          page_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pages_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
