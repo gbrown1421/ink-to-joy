@@ -5,7 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Menu from "./pages/Menu";
 import DifficultySelection from "./pages/DifficultySelection";
-import Editor from "./pages/Editor";
+import Upload from "./pages/Upload";
+import Review from "./pages/Review";
+import Finalize from "./pages/Finalize";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,7 +21,9 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Menu />} />
           <Route path="/create" element={<DifficultySelection />} />
-          <Route path="/editor" element={<Editor />} />
+          <Route path="/upload/:bookId" element={<Upload />} />
+          <Route path="/review/:bookId" element={<Review />} />
+          <Route path="/finalize/:bookId" element={<Finalize />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
