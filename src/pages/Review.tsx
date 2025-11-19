@@ -9,6 +9,7 @@ import { Palette, ArrowRight, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import { BorderWrapper } from "@/components/borders/BorderWrapper";
 
 interface Page {
   id: string;
@@ -19,14 +20,37 @@ interface Page {
   page_order: number;
 }
 
-const borderStyles = [
-  { id: "classic", name: "Classic" },
-  { id: "stars", name: "Stars" },
-  { id: "clouds", name: "Clouds" },
-  { id: "blocks", name: "Blocks" },
-  { id: "balloons", name: "Balloons" },
-  { id: "ribbons", name: "Ribbons" },
-];
+// Border styles mapped by difficulty level
+const getBorderStylesForDifficulty = (difficulty: string) => {
+  switch (difficulty) {
+    case "quick-easy":
+      return [
+        { id: "balloons", name: "Balloons" },
+        { id: "stars", name: "Stars" },
+        { id: "clouds", name: "Clouds" },
+      ];
+    case "beginner":
+      return [
+        { id: "flowers", name: "Flowers" },
+        { id: "animals", name: "Animals" },
+        { id: "nature", name: "Nature" },
+      ];
+    case "intermediate":
+      return [
+        { id: "geometric", name: "Geometric" },
+        { id: "art-deco", name: "Art Deco" },
+        { id: "mandala", name: "Mandala" },
+      ];
+    case "advanced":
+      return [
+        { id: "ornate", name: "Ornate" },
+        { id: "botanical", name: "Botanical" },
+        { id: "minimalist", name: "Minimalist" },
+      ];
+    default:
+      return [{ id: "classic", name: "Classic" }];
+  }
+};
 
 const Review = () => {
   const { bookId } = useParams<{ bookId: string }>();
@@ -37,29 +61,60 @@ const Review = () => {
   const [pages, setPages] = useState<Page[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPage, setSelectedPage] = useState<Page | null>(null);
+  const [difficulty, setDifficulty] = useState<string>("beginner");
+  const [borderStyles, setBorderStyles] = useState(getBorderStylesForDifficulty("beginner"));
 
   useEffect(() => {
-    loadPages();
+    loadBookAndPages();
   }, [bookId]);
 
-  const loadPages = async () => {
+  const loadBookAndPages = async () => {
     if (!bookId) return;
 
     try {
-      const response: any = await (supabase as any)
+      // Load book details to get difficulty
+      const bookResponse: any = await (supabase as any)
+        .from('books')
+        .select('difficulty')
+        .eq('id', bookId)
+        .single();
+
+      if (bookResponse.error) throw bookResponse.error;
+      
+      const bookDifficulty = bookResponse.data.difficulty;
+      setDifficulty(bookDifficulty);
+      setBorderStyles(getBorderStylesForDifficulty(bookDifficulty));
+
+      // Load pages
+      const pagesResponse: any = await (supabase as any)
         .from('pages')
         .select('*')
         .eq('book_id', bookId)
         .eq('status', 'ready')
         .order('page_order');
 
-      if (response.error) throw response.error;
-      setPages(response.data || []);
-      if (response.data && response.data.length > 0) {
-        setSelectedPage(response.data[0]);
+      if (pagesResponse.error) throw pagesResponse.error;
+      
+      // Set default border style if not set
+      const pagesData = pagesResponse.data || [];
+      const defaultBorderStyle = getBorderStylesForDifficulty(bookDifficulty)[0]?.id || "classic";
+      
+      for (const page of pagesData) {
+        if (!page.border_style) {
+          await (supabase as any)
+            .from('pages')
+            .update({ border_style: defaultBorderStyle })
+            .eq('id', page.id);
+          page.border_style = defaultBorderStyle;
+        }
+      }
+      
+      setPages(pagesData);
+      if (pagesData.length > 0) {
+        setSelectedPage(pagesData[0]);
       }
     } catch (error) {
-      console.error('Error loading pages:', error);
+      console.error('Error loading data:', error);
       toast.error("Failed to load pages");
     } finally {
       setIsLoading(false);
@@ -159,11 +214,19 @@ const Review = () => {
           <div className="lg:col-span-2">
             {selectedPage && (
               <Card className="p-6 space-y-6">
-                <img 
-                  src={selectedPage.coloring_image_url} 
-                  alt="Coloring page preview"
-                  className="w-full rounded-lg"
-                />
+                <div className="bg-background rounded-lg p-4">
+                  <BorderWrapper
+                    borderStyle={selectedPage.border_style}
+                    headingText={selectedPage.heading_text}
+                    difficulty={difficulty}
+                  >
+                    <img 
+                      src={selectedPage.coloring_image_url} 
+                      alt="Coloring page preview"
+                      className="w-full rounded-lg"
+                    />
+                  </BorderWrapper>
+                </div>
 
                 <div className="space-y-4">
                   <div className="space-y-2">
