@@ -6,41 +6,38 @@ import { Label } from "@/components/ui/label";
 import { Palette, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
-export type DifficultyLevel = "easy" | "medium" | "hard" | "advanced";
+export type DifficultyLevel = "quick-easy" | "beginner" | "intermediate" | "advanced";
 
 interface DifficultyOption {
   id: DifficultyLevel;
   name: string;
   description: string;
   ageRange: string;
-  lineThickness: number;
   detailLevel: string;
 }
 
 const difficulties: DifficultyOption[] = [
   {
-    id: "easy",
+    id: "quick-easy",
     name: "Quick and Easy",
     description: "Thick lines and simple patterns, perfect for young children",
     ageRange: "3-6 years",
-    lineThickness: 4,
     detailLevel: "3-6 sections"
   },
   {
-    id: "medium",
+    id: "beginner",
     name: "Beginner",
     description: "Medium lines with moderate detail",
     ageRange: "7-10 years",
-    lineThickness: 3,
     detailLevel: "7-12 sections"
   },
   {
-    id: "hard",
+    id: "intermediate",
     name: "Intermediate",
     description: "Thinner lines with more intricate patterns",
     ageRange: "11-15 years",
-    lineThickness: 2,
     detailLevel: "13-20 sections"
   },
   {
@@ -48,29 +45,40 @@ const difficulties: DifficultyOption[] = [
     name: "Advanced",
     description: "Fine lines with detailed and intricate patterns",
     ageRange: "16+ years",
-    lineThickness: 1.5,
     detailLevel: "20+ sections"
   }
 ];
 
 const DifficultySelection = () => {
-  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>("medium");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>("beginner");
   const [bookName, setBookName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!bookName.trim()) {
       toast.error("Please enter a name for your coloring book");
       return;
     }
 
-    navigate('/editor', {
-      state: {
-        difficulty: selectedDifficulty,
-        bookName: bookName.trim(),
-        lineThickness: difficulties.find(d => d.id === selectedDifficulty)?.lineThickness || 3
-      }
-    });
+    setIsCreating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-book', {
+        body: { name: bookName.trim(), difficulty: selectedDifficulty }
+      });
+
+      if (error) throw error;
+
+      toast.success("Book created! Now upload your photos.");
+      navigate(`/upload/${data.bookId}`, {
+        state: { bookName: bookName.trim(), difficulty: selectedDifficulty }
+      });
+    } catch (error) {
+      console.error('Error creating book:', error);
+      toast.error("Failed to create book. Please try again.");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -137,8 +145,12 @@ const DifficultySelection = () => {
           </section>
 
           <div className="flex justify-end">
-            <Button onClick={handleContinue} size="lg">
-              Continue
+            <Button 
+              onClick={handleContinue} 
+              size="lg"
+              disabled={isCreating}
+            >
+              {isCreating ? "Creating..." : "Continue to Upload"}
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </div>
