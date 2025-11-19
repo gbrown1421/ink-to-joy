@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const MIMI_PANDA_API_URL = 'https://api.mimi-panda.com/api/coloring/job';
+const MIMI_PANDA_API_URL = 'https://mimi-panda.com/api/service/coloring';
 
 const difficultyToMimi: Record<string, { version: string; type: string }> = {
   "quick-easy": { version: "v2", type: "v2_simplified" },
