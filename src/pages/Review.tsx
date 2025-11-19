@@ -16,7 +16,7 @@ interface Page {
   border_style: string;
   heading_text: string;
   keep: boolean;
-  order_index: number;
+  page_order: number;
 }
 
 const borderStyles = [
@@ -51,7 +51,7 @@ const Review = () => {
         .select('*')
         .eq('book_id', bookId)
         .eq('status', 'ready')
-        .order('order_index');
+        .order('page_order');
 
       if (response.error) throw response.error;
       setPages(response.data || []);
@@ -73,10 +73,10 @@ const Review = () => {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    // Update order_index for all pages
+    // Update page_order for all pages
     const updatedPages = items.map((page, index) => ({
       ...page,
-      order_index: index + 1,
+      page_order: index + 1,
     }));
 
     setPages(updatedPages);
@@ -86,7 +86,7 @@ const Review = () => {
       for (const page of updatedPages) {
         const response: any = await (supabase as any)
           .from('pages')
-          .update({ order_index: page.order_index })
+          .update({ page_order: page.page_order })
           .eq('id', page.id);
         
         if (response.error) throw response.error;
