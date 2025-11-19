@@ -1,0 +1,87 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { bookId } = await req.json();
+
+    if (!bookId) {
+      return new Response(
+        JSON.stringify({ error: 'Book ID is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get book details
+    const { data: book, error: bookError } = await supabase
+      .from('books')
+      .select('*')
+      .eq('id', bookId)
+      .single();
+
+    if (bookError || !book) {
+      return new Response(
+        JSON.stringify({ error: 'Book not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get all pages marked as keep, ordered
+    const { data: pages, error: pagesError } = await supabase
+      .from('pages')
+      .select('*')
+      .eq('book_id', bookId)
+      .eq('keep', true)
+      .eq('status', 'ready')
+      .order('order_index');
+
+    if (pagesError) {
+      console.error('Error fetching pages:', pagesError);
+      return new Response(
+        JSON.stringify({ error: pagesError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!pages || pages.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'No pages to export' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // For v1, return the page data - PDF generation will be implemented on client side
+    // or we can use a PDF generation service
+    return new Response(
+      JSON.stringify({ 
+        bookName: book.name,
+        pages: pages.map(p => ({
+          coloringImageUrl: p.coloring_image_url,
+          borderStyle: p.border_style,
+          headingText: p.heading_text,
+        }))
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('Error in export-pdf:', error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+});

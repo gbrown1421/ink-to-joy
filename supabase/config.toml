@@ -1,1 +1,13 @@
 project_id = "svhobzsjkvtlqjanwldr"
+
+[functions.create-book]
+verify_jwt = false
+
+[functions.upload-page]
+verify_jwt = false
+
+[functions.check-page-status]
+verify_jwt = false
+
+[functions.export-pdf]
+verify_jwt = false
