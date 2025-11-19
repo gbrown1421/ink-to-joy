@@ -79,24 +79,49 @@ serve(async (req) => {
 
     // Submit to Mimi Panda API
     const mimiConfig = difficultyToMimi[book.difficulty] || difficultyToMimi["beginner"];
+    const apiToken = Deno.env.get('MIMI_PANDA_API_TOKEN');
+    
+    // Debug logging
+    console.log('Mimi Panda API Token exists:', !!apiToken);
+    console.log('Mimi Panda API Token length:', apiToken?.length || 0);
+    console.log('Difficulty:', book.difficulty);
+    console.log('Mimi Config:', mimiConfig);
+    console.log('API URL:', MIMI_PANDA_API_URL);
+    
+    if (!apiToken) {
+      console.error('MIMI_PANDA_API_TOKEN is not set');
+      return new Response(
+        JSON.stringify({ error: 'API token not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     const mimiFormData = new FormData();
     mimiFormData.append('image', imageFile);
     mimiFormData.append('version', mimiConfig.version);
     mimiFormData.append('type', mimiConfig.type);
 
+    console.log('Sending request to Mimi Panda API...');
     const mimiResponse = await fetch(MIMI_PANDA_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('MIMI_PANDA_API_TOKEN')}`,
+        'Authorization': `Bearer ${apiToken}`,
       },
       body: mimiFormData,
     });
 
+    console.log('Mimi Panda API response status:', mimiResponse.status);
+    
     if (!mimiResponse.ok) {
       const errorText = await mimiResponse.text();
       console.error('Mimi Panda API error:', errorText);
+      console.error('Response headers:', Object.fromEntries(mimiResponse.headers.entries()));
       return new Response(
-        JSON.stringify({ error: 'Failed to create coloring job' }),
+        JSON.stringify({ 
+          error: 'Failed to create coloring job',
+          details: errorText,
+          status: mimiResponse.status
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
