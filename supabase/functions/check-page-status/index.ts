@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const MIMI_PANDA_API_URL = 'https://api.mimi-panda.com/api/coloring/job';
+const MIMI_PANDA_API_BASE_URL = 'https://mimi-panda.com/api/service/item';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -55,7 +55,7 @@ serve(async (req) => {
     }
 
     // Check Mimi Panda status
-    const mimiResponse = await fetch(`${MIMI_PANDA_API_URL}/${page.mimi_key}`, {
+    const mimiResponse = await fetch(`${MIMI_PANDA_API_BASE_URL}/${page.mimi_key}`, {
       headers: {
         'Authorization': `Bearer ${Deno.env.get('MIMI_PANDA_API_TOKEN')}`,
       },
