@@ -282,7 +282,7 @@ const Menu = () => {
                     <img 
                       src="/images/example-photo-family.jpg" 
                       alt="Original family photo before conversion"
-                      className="example-thumb rounded-lg shadow-md"
+                      className="example-card-image shadow-md"
                     />
                   </div>
                   <div className="space-y-2">
@@ -290,7 +290,7 @@ const Menu = () => {
                     <img 
                       src="/images/example-coloring-page.jpg" 
                       alt="Converted coloring page with line art"
-                      className="example-thumb rounded-lg shadow-md"
+                      className="example-card-image shadow-md"
                     />
                   </div>
                 </div>
@@ -311,7 +311,7 @@ const Menu = () => {
                     <img 
                       src="/images/example-photo-kid-dog.jpg" 
                       alt="Original photo of child with pet dog"
-                      className="example-thumb rounded-lg shadow-md"
+                      className="example-card-image shadow-md"
                     />
                   </div>
                   <div className="space-y-2">
@@ -319,7 +319,7 @@ const Menu = () => {
                     <img 
                       src="/images/example-cartoon-page.jpg" 
                       alt="Cartoon style illustration of child with pet"
-                      className="example-thumb rounded-lg shadow-md"
+                      className="example-card-image shadow-md"
                     />
                   </div>
                 </div>
@@ -337,7 +337,7 @@ const Menu = () => {
                 <img 
                   src="/images/example-coffee-table-book.jpg" 
                   alt="Finished printed book displayed on a coffee table"
-                  className="w-full aspect-video object-cover rounded-lg shadow-md"
+                  className="example-card-image shadow-md"
                 />
                 <p className="text-sm text-muted-foreground text-center">
                   Print-ready PDF with custom borders
