@@ -43,6 +43,7 @@ export type Database = {
           created_at: string
           heading_text: string | null
           id: string
+          keep: boolean | null
           mimi_key: string | null
           original_image_url: string
           page_order: number
@@ -56,6 +57,7 @@ export type Database = {
           created_at?: string
           heading_text?: string | null
           id?: string
+          keep?: boolean | null
           mimi_key?: string | null
           original_image_url: string
           page_order: number
@@ -69,6 +71,7 @@ export type Database = {
           created_at?: string
           heading_text?: string | null
           id?: string
+          keep?: boolean | null
           mimi_key?: string | null
           original_image_url?: string
           page_order?: number
