@@ -282,7 +282,7 @@ const Menu = () => {
                     <img 
                       src="/images/example-photo-family.jpg" 
                       alt="Original family photo before conversion"
-                      className="w-full aspect-square object-cover rounded-lg shadow-md"
+                      className="example-thumb rounded-lg shadow-md"
                     />
                   </div>
                   <div className="space-y-2">
@@ -290,7 +290,7 @@ const Menu = () => {
                     <img 
                       src="/images/example-coloring-page.jpg" 
                       alt="Converted coloring page with line art"
-                      className="w-full aspect-square object-cover rounded-lg shadow-md"
+                      className="example-thumb rounded-lg shadow-md"
                     />
                   </div>
                 </div>
@@ -311,7 +311,7 @@ const Menu = () => {
                     <img 
                       src="/images/example-photo-kid-dog.jpg" 
                       alt="Original photo of child with pet dog"
-                      className="w-full aspect-square object-cover rounded-lg shadow-md"
+                      className="example-thumb rounded-lg shadow-md"
                     />
                   </div>
                   <div className="space-y-2">
@@ -319,7 +319,7 @@ const Menu = () => {
                     <img 
                       src="/images/example-cartoon-page.jpg" 
                       alt="Cartoon style illustration of child with pet"
-                      className="w-full aspect-square object-cover rounded-lg shadow-md"
+                      className="example-thumb rounded-lg shadow-md"
                     />
                   </div>
                 </div>
