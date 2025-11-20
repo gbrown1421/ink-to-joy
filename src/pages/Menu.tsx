@@ -52,31 +52,54 @@ const Menu = () => {
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 md:py-32">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 text-accent-foreground text-sm font-medium mb-4">
-            <Sparkles className="w-4 h-4" />
-            <span>Turn Photos into Print-Ready Books</span>
-          </div>
-          
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-            Turn your photos into{" "}
-            <span className="bg-gradient-creative bg-clip-text text-transparent">
-              books, cartoons, and coloring pages
-            </span>
-          </h1>
-          
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Upload your favorite photos, choose your style, and get a beautiful print-ready PDF in minutes. Perfect for gifts, classrooms, or family fun.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
-            <Button onClick={() => navigate('/project-type')} size="lg" className="w-full sm:w-auto">
-              <BookOpen className="w-5 h-5 mr-2" />
-              Create your book
-            </Button>
-            <Button onClick={() => scrollToSection("examples")} variant="outline" size="lg" className="w-full sm:w-auto">
-              See sample books
-            </Button>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Left: Text Content */}
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 text-accent-foreground text-sm font-medium mb-4">
+                <Sparkles className="w-4 h-4" />
+                <span>Turn Photos into Print-Ready Books</span>
+              </div>
+              
+              <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+                Turn your photos into{" "}
+                <span className="bg-gradient-creative bg-clip-text text-transparent">
+                  books, cartoons, and coloring pages
+                </span>
+              </h1>
+              
+              <p className="text-lg text-muted-foreground">
+                Upload your favorite photos, choose your style, and get a beautiful print-ready PDF in minutes. Perfect for gifts, classrooms, or family fun.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row items-start gap-4 pt-4">
+                <Button onClick={() => navigate('/project-type')} size="lg" className="w-full sm:w-auto">
+                  <BookOpen className="w-5 h-5 mr-2" />
+                  Create your book
+                </Button>
+                <Button onClick={() => scrollToSection("examples")} variant="outline" size="lg" className="w-full sm:w-auto">
+                  See sample books
+                </Button>
+              </div>
+            </div>
+
+            {/* Right: Image Collage */}
+            <div className="relative">
+              <div className="relative">
+                <img 
+                  src="/images/hero-teacher-coloring.jpg" 
+                  alt="Teacher with young children happily coloring in custom coloring books at a classroom table"
+                  className="w-full h-auto rounded-2xl shadow-2xl"
+                />
+                <div className="absolute -bottom-6 -right-6 w-48 h-48 rounded-xl shadow-xl overflow-hidden border-4 border-background">
+                  <img 
+                    src="/images/hero-coloring-page.jpg" 
+                    alt="Close-up of a personalized coloring page with a child's name in the header"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -92,7 +115,14 @@ const Menu = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            <Card className="hover:shadow-xl transition-shadow">
+            <Card className="hover:shadow-xl transition-shadow overflow-hidden">
+              <div className="aspect-video w-full overflow-hidden bg-muted">
+                <img 
+                  src="/images/product-coloring-classroom.jpg" 
+                  alt="Teacher with students coloring together at a classroom table"
+                  className="w-full h-full object-cover"
+                />
+              </div>
               <CardHeader>
                 <div className="w-12 h-12 rounded-xl bg-gradient-creative flex items-center justify-center mb-4">
                   <Palette className="w-6 h-6 text-primary-foreground" />
@@ -110,7 +140,14 @@ const Menu = () => {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-xl transition-shadow">
+            <Card className="hover:shadow-xl transition-shadow overflow-hidden">
+              <div className="aspect-video w-full overflow-hidden bg-muted">
+                <img 
+                  src="/images/product-grandparent-cartoon-book.jpg" 
+                  alt="Grandparent sitting on couch smiling while flipping through a cartoon-style book of grandchildren"
+                  className="w-full h-full object-cover"
+                />
+              </div>
               <CardHeader>
                 <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mb-4">
                   <Smile className="w-6 h-6 text-secondary-foreground" />
@@ -128,7 +165,14 @@ const Menu = () => {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-xl transition-shadow opacity-75">
+            <Card className="hover:shadow-xl transition-shadow opacity-75 overflow-hidden">
+              <div className="aspect-video w-full overflow-hidden bg-muted">
+                <img 
+                  src="/images/product-calendars-memo-books.jpg" 
+                  alt="Stack of calendar and notebook with pen on desk"
+                  className="w-full h-full object-cover opacity-60"
+                />
+              </div>
               <CardHeader>
                 <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
                   <Sparkles className="w-6 h-6 text-muted-foreground" />
@@ -228,33 +272,77 @@ const Menu = () => {
 
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="overflow-hidden">
-              <div className="aspect-square bg-gradient-subtle flex items-center justify-center">
-                <div className="text-center space-y-2 p-6">
-                  <Palette className="w-12 h-12 text-primary mx-auto" />
-                  <p className="font-semibold">Photo → Coloring Page</p>
-                  <p className="text-sm text-muted-foreground">Transform any photo into beautiful line art</p>
+              <CardHeader>
+                <CardTitle className="text-lg">Photo → Coloring Page</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase">Before</p>
+                    <img 
+                      src="/images/example-photo-family.jpg" 
+                      alt="Original family photo before conversion"
+                      className="w-full aspect-square object-cover rounded-lg shadow-md"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase">After</p>
+                    <img 
+                      src="/images/example-coloring-page.jpg" 
+                      alt="Converted coloring page with line art"
+                      className="w-full aspect-square object-cover rounded-lg shadow-md"
+                    />
+                  </div>
                 </div>
-              </div>
+                <p className="text-sm text-muted-foreground text-center">
+                  Transform any photo into beautiful line art
+                </p>
+              </CardContent>
             </Card>
 
             <Card className="overflow-hidden">
-              <div className="aspect-square bg-gradient-subtle flex items-center justify-center">
-                <div className="text-center space-y-2 p-6">
-                  <Smile className="w-12 h-12 text-secondary mx-auto" />
-                  <p className="font-semibold">Photo → Cartoon Page</p>
-                  <p className="text-sm text-muted-foreground">Get fun caricature versions of your photos</p>
+              <CardHeader>
+                <CardTitle className="text-lg">Photo → Cartoon Page</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase">Before</p>
+                    <img 
+                      src="/images/example-photo-kid-dog.jpg" 
+                      alt="Original photo of child with pet dog"
+                      className="w-full aspect-square object-cover rounded-lg shadow-md"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase">After</p>
+                    <img 
+                      src="/images/example-cartoon-page.jpg" 
+                      alt="Cartoon style illustration of child with pet"
+                      className="w-full aspect-square object-cover rounded-lg shadow-md"
+                    />
+                  </div>
                 </div>
-              </div>
+                <p className="text-sm text-muted-foreground text-center">
+                  Get fun caricature versions of your photos
+                </p>
+              </CardContent>
             </Card>
 
             <Card className="overflow-hidden">
-              <div className="aspect-square bg-gradient-subtle flex items-center justify-center">
-                <div className="text-center space-y-2 p-6">
-                  <BookOpen className="w-12 h-12 text-accent mx-auto" />
-                  <p className="font-semibold">Finished Book Preview</p>
-                  <p className="text-sm text-muted-foreground">Print-ready PDF with custom borders</p>
-                </div>
-              </div>
+              <CardHeader>
+                <CardTitle className="text-lg">Finished Book</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <img 
+                  src="/images/example-coffee-table-book.jpg" 
+                  alt="Finished printed book displayed on a coffee table"
+                  className="w-full aspect-video object-cover rounded-lg shadow-md"
+                />
+                <p className="text-sm text-muted-foreground text-center">
+                  Print-ready PDF with custom borders
+                </p>
+              </CardContent>
             </Card>
           </div>
         </div>
