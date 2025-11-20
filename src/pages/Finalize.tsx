@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Palette, Download, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { ProjectTypeBadge } from "@/components/ProjectTypeBadge";
 
 interface PageData {
   coloringImageUrl: string;
@@ -21,10 +22,31 @@ const Finalize = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfData, setPdfData] = useState<{ bookName: string; pages: PageData[] } | null>(null);
   const [pageCount, setPageCount] = useState(0);
+  const [projectType, setProjectType] = useState<"coloring" | "toon">("coloring");
 
   useEffect(() => {
     loadPageCount();
+    loadBookDetails();
   }, [bookId]);
+
+  const loadBookDetails = async () => {
+    if (!bookId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('books')
+        .select('project_type')
+        .eq('id', bookId)
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setProjectType(data.project_type as "coloring" | "toon");
+      }
+    } catch (error) {
+      console.error('Error loading book details:', error);
+    }
+  };
 
   const loadPageCount = async () => {
     if (!bookId) return;
@@ -74,14 +96,17 @@ const Finalize = () => {
     <div className="min-h-screen bg-gradient-subtle">
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-creative flex items-center justify-center">
-              <Palette className="w-6 h-6 text-primary-foreground" />
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-creative flex items-center justify-center">
+                <Palette className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">{bookName}</h1>
+                <p className="text-sm text-muted-foreground">Step 4: Finalize & Export</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold">{bookName}</h1>
-              <p className="text-sm text-muted-foreground">Step 4: Finalize & Export</p>
-            </div>
+            <ProjectTypeBadge projectType={projectType} />
           </div>
         </div>
       </header>

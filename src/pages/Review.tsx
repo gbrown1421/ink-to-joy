@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { BorderWrapper } from "@/components/borders/BorderWrapper";
+import { ProjectTypeBadge } from "@/components/ProjectTypeBadge";
 
 interface Page {
   id: string;
@@ -63,6 +64,7 @@ const Review = () => {
   const [selectedPage, setSelectedPage] = useState<Page | null>(null);
   const [difficulty, setDifficulty] = useState<string>("beginner");
   const [borderStyles, setBorderStyles] = useState(getBorderStylesForDifficulty("beginner"));
+  const [projectType, setProjectType] = useState<"coloring" | "toon">("coloring");
 
   useEffect(() => {
     loadBookAndPages();
@@ -72,17 +74,19 @@ const Review = () => {
     if (!bookId) return;
 
     try {
-      // Load book details to get difficulty
+      // Load book details to get difficulty and project type
       const bookResponse: any = await (supabase as any)
         .from('books')
-        .select('difficulty')
+        .select('difficulty, project_type')
         .eq('id', bookId)
         .single();
 
       if (bookResponse.error) throw bookResponse.error;
       
       const bookDifficulty = bookResponse.data.difficulty;
+      const bookProjectType = bookResponse.data.project_type || 'coloring';
       setDifficulty(bookDifficulty);
+      setProjectType(bookProjectType);
       setBorderStyles(getBorderStylesForDifficulty(bookDifficulty));
 
       // Load pages
@@ -196,14 +200,17 @@ const Review = () => {
     <div className="min-h-screen bg-gradient-subtle">
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-creative flex items-center justify-center">
-              <Palette className="w-6 h-6 text-primary-foreground" />
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-creative flex items-center justify-center">
+                <Palette className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">{bookName}</h1>
+                <p className="text-sm text-muted-foreground">Step 3: Review & Organize</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold">{bookName}</h1>
-              <p className="text-sm text-muted-foreground">Step 3: Review & Organize</p>
-            </div>
+            <ProjectTypeBadge projectType={projectType} />
           </div>
         </div>
       </header>

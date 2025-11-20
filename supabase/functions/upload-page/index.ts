@@ -37,10 +37,10 @@ serve(async (req) => {
       );
     }
 
-    // Get book to determine difficulty
+    // Get book to determine difficulty and project type
     const { data: book, error: bookError } = await supabase
       .from('books')
-      .select('difficulty')
+      .select('difficulty, project_type')
       .eq('id', bookId)
       .single();
 
@@ -77,7 +77,44 @@ serve(async (req) => {
 
     const orderIndex = (count ?? 0) + 1;
 
-    // Submit to Mimi Panda API
+    // Route based on project type
+    if (book.project_type === 'toon') {
+      // For toon projects, delegate to generate-toon-image function
+      const toonFormData = new FormData();
+      toonFormData.append('bookId', bookId);
+      toonFormData.append('image', imageFile);
+
+      const toonResponse = await fetch(
+        `${Deno.env.get('SUPABASE_URL')}/functions/v1/generate-toon-image`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          },
+          body: toonFormData,
+        }
+      );
+
+      if (!toonResponse.ok) {
+        const errorText = await toonResponse.text();
+        console.error('Toon generation error:', errorText);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Failed to generate toon image',
+            details: errorText
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const toonData = await toonResponse.json();
+      return new Response(
+        JSON.stringify({ pageId: toonData.pageId }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Submit to Mimi Panda API for coloring book projects
     const mimiConfig = difficultyToMimi[book.difficulty] || difficultyToMimi["beginner"];
     const apiToken = Deno.env.get('MIMI_PANDA_API_TOKEN');
     

@@ -20,18 +20,21 @@ export type Database = {
           difficulty: string
           id: string
           name: string
+          project_type: string
         }
         Insert: {
           created_at?: string
           difficulty: string
           id?: string
           name: string
+          project_type?: string
         }
         Update: {
           created_at?: string
           difficulty?: string
           id?: string
           name?: string
+          project_type?: string
         }
         Relationships: []
       }

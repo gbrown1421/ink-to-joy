@@ -17,7 +17,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { name, difficulty } = await req.json();
+    const { name, difficulty, projectType = 'coloring' } = await req.json();
 
     if (!name || !difficulty) {
       return new Response(
@@ -28,7 +28,7 @@ serve(async (req) => {
 
     const { data, error } = await supabase
       .from('books')
-      .insert({ name, difficulty })
+      .insert({ name, difficulty, project_type: projectType })
       .select()
       .single();
 

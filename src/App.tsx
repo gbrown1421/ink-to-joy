@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Menu from "./pages/Menu";
+import ProjectTypeSelection from "./pages/ProjectTypeSelection";
 import DifficultySelection from "./pages/DifficultySelection";
 import Upload from "./pages/Upload";
 import Review from "./pages/Review";
@@ -20,7 +21,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Menu />} />
-          <Route path="/create" element={<DifficultySelection />} />
+          <Route path="/project-type" element={<ProjectTypeSelection />} />
+          <Route path="/difficulty" element={<DifficultySelection />} />
           <Route path="/upload/:bookId" element={<Upload />} />
           <Route path="/review/:bookId" element={<Review />} />
           <Route path="/finalize/:bookId" element={<Finalize />} />

@@ -68,7 +68,7 @@ const Menu = () => {
               </ol>
               
               <Button 
-                onClick={() => navigate('/create')}
+                onClick={() => navigate('/project-type')}
                 className="w-full mt-6"
                 size="lg"
               >
