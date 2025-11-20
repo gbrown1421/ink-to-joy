@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Palette, Download, Loader2, CheckCircle2 } from "lucide-react";
+import { Palette, Download, Loader2, CheckCircle2, Home, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectTypeBadge } from "@/components/ProjectTypeBadge";
+import jsPDF from "jspdf";
 
 interface PageData {
   coloringImageUrl: string;
@@ -86,10 +87,78 @@ const Finalize = () => {
     }
   };
 
-  const handleDownload = () => {
-    // TODO: Implement actual PDF download
-    // For now, this will use the pdfData to create a downloadable PDF
-    toast.info("PDF download functionality will be implemented in the next phase");
+  const handleDownload = async () => {
+    if (!pdfData) return;
+
+    try {
+      toast.info("Generating PDF file...");
+      
+      // Create a new PDF with Letter size (8.5" x 11")
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'in',
+        format: 'letter'
+      });
+
+      // Page dimensions
+      const pageWidth = 8.5;
+      const pageHeight = 11;
+      const margin = 0.5;
+
+      for (let i = 0; i < pdfData.pages.length; i++) {
+        const page = pdfData.pages[i];
+        
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        // Add heading if present
+        if (page.headingText) {
+          pdf.setFontSize(24);
+          pdf.text(page.headingText, pageWidth / 2, margin + 0.3, { align: 'center' });
+        }
+
+        // Load and add the coloring image
+        try {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = page.coloringImageUrl;
+          });
+
+          // Calculate image dimensions to fit in the page
+          const availableHeight = pageHeight - (2 * margin) - (page.headingText ? 0.5 : 0);
+          const availableWidth = pageWidth - (2 * margin);
+          
+          const imgAspectRatio = img.width / img.height;
+          let imgWidth = availableWidth;
+          let imgHeight = imgWidth / imgAspectRatio;
+          
+          if (imgHeight > availableHeight) {
+            imgHeight = availableHeight;
+            imgWidth = imgHeight * imgAspectRatio;
+          }
+
+          const xPos = (pageWidth - imgWidth) / 2;
+          const yPos = margin + (page.headingText ? 0.6 : 0);
+
+          pdf.addImage(img, 'PNG', xPos, yPos, imgWidth, imgHeight);
+        } catch (error) {
+          console.error(`Error loading image for page ${i + 1}:`, error);
+          toast.error(`Failed to load image for page ${i + 1}`);
+        }
+      }
+
+      // Save the PDF
+      pdf.save(`${pdfData.bookName}.pdf`);
+      toast.success("PDF downloaded successfully!");
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error("Failed to download PDF");
+    }
   };
 
   return (
@@ -106,7 +175,25 @@ const Finalize = () => {
                 <p className="text-sm text-muted-foreground">Step 4: Finalize & Export</p>
               </div>
             </div>
-            <ProjectTypeBadge projectType={projectType} />
+            <div className="flex items-center gap-2">
+              <ProjectTypeBadge projectType={projectType} />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/review/${bookId}`, { state: { bookName } })}
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Back
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/')}
+              >
+                <Home className="w-4 h-4 mr-1" />
+                Home
+              </Button>
+            </div>
           </div>
         </div>
       </header>

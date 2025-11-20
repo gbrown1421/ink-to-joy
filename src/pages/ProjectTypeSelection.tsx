@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Palette, Sparkles, Smile } from "lucide-react";
+import { Palette, Sparkles, Smile, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const ProjectTypeSelection = () => {
@@ -18,18 +18,28 @@ const ProjectTypeSelection = () => {
     <div className="min-h-screen bg-gradient-subtle">
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-creative flex items-center justify-center">
-              <Palette className="w-6 h-6 text-primary-foreground" />
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-creative flex items-center justify-center">
+                <Palette className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-creative bg-clip-text text-transparent">
+                  Choose Project Type
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Select the style for your book
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-creative bg-clip-text text-transparent">
-                Choose Project Type
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Select the style for your book
-              </p>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/')}
+            >
+              <Home className="w-4 h-4 mr-1" />
+              Home
+            </Button>
           </div>
         </div>
       </header>
