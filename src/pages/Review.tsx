@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Palette, ArrowRight, GripVertical } from "lucide-react";
+import { Palette, ArrowRight, GripVertical, Home, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
@@ -210,7 +210,25 @@ const Review = () => {
                 <p className="text-sm text-muted-foreground">Step 3: Review & Organize</p>
               </div>
             </div>
-            <ProjectTypeBadge projectType={projectType} />
+            <div className="flex items-center gap-2">
+              <ProjectTypeBadge projectType={projectType} />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/upload/${bookId}`, { state: { bookName, difficulty } })}
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Back
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/')}
+              >
+                <Home className="w-4 h-4 mr-1" />
+                Home
+              </Button>
+            </div>
           </div>
         </div>
       </header>

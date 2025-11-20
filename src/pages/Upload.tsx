@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Palette, Upload as UploadIcon, ArrowRight, Loader2, X, CheckCircle2, AlertCircle } from "lucide-react";
+import { Palette, Upload as UploadIcon, ArrowRight, Loader2, X, CheckCircle2, AlertCircle, Home, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useDropzone } from "react-dropzone";
@@ -183,7 +183,17 @@ const Upload = () => {
                 <p className="text-sm text-muted-foreground">Step 2: Upload Photos</p>
               </div>
             </div>
-            <ProjectTypeBadge projectType={projectType} />
+            <div className="flex items-center gap-2">
+              <ProjectTypeBadge projectType={projectType} />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/')}
+              >
+                <Home className="w-4 h-4 mr-1" />
+                Home
+              </Button>
+            </div>
           </div>
         </div>
       </header>
