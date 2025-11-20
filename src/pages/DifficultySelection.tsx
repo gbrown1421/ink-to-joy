@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Palette, ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -54,6 +54,8 @@ const DifficultySelection = () => {
   const [bookName, setBookName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const projectType = (searchParams.get("type") as "coloring" | "toon") || "coloring";
 
   const handleContinue = async () => {
     if (!bookName.trim()) {
@@ -64,7 +66,7 @@ const DifficultySelection = () => {
     setIsCreating(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-book', {
-        body: { name: bookName.trim(), difficulty: selectedDifficulty }
+        body: { name: bookName.trim(), difficulty: selectedDifficulty, projectType }
       });
 
       if (error) throw error;

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Palette, Upload as UploadIcon, ArrowRight, Loader2, X, CheckCircle2, Al
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useDropzone } from "react-dropzone";
+import { ProjectTypeBadge } from "@/components/ProjectTypeBadge";
 
 interface UploadedPage {
   id: string;
@@ -24,6 +25,30 @@ const Upload = () => {
 
   const [pages, setPages] = useState<UploadedPage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [projectType, setProjectType] = useState<"coloring" | "toon">("coloring");
+
+  useEffect(() => {
+    loadBookDetails();
+  }, [bookId]);
+
+  const loadBookDetails = async () => {
+    if (!bookId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('books')
+        .select('project_type')
+        .eq('id', bookId)
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setProjectType(data.project_type as "coloring" | "toon");
+      }
+    } catch (error) {
+      console.error('Error loading book details:', error);
+    }
+  };
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (!bookId) return;
@@ -148,14 +173,17 @@ const Upload = () => {
     <div className="min-h-screen bg-gradient-subtle">
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-creative flex items-center justify-center">
-              <Palette className="w-6 h-6 text-primary-foreground" />
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-creative flex items-center justify-center">
+                <Palette className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">{bookName}</h1>
+                <p className="text-sm text-muted-foreground">Step 2: Upload Photos</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold">{bookName}</h1>
-              <p className="text-sm text-muted-foreground">Step 2: Upload Photos</p>
-            </div>
+            <ProjectTypeBadge projectType={projectType} />
           </div>
         </div>
       </header>
