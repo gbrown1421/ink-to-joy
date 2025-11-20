@@ -112,11 +112,20 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 
-  .example-thumb {
-    max-height: 180px;
-    width: auto;
-    object-fit: contain;
-    display: block;
-    margin: 0 auto;
-  }
+.example-thumb {
+  max-height: 180px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+.example-card-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
+  margin: 0 auto;
+}
 }
