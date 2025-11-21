@@ -8,8 +8,8 @@ const corsHeaders = {
 
 const MIMI_PANDA_API_URL = 'https://mimi-panda.com/api/service/coloring';
 
-const difficultyToMimi: Record<string, { version: string; type: string }> = {
-  "quick-easy": { version: "v2", type: "v2_simplified" },
+const difficultyToMimi: Record<string, { version: string; type: string; background?: string }> = {
+  "quick-easy": { version: "v2", type: "v2_simplified", background: "remove" },
   "beginner": { version: "v2", type: "v2_general" },
   "intermediate": { version: "v2", type: "v2_comic" },
   "advanced": { version: "v2", type: "v2_detailed" },
@@ -137,6 +137,11 @@ serve(async (req) => {
     mimiFormData.append('image', imageFile);
     mimiFormData.append('version', mimiConfig.version);
     mimiFormData.append('type', mimiConfig.type);
+    
+    // Add background suppression for quick-easy difficulty
+    if (mimiConfig.background) {
+      mimiFormData.append('background', mimiConfig.background);
+    }
 
     console.log('Sending request to Mimi Panda API...');
     const mimiResponse = await fetch(MIMI_PANDA_API_URL, {
