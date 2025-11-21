@@ -16,36 +16,41 @@ interface DifficultyOption {
   description: string;
   ageRange: string;
   detailLevel: string;
+  sampleImage: string;
 }
 
 const difficulties: DifficultyOption[] = [
   {
     id: "quick-easy",
     name: "Quick and Easy",
-    description: "Thick lines and simple patterns, perfect for young children",
+    description: "Ultra thick bold outlines, removes most background detail",
     ageRange: "3-6 years",
-    detailLevel: "3-6 sections"
+    detailLevel: "3-6 sections",
+    sampleImage: "/images/difficulty-samples/difficulty-quick-sample.jpg"
   },
   {
     id: "beginner",
     name: "Beginner",
-    description: "Medium lines with moderate detail",
+    description: "Medium lines with simple backgrounds, basic room outlines",
     ageRange: "7-10 years",
-    detailLevel: "7-12 sections"
+    detailLevel: "7-12 sections",
+    sampleImage: "/images/difficulty-samples/difficulty-beginner-sample.jpg"
   },
   {
     id: "intermediate",
     name: "Intermediate",
-    description: "Thinner lines with more intricate patterns",
+    description: "More clothing folds and several background objects",
     ageRange: "11-15 years",
-    detailLevel: "13-20 sections"
+    detailLevel: "13-20 sections",
+    sampleImage: "/images/difficulty-samples/difficulty-intermediate-sample.jpg"
   },
   {
     id: "advanced",
     name: "Advanced",
-    description: "Fine lines with detailed and intricate patterns",
+    description: "Detailed scene with lots of thin lines and intricate patterns",
     ageRange: "16+ years",
-    detailLevel: "20+ sections"
+    detailLevel: "20+ sections",
+    sampleImage: "/images/difficulty-samples/difficulty-advanced-sample.jpg"
   }
 ];
 
@@ -146,6 +151,11 @@ const DifficultySelection = () => {
                   onClick={() => setSelectedDifficulty(difficulty.id)}
                 >
                   <div className="space-y-3">
+                    <img 
+                      src={difficulty.sampleImage} 
+                      alt={`${difficulty.name} sample`}
+                      className="w-24 h-24 mx-auto object-cover rounded-lg border border-border/50"
+                    />
                     <div className="flex items-center justify-between">
                       <h3 className="text-xl font-bold">{difficulty.name}</h3>
                       <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
