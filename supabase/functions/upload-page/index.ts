@@ -10,12 +10,17 @@ const corsHeaders = {
 // This matches the exact API call from mimi-panda.com website when using "Version 2 → Simplified (for kids)"
 const MIMI_PANDA_API_URL = 'https://mimi-panda.com/api/service/coloring';
 
-// Always use Version 2 with Simplified type - this produces clean, bold line art
+// HARD-CODED: Always use Version 2 with Simplified type - this produces clean, bold line art
 // that we'll use as our "Intermediate" base and post-process for easier difficulties
 const MIMI_CONFIG = { 
   version: "v2",           // Version 2 (new) 
-  type: "v2_simplified"    // Simplified (for kids)
+  type: "v2_simplified"    // Simplified (for kids) - produces daycare-quality clean line art
 };
+
+// Type mapping for reference (not currently used - all difficulties use v2_simplified):
+// - v2_general: "General" mode
+// - v2_simplified: "Simplified (for kids)" mode ← WE USE THIS
+// - v2_detailed: "Detailed (for adults)" mode
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -123,10 +128,13 @@ serve(async (req) => {
     console.log('=== MIMI PANDA API REQUEST ===');
     console.log('API Token configured:', !!apiToken);
     console.log('API URL:', MIMI_PANDA_API_URL);
-    console.log('Config:', MIMI_CONFIG);
+    console.log('HARD-CODED Mimi Config:', MIMI_CONFIG);
+    console.log('  → Version:', MIMI_CONFIG.version, '(Version 2 - new)');
+    console.log('  → Type:', MIMI_CONFIG.type, '(Simplified for kids - daycare quality)');
     console.log('Image name:', imageFile.name);
     console.log('Image size:', imageFile.size, 'bytes');
     console.log('Image type:', imageFile.type);
+    console.log('Book difficulty:', book.difficulty, '(note: all use same Mimi type for now)');
     
     if (!apiToken) {
       console.error('MIMI_PANDA_API_TOKEN is not set');

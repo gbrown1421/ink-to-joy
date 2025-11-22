@@ -72,7 +72,21 @@ const Upload = () => {
           body: formData,
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Upload function error:', error);
+          const errorMsg = error.message || 'Upload failed';
+          toast.error(`Upload failed: ${errorMsg}`);
+          throw error;
+        }
+
+        if (!data?.pageId) {
+          const errorMsg = 'No page ID returned from upload';
+          console.error(errorMsg, data);
+          toast.error(errorMsg);
+          throw new Error(errorMsg);
+        }
+
+        console.log('Upload successful, page ID:', data.pageId);
 
         setPages(prev => prev.map(p => 
           p.id === page.id 
@@ -84,9 +98,10 @@ const Upload = () => {
         pollPageStatus(page.id, data.pageId);
       } catch (error) {
         console.error('Error uploading page:', error);
+        const errorMsg = error instanceof Error ? error.message : 'Upload failed';
         setPages(prev => prev.map(p => 
           p.id === page.id 
-            ? { ...p, status: "failed", error: "Upload failed" } 
+            ? { ...p, status: "failed", error: errorMsg } 
             : p
         ));
       }
@@ -105,10 +120,25 @@ const Upload = () => {
           body: { pageId },
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Status check error:', error);
+          const errorMsg = error.message || 'Status check failed';
+          toast.error(`Processing error: ${errorMsg}`);
+          throw error;
+        }
+
+        console.log('Status check response:', data);
 
         if (data.status === "ready") {
           const coloringImageUrl = data.coloringImageUrl;
+          
+          if (!coloringImageUrl) {
+            console.error('No coloring image URL in ready response:', data);
+            toast.error('Processing completed but no image URL returned');
+          } else {
+            console.log('Page ready with image:', coloringImageUrl);
+            toast.success('Page processed successfully!');
+          }
           
           setPages(prev => prev.map(p => 
             p.id === tempId 
@@ -117,9 +147,12 @@ const Upload = () => {
           ));
           return;
         } else if (data.status === "failed") {
+          const errorMsg = data.error || 'Processing failed';
+          console.error('Processing failed:', errorMsg);
+          toast.error(`Processing failed: ${errorMsg}`);
           setPages(prev => prev.map(p => 
             p.id === tempId 
-              ? { ...p, status: "failed", error: "Processing failed" } 
+              ? { ...p, status: "failed", error: errorMsg } 
               : p
           ));
           return;
@@ -246,15 +279,27 @@ const Upload = () => {
                         className="w-full h-full object-contain"
                         style={{ imageRendering: 'crisp-edges' }}
                       />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
+                     ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-2">
                         {page.status === "uploading" || page.status === "processing" ? (
-                          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                          <>
+                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                            <span className="text-xs text-center text-muted-foreground">
+                              {page.status === "uploading" ? "Uploading..." : "Processing..."}
+                            </span>
+                          </>
                         ) : (
-                          <AlertCircle className="w-8 h-8 text-destructive" />
+                          <>
+                            <AlertCircle className="w-8 h-8 text-destructive" />
+                            {page.error && (
+                              <span className="text-xs text-center text-destructive">
+                                {page.error}
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
-                    )}
+                     )}
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground truncate flex-1">
