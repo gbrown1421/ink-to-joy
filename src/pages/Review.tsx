@@ -249,13 +249,7 @@ const Review = () => {
                     difficulty={difficulty}
                   >
                     <img 
-                      src={
-                        difficulty === 'quick-easy' && selectedPage.easy_image_url
-                          ? selectedPage.easy_image_url
-                          : difficulty === 'beginner' && selectedPage.beginner_image_url
-                          ? selectedPage.beginner_image_url
-                          : selectedPage.intermediate_image_url || selectedPage.coloring_image_url
-                      }
+                      src={selectedPage.intermediate_image_url || selectedPage.coloring_image_url}
                       alt="Coloring page preview"
                       className="w-full rounded-lg"
                     />
