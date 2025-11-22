@@ -15,5 +15,8 @@ verify_jwt = false
 [functions.generate-toon-image]
 verify_jwt = false
 
-[functions.process-difficulty-versions]
+[functions.process-page-difficulty]
+verify_jwt = false
+
+[functions.test-difficulty-diagnostic]
 verify_jwt = false

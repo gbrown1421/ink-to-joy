@@ -6,20 +6,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Mimi Panda status check endpoint
 const MIMI_PANDA_API_BASE_URL = 'https://mimi-panda.com/api/service/item';
+
+/**
+ * POLLS Mimi Panda API to check if a coloring job is complete.
+ * When ready, downloads the result, stores it as "intermediate_image_url",
+ * and triggers difficulty post-processing.
+ */
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  );
 
-    const { pageId } = await req.json();
+  let pageId: string | null = null;
+
+  try {
+    const body = await req.json();
+    pageId = body.pageId;
 
     if (!pageId) {
       return new Response(
@@ -53,7 +63,8 @@ serve(async (req) => {
       );
     }
 
-    // Check Mimi Panda status
+    // Poll Mimi Panda API for job status
+    console.log('Checking Mimi status for key:', page.mimi_key);
     const mimiResponse = await fetch(`${MIMI_PANDA_API_BASE_URL}/${page.mimi_key}`, {
       headers: {
         'Authorization': `Bearer ${Deno.env.get('MIMI_PANDA_API_TOKEN')}`,
@@ -61,7 +72,8 @@ serve(async (req) => {
     });
 
     if (!mimiResponse.ok) {
-      console.error('Mimi Panda status check error:', await mimiResponse.text());
+      const errorText = await mimiResponse.text();
+      console.error('Mimi Panda status check error:', mimiResponse.status, errorText);
       return new Response(
         JSON.stringify({ status: 'processing' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -69,45 +81,110 @@ serve(async (req) => {
     }
 
     const mimiData = await mimiResponse.json();
-    const mimiStatus = mimiData.status;
+    console.log('Mimi status:', mimiData.status);
 
-    if (mimiStatus === 'ready' && mimiData.images && mimiData.images.length > 0) {
-      // Store the intermediate (Mimi's simplified output) as the base
-      const intermediateImageUrl = mimiData.images[0];
-      
-      // Update page with intermediate URL - client will generate other versions
-      await supabase
-        .from('pages')
-        .update({ 
-          status: 'ready',
-          coloring_image_url: intermediateImageUrl,
-          intermediate_image_url: intermediateImageUrl
-        })
-        .eq('id', pageId);
-
+    if (mimiData.status !== 'completed') {
       return new Response(
-        JSON.stringify({ status: 'ready', coloringImageUrl: intermediateImageUrl }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    } else if (mimiStatus === 'error' || mimiStatus === 'failed') {
-      await supabase
-        .from('pages')
-        .update({ status: 'failed' })
-        .eq('id', pageId);
-
-      return new Response(
-        JSON.stringify({ status: 'failed' }),
+        JSON.stringify({ status: 'processing' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Still processing
+    console.log('Mimi job completed! Result URL:', mimiData.result_url);
+    console.log('Full Mimi result:', JSON.stringify(mimiData, null, 2));
+
+    // Download the completed "Intermediate" (V2 Simplified) image from Mimi
+    const imageResponse = await fetch(mimiData.result_url);
+    if (!imageResponse.ok) {
+      throw new Error(`Failed to download Mimi result: ${imageResponse.status}`);
+    }
+
+    const imageBlob = await imageResponse.blob();
+    const imageBuffer = await imageBlob.arrayBuffer();
+    
+    console.log('Downloaded Mimi result:', imageBuffer.byteLength, 'bytes');
+
+    // Store as "intermediate" (this is our Mimi V2 Simplified base)
+    const storagePath = `${page.book_id}/${page.id}-intermediate.png`;
+    const { error: storageError } = await supabase.storage
+      .from('book-images')
+      .upload(storagePath, imageBuffer, {
+        contentType: 'image/png',
+        upsert: true,
+      });
+
+    if (storageError) {
+      console.error('Error storing intermediate image:', storageError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to store image' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data: { publicUrl: intermediateUrl } } = supabase.storage
+      .from('book-images')
+      .getPublicUrl(storagePath);
+
+    console.log('Stored intermediate image at:', intermediateUrl);
+
+    // Update page with intermediate URL
+    const { error: updateError } = await supabase
+      .from('pages')
+      .update({
+        intermediate_image_url: intermediateUrl,
+        coloring_image_url: intermediateUrl,  // Keep for backwards compatibility
+        status: 'ready',
+      })
+      .eq('id', pageId);
+
+    if (updateError) {
+      console.error('Error updating page:', updateError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to update page' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Trigger background processing for Beginner and Quick & Easy versions
+    console.log('Triggering difficulty post-processing...');
+    
+    // Fire and forget - don't wait for this to complete
+    fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/process-page-difficulty`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        pageId: page.id,
+        intermediateImageUrl: intermediateUrl,
+      }),
+    }).catch(err => {
+      console.error('Failed to trigger difficulty processing:', err);
+    });
+
     return new Response(
-      JSON.stringify({ status: 'processing' }),
+      JSON.stringify({ 
+        status: 'ready', 
+        coloringImageUrl: intermediateUrl,
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in check-page-status:', error);
+    console.error('Error checking status:', error);
+    
+    // Mark as failed if something goes wrong
+    if (pageId) {
+      try {
+        await supabase
+          .from('pages')
+          .update({ status: 'failed' })
+          .eq('id', pageId);
+      } catch (e) {
+        console.error('Failed to update page status:', e);
+      }
+    }
+    
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

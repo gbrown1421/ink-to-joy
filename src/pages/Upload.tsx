@@ -242,8 +242,9 @@ const Upload = () => {
                     {page.status === "ready" && page.coloringImageUrl ? (
                       <img 
                         src={page.coloringImageUrl} 
-                        alt="Coloring page" 
-                        className="w-full h-full object-cover"
+                        alt="Processed coloring page" 
+                        className="w-full h-full object-contain"
+                        style={{ imageRendering: 'crisp-edges' }}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
