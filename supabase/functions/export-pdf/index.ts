@@ -66,15 +66,9 @@ serve(async (req) => {
       );
     }
 
-    // Select the correct image URL based on difficulty
+    // Always use intermediate (Mimi base) image for now
     const getImageUrlForDifficulty = (page: any) => {
-      if (difficulty === 'quick-easy' && page.easy_image_url) {
-        return page.easy_image_url;
-      } else if (difficulty === 'beginner' && page.beginner_image_url) {
-        return page.beginner_image_url;
-      } else {
-        return page.intermediate_image_url || page.coloring_image_url;
-      }
+      return page.intermediate_image_url || page.coloring_image_url;
     };
 
     // For v1, return the page data - PDF generation will be implemented on client side

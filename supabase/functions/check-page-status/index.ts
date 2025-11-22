@@ -47,7 +47,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           status: page.status, 
-          coloringImageUrl: page.coloring_image_url 
+          coloringImageUrl: page.intermediate_image_url || page.coloring_image_url
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
