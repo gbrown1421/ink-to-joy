@@ -6,10 +6,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Mimi Panda API Configuration
+// This matches the exact API call from mimi-panda.com website when using "Version 2 → Simplified (for kids)"
 const MIMI_PANDA_API_URL = 'https://mimi-panda.com/api/service/coloring';
 
-// Always use v2_simplified for Mimi - we'll post-process for different difficulties
-const MIMI_CONFIG = { version: "v2", type: "v2_simplified" };
+// Always use Version 2 with Simplified type - this produces clean, bold line art
+// that we'll use as our "Intermediate" base and post-process for easier difficulties
+const MIMI_CONFIG = { 
+  version: "v2",           // Version 2 (new) 
+  type: "v2_simplified"    // Simplified (for kids)
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -113,10 +119,14 @@ serve(async (req) => {
     // Submit to Mimi Panda API for coloring book projects
     const apiToken = Deno.env.get('MIMI_PANDA_API_TOKEN');
     
-    // Debug logging
-    console.log('Mimi Panda API Token exists:', !!apiToken);
-    console.log('Using Mimi Config:', MIMI_CONFIG);
+    // Debug logging - matches mimi-panda.com website behavior
+    console.log('=== MIMI PANDA API REQUEST ===');
+    console.log('API Token configured:', !!apiToken);
     console.log('API URL:', MIMI_PANDA_API_URL);
+    console.log('Config:', MIMI_CONFIG);
+    console.log('Image name:', imageFile.name);
+    console.log('Image size:', imageFile.size, 'bytes');
+    console.log('Image type:', imageFile.type);
     
     if (!apiToken) {
       console.error('MIMI_PANDA_API_TOKEN is not set');
@@ -131,7 +141,7 @@ serve(async (req) => {
     mimiFormData.append('version', MIMI_CONFIG.version);
     mimiFormData.append('type', MIMI_CONFIG.type);
 
-    console.log('Sending request to Mimi Panda API...');
+    console.log('Sending request to Mimi Panda API (matching website behavior)...');
     const mimiResponse = await fetch(MIMI_PANDA_API_URL, {
       method: 'POST',
       headers: {
@@ -140,7 +150,10 @@ serve(async (req) => {
       body: mimiFormData,
     });
 
-    console.log('Mimi Panda API response status:', mimiResponse.status);
+    console.log('=== MIMI PANDA API RESPONSE ===');
+    console.log('Status:', mimiResponse.status);
+    console.log('Status Text:', mimiResponse.statusText);
+    console.log('Content-Type:', mimiResponse.headers.get('content-type'));
     
     if (!mimiResponse.ok) {
       const errorText = await mimiResponse.text();
@@ -158,8 +171,12 @@ serve(async (req) => {
 
     const mimiData = await mimiResponse.json();
     const mimiKey = mimiData.key;
+    
+    console.log('Mimi job created with key:', mimiKey);
+    console.log('Full Mimi response:', JSON.stringify(mimiData, null, 2));
 
-    // Create page record
+    // Create page record with status=processing
+    // The check-page-status function will poll Mimi API and update when ready
     const { data: page, error: pageError } = await supabase
       .from('pages')
       .insert({

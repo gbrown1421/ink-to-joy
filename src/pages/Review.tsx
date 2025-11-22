@@ -249,9 +249,16 @@ const Review = () => {
                     difficulty={difficulty}
                   >
                     <img 
-                      src={selectedPage.intermediate_image_url || selectedPage.coloring_image_url}
+                      src={
+                        difficulty === 'quick-easy' && selectedPage.easy_image_url
+                          ? selectedPage.easy_image_url
+                          : difficulty === 'beginner' && selectedPage.beginner_image_url
+                          ? selectedPage.beginner_image_url
+                          : selectedPage.intermediate_image_url || selectedPage.coloring_image_url
+                      }
                       alt="Coloring page preview"
                       className="w-full rounded-lg"
+                      style={{ imageRendering: 'crisp-edges' }}
                     />
                   </BorderWrapper>
                 </div>
