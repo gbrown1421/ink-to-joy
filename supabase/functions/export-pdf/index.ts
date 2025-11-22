@@ -40,6 +40,8 @@ serve(async (req) => {
       );
     }
 
+    const difficulty = book.difficulty;
+
     // Get all pages marked as keep, ordered
     const { data: pages, error: pagesError } = await supabase
       .from('pages')
@@ -47,7 +49,7 @@ serve(async (req) => {
       .eq('book_id', bookId)
       .eq('keep', true)
       .eq('status', 'ready')
-      .order('order_index');
+      .order('page_order');
 
     if (pagesError) {
       console.error('Error fetching pages:', pagesError);
@@ -64,13 +66,23 @@ serve(async (req) => {
       );
     }
 
+    // Select the correct image URL based on difficulty
+    const getImageUrlForDifficulty = (page: any) => {
+      if (difficulty === 'quick-easy' && page.easy_image_url) {
+        return page.easy_image_url;
+      } else if (difficulty === 'beginner' && page.beginner_image_url) {
+        return page.beginner_image_url;
+      } else {
+        return page.intermediate_image_url || page.coloring_image_url;
+      }
+    };
+
     // For v1, return the page data - PDF generation will be implemented on client side
-    // or we can use a PDF generation service
     return new Response(
       JSON.stringify({ 
         bookName: book.name,
         pages: pages.map(p => ({
-          coloringImageUrl: p.coloring_image_url,
+          coloringImageUrl: getImageUrlForDifficulty(p),
           borderStyle: p.border_style,
           headingText: p.heading_text,
         }))

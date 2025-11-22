@@ -15,6 +15,9 @@ import { ProjectTypeBadge } from "@/components/ProjectTypeBadge";
 interface Page {
   id: string;
   coloring_image_url: string;
+  easy_image_url: string | null;
+  beginner_image_url: string | null;
+  intermediate_image_url: string | null;
   border_style: string;
   heading_text: string;
   keep: boolean;
@@ -246,7 +249,13 @@ const Review = () => {
                     difficulty={difficulty}
                   >
                     <img 
-                      src={selectedPage.coloring_image_url} 
+                      src={
+                        difficulty === 'quick-easy' && selectedPage.easy_image_url
+                          ? selectedPage.easy_image_url
+                          : difficulty === 'beginner' && selectedPage.beginner_image_url
+                          ? selectedPage.beginner_image_url
+                          : selectedPage.intermediate_image_url || selectedPage.coloring_image_url
+                      }
                       alt="Coloring page preview"
                       className="w-full rounded-lg"
                     />
@@ -310,7 +319,13 @@ const Review = () => {
                                 <GripVertical className="w-5 h-5 text-muted-foreground" />
                               </div>
                               <img 
-                                src={page.coloring_image_url} 
+                                src={
+                                  difficulty === 'quick-easy' && page.easy_image_url
+                                    ? page.easy_image_url
+                                    : difficulty === 'beginner' && page.beginner_image_url
+                                    ? page.beginner_image_url
+                                    : page.intermediate_image_url || page.coloring_image_url
+                                }
                                 alt={`Page ${index + 1}`}
                                 className="w-16 h-16 object-cover rounded"
                               />
