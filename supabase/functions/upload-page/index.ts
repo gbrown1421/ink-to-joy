@@ -8,12 +8,8 @@ const corsHeaders = {
 
 const MIMI_PANDA_API_URL = 'https://mimi-panda.com/api/service/coloring';
 
-const difficultyToMimi: Record<string, { version: string; type: string; background?: string }> = {
-  "quick-easy": { version: "v2", type: "v2_simplified", background: "remove" },
-  "beginner": { version: "v2", type: "v2_general" },
-  "intermediate": { version: "v2", type: "v2_comic" },
-  "advanced": { version: "v2", type: "v2_detailed" },
-};
+// Always use v2_simplified for Mimi - we'll post-process for different difficulties
+const MIMI_CONFIG = { version: "v2", type: "v2_simplified" };
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -115,14 +111,11 @@ serve(async (req) => {
     }
 
     // Submit to Mimi Panda API for coloring book projects
-    const mimiConfig = difficultyToMimi[book.difficulty] || difficultyToMimi["beginner"];
     const apiToken = Deno.env.get('MIMI_PANDA_API_TOKEN');
     
     // Debug logging
     console.log('Mimi Panda API Token exists:', !!apiToken);
-    console.log('Mimi Panda API Token length:', apiToken?.length || 0);
-    console.log('Difficulty:', book.difficulty);
-    console.log('Mimi Config:', mimiConfig);
+    console.log('Using Mimi Config:', MIMI_CONFIG);
     console.log('API URL:', MIMI_PANDA_API_URL);
     
     if (!apiToken) {
@@ -135,13 +128,8 @@ serve(async (req) => {
     
     const mimiFormData = new FormData();
     mimiFormData.append('image', imageFile);
-    mimiFormData.append('version', mimiConfig.version);
-    mimiFormData.append('type', mimiConfig.type);
-    
-    // Add background suppression for quick-easy difficulty
-    if (mimiConfig.background) {
-      mimiFormData.append('background', mimiConfig.background);
-    }
+    mimiFormData.append('version', MIMI_CONFIG.version);
+    mimiFormData.append('type', MIMI_CONFIG.type);
 
     console.log('Sending request to Mimi Panda API...');
     const mimiResponse = await fetch(MIMI_PANDA_API_URL, {

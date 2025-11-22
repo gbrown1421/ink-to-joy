@@ -6,7 +6,7 @@ import { Palette, Upload as UploadIcon, ArrowRight, Loader2, X, CheckCircle2, Al
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useDropzone } from "react-dropzone";
-import { prepareImageForDifficulty, type Difficulty } from "@/lib/imageProcessing";
+import { makeBeginnerFromIntermediate, makeEasyFromIntermediate } from "@/lib/lineSimplifier";
 import { ProjectTypeBadge } from "@/components/ProjectTypeBadge";
 
 interface UploadedPage {
@@ -65,18 +65,9 @@ const Upload = () => {
 
     for (const page of newPages) {
       try {
-        // Preprocess image based on difficulty
-        const blob = await prepareImageForDifficulty(page.originalFile, difficulty as Difficulty);
-        
-        const preppedFile = new File(
-          [blob],
-          page.originalFile.name.replace(/\.[^.]+$/, "") + "-prepped.jpg",
-          { type: "image/jpeg" }
-        );
-
         const formData = new FormData();
         formData.append('bookId', bookId);
-        formData.append('image', preppedFile);
+        formData.append('image', page.originalFile);
 
         const { data, error } = await supabase.functions.invoke('upload-page', {
           body: formData,
@@ -103,7 +94,7 @@ const Upload = () => {
     }
 
     setIsUploading(false);
-  }, [bookId, difficulty]);
+  }, [bookId]);
 
   const pollPageStatus = async (tempId: string, pageId: string) => {
     const maxAttempts = 60; // 5 minutes with 5-second intervals
@@ -118,9 +109,34 @@ const Upload = () => {
         if (error) throw error;
 
         if (data.status === "ready") {
+          // Process the intermediate image to create beginner and easy versions
+          const intermediateUrl = data.coloringImageUrl;
+          
+          try {
+            // Generate beginner and easy versions client-side
+            const beginnerBlob = await makeBeginnerFromIntermediate(intermediateUrl);
+            const easyBlob = await makeEasyFromIntermediate(intermediateUrl);
+            
+            // Convert blobs to base64 for upload
+            const beginnerBase64 = await blobToBase64(beginnerBlob);
+            const easyBase64 = await blobToBase64(easyBlob);
+            
+            // Upload processed versions to storage
+            await supabase.functions.invoke('process-difficulty-versions', {
+              body: { 
+                pageId, 
+                beginnerBlob: beginnerBase64,
+                easyBlob: easyBase64
+              },
+            });
+          } catch (processError) {
+            console.error('Error processing difficulty versions:', processError);
+            // Continue anyway - at least we have the intermediate version
+          }
+          
           setPages(prev => prev.map(p => 
             p.id === tempId 
-              ? { ...p, status: "ready", coloringImageUrl: data.coloringImageUrl } 
+              ? { ...p, status: "ready", coloringImageUrl: intermediateUrl } 
               : p
           ));
           return;
@@ -175,6 +191,18 @@ const Upload = () => {
     accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.webp'] },
     multiple: true,
   });
+
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = (reader.result as string).split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
 
   const readyCount = pages.filter(p => p.status === "ready").length;
   const processingCount = pages.filter(p => p.status === "processing" || p.status === "uploading").length;

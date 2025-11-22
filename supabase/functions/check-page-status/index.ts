@@ -72,18 +72,21 @@ serve(async (req) => {
     const mimiStatus = mimiData.status;
 
     if (mimiStatus === 'ready' && mimiData.images && mimiData.images.length > 0) {
-      // Update page with coloring image URL
-      const coloringImageUrl = mimiData.images[0];
+      // Store the intermediate (Mimi's simplified output) as the base
+      const intermediateImageUrl = mimiData.images[0];
+      
+      // Update page with intermediate URL - client will generate other versions
       await supabase
         .from('pages')
         .update({ 
-          status: 'ready', 
-          coloring_image_url: coloringImageUrl 
+          status: 'ready',
+          coloring_image_url: intermediateImageUrl,
+          intermediate_image_url: intermediateImageUrl
         })
         .eq('id', pageId);
 
       return new Response(
-        JSON.stringify({ status: 'ready', coloringImageUrl }),
+        JSON.stringify({ status: 'ready', coloringImageUrl: intermediateImageUrl }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else if (mimiStatus === 'error' || mimiStatus === 'failed') {

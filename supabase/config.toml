@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.generate-toon-image]
 verify_jwt = false
+
+[functions.process-difficulty-versions]
+verify_jwt = false

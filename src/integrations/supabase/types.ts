@@ -40,12 +40,15 @@ export type Database = {
       }
       pages: {
         Row: {
+          beginner_image_url: string | null
           book_id: string
           border_style: string | null
           coloring_image_url: string | null
           created_at: string
+          easy_image_url: string | null
           heading_text: string | null
           id: string
+          intermediate_image_url: string | null
           keep: boolean | null
           mimi_key: string | null
           original_image_url: string
@@ -54,12 +57,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          beginner_image_url?: string | null
           book_id: string
           border_style?: string | null
           coloring_image_url?: string | null
           created_at?: string
+          easy_image_url?: string | null
           heading_text?: string | null
           id?: string
+          intermediate_image_url?: string | null
           keep?: boolean | null
           mimi_key?: string | null
           original_image_url: string
@@ -68,12 +74,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          beginner_image_url?: string | null
           book_id?: string
           border_style?: string | null
           coloring_image_url?: string | null
           created_at?: string
+          easy_image_url?: string | null
           heading_text?: string | null
           id?: string
+          intermediate_image_url?: string | null
           keep?: boolean | null
           mimi_key?: string | null
           original_image_url?: string
