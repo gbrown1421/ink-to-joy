@@ -6,6 +6,7 @@ import { Palette, Upload as UploadIcon, ArrowRight, Loader2, X, CheckCircle2, Al
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useDropzone } from "react-dropzone";
+import { prepareImageForDifficulty, type Difficulty } from "@/lib/imageProcessing";
 import { ProjectTypeBadge } from "@/components/ProjectTypeBadge";
 
 interface UploadedPage {
@@ -64,9 +65,18 @@ const Upload = () => {
 
     for (const page of newPages) {
       try {
+        // Preprocess image based on difficulty
+        const blob = await prepareImageForDifficulty(page.originalFile, difficulty as Difficulty);
+        
+        const preppedFile = new File(
+          [blob],
+          page.originalFile.name.replace(/\.[^.]+$/, "") + "-prepped.jpg",
+          { type: "image/jpeg" }
+        );
+
         const formData = new FormData();
         formData.append('bookId', bookId);
-        formData.append('image', page.originalFile);
+        formData.append('image', preppedFile);
 
         const { data, error } = await supabase.functions.invoke('upload-page', {
           body: formData,
@@ -93,7 +103,7 @@ const Upload = () => {
     }
 
     setIsUploading(false);
-  }, [bookId]);
+  }, [bookId, difficulty]);
 
   const pollPageStatus = async (tempId: string, pageId: string) => {
     const maxAttempts = 60; // 5 minutes with 5-second intervals
