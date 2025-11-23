@@ -150,32 +150,54 @@ const Upload = () => {
             return;
           }
 
-          console.log('Master image ready, generating difficulty variants...');
+          console.log('Master image ready');
           
-          // Generate and upload difficulty variants client-side
+          // Generate Quick & Easy variant client-side if needed
           try {
-            await generateAndUploadVariants(pageId, data.masterImageUrl, bookDifficulty);
-            
-            // Fetch the page to get the updated URLs
-            const { data: updatedPage } = await supabase
-              .from('pages')
-              .select('easy_image_url, beginner_image_url, intermediate_image_url')
-              .eq('id', pageId)
-              .single();
-
             let displayUrl = data.masterImageUrl;
-            if (updatedPage) {
-              if (bookDifficulty === 'quick-easy' || bookDifficulty === 'quick') {
-                displayUrl = updatedPage.easy_image_url || data.masterImageUrl;
-              } else if (bookDifficulty === 'beginner') {
-                displayUrl = updatedPage.beginner_image_url || data.masterImageUrl;
-              } else {
-                displayUrl = updatedPage.intermediate_image_url || data.masterImageUrl;
+
+            if (bookDifficulty === 'quick-easy' || bookDifficulty === 'quick') {
+              console.log('Generating Quick & Easy variant client-side...');
+              const { generateQuickEasyFromMaster } = await import('@/lib/quickEasyProcessor');
+              const easyBlob = await generateQuickEasyFromMaster(data.masterImageUrl);
+              
+              // Upload Quick & Easy variant to storage
+              const easyFilename = `${pageId}-easy.png`;
+              const easyPath = `books/${bookId}/pages/${easyFilename}`;
+              
+              const { error: uploadError } = await supabase.storage
+                .from('book-images')
+                .upload(easyPath, easyBlob, {
+                  contentType: 'image/png',
+                  upsert: true,
+                });
+
+              if (uploadError) {
+                console.error('Failed to upload Quick & Easy variant:', uploadError);
+                throw uploadError;
               }
+
+              const { data: urlData } = supabase.storage
+                .from('book-images')
+                .getPublicUrl(easyPath);
+
+              displayUrl = urlData.publicUrl;
+
+              // Update page with Quick & Easy URL
+              const { error: updateError } = await supabase
+                .from('pages')
+                .update({ easy_image_url: displayUrl })
+                .eq('id', pageId);
+
+              if (updateError) {
+                console.error('Failed to save Quick & Easy URL:', updateError);
+                throw updateError;
+              }
+
+              console.log('Quick & Easy variant generated and saved:', displayUrl);
             }
 
-            console.log(`Page ready with ${bookDifficulty} difficulty:`, displayUrl);
-            toast.success(`Page processed successfully!`);
+            toast.success('Page processed successfully!');
             
             setPages(prev => prev.map(p => 
               p.id === tempId 
@@ -183,9 +205,10 @@ const Upload = () => {
                 : p
             ));
           } catch (variantError) {
-            console.error('Error generating variants:', variantError);
+            console.error('Error generating Quick & Easy variant:', variantError);
             // Fall back to master image
-            toast.warning('Using master image (variant generation failed)');
+            const errorMsg = variantError instanceof Error ? variantError.message : 'Unknown error';
+            toast.error(`Quick & Easy generation failed: ${errorMsg}`);
             setPages(prev => prev.map(p => 
               p.id === tempId 
                 ? { ...p, status: "ready", coloringImageUrl: data.masterImageUrl } 
@@ -233,44 +256,6 @@ const Upload = () => {
     checkStatus();
   };
 
-  const generateAndUploadVariants = async (
-    pageId: string, 
-    masterUrl: string, 
-    difficulty: string
-  ) => {
-    const { generateBeginnerFromMaster, generateEasyFromMaster, uploadDifficultyVariant } = 
-      await import('@/utils/difficultyTransforms');
-
-    if (!bookId) throw new Error('No book ID');
-
-    // Always save intermediate (master) first
-    const intermediateBlob = await fetch(masterUrl).then(r => r.blob());
-    const intermediateUrl = await uploadDifficultyVariant(bookId, pageId, 'intermediate', intermediateBlob);
-
-    // Generate and upload based on difficulty
-    let easyUrl: string | null = null;
-    let beginnerUrl: string | null = null;
-
-    if (difficulty === 'quick-easy' || difficulty === 'quick') {
-      const easyBlob = await generateEasyFromMaster(masterUrl);
-      easyUrl = await uploadDifficultyVariant(bookId, pageId, 'easy', easyBlob);
-    } else if (difficulty === 'beginner') {
-      const beginnerBlob = await generateBeginnerFromMaster(masterUrl);
-      beginnerUrl = await uploadDifficultyVariant(bookId, pageId, 'beginner', beginnerBlob);
-    }
-
-    // Update page record with URLs
-    const updates: any = { intermediate_image_url: intermediateUrl };
-    if (easyUrl) updates.easy_image_url = easyUrl;
-    if (beginnerUrl) updates.beginner_image_url = beginnerUrl;
-
-    const { error } = await supabase
-      .from('pages')
-      .update(updates)
-      .eq('id', pageId);
-
-    if (error) throw error;
-  };
 
   const removePage = (id: string) => {
     setPages(prev => prev.filter(p => p.id !== id));
