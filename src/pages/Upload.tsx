@@ -232,8 +232,8 @@ const Upload = () => {
             ));
           } catch (variantError) {
             console.error('Error processing variant:', variantError);
-            const errorMsg = variantError instanceof Error ? variantError.message : 'Variant processing failed';
-            toast.error(`Processing failed: ${errorMsg}`);
+            const errorMsg = 'Image processing failed – click to retry upload';
+            toast.error(errorMsg);
             setPages(prev => prev.map(p => 
               p.id === tempId 
                 ? { ...p, status: "failed", error: errorMsg } 
@@ -258,7 +258,7 @@ const Upload = () => {
         if (attempts < maxAttempts) {
           setTimeout(checkStatus, 5000);
         } else {
-          const timeoutMsg = 'Processing timeout - please try again';
+          const timeoutMsg = 'Image processing failed – click to retry upload';
           toast.error(timeoutMsg);
           setPages(prev => prev.map(p => 
             p.id === tempId 

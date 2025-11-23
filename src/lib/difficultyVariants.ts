@@ -15,15 +15,14 @@ async function loadImage(url: string): Promise<HTMLImageElement> {
 
 /**
  * Beginner variant: Light simplification
- * - Slight downscale (0.87)
- * - Light blur (1.2px)
- * - Moderate threshold (200)
+ * - Downscale to ~0.7x
+ * - Grayscale + threshold ~200
  * Result: Simpler than intermediate, but keeps faces, clothes, main shapes clear
  */
 export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
   const img = await loadImage(masterUrl);
   
-  const scale = 0.87;
+  const scale = 0.7;
   const tempW = Math.floor(img.naturalWidth * scale);
   const tempH = Math.floor(img.naturalHeight * scale);
   
@@ -38,16 +37,6 @@ export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
   tempCtx.imageSmoothingQuality = 'high';
   tempCtx.drawImage(img, 0, 0, tempW, tempH);
   
-  // Apply light blur
-  tempCtx.filter = 'blur(1.2px)';
-  const tempImg = new Image();
-  await new Promise((resolve) => {
-    tempImg.onload = resolve;
-    tempImg.src = tempCanvas.toDataURL();
-  });
-  tempCtx.filter = 'none';
-  tempCtx.drawImage(tempImg, 0, 0);
-  
   // Upscale back
   const finalCanvas = document.createElement('canvas');
   finalCanvas.width = img.naturalWidth;
@@ -58,7 +47,7 @@ export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
   finalCtx.imageSmoothingEnabled = false;
   finalCtx.drawImage(tempCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
   
-  // Moderate threshold
+  // Grayscale + threshold
   const imageData = finalCtx.getImageData(0, 0, finalCanvas.width, finalCanvas.height);
   const data = imageData.data;
   
@@ -86,15 +75,14 @@ export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
 
 /**
  * Quick & Easy variant: Heavy simplification
- * - Strong downscale (0.55)
- * - Heavy blur (2.5px)
- * - Aggressive threshold (210)
+ * - Strong downscale to ~0.4x
+ * - Grayscale + aggressive threshold ~225
  * Result: Bold shapes, thick lines, very few interior details - toddler-friendly
  */
 export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
   const img = await loadImage(masterUrl);
   
-  const scale = 0.55;
+  const scale = 0.4;
   const tempW = Math.floor(img.naturalWidth * scale);
   const tempH = Math.floor(img.naturalHeight * scale);
   
@@ -109,16 +97,6 @@ export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
   tempCtx.imageSmoothingQuality = 'high';
   tempCtx.drawImage(img, 0, 0, tempW, tempH);
   
-  // Apply heavy blur
-  tempCtx.filter = 'blur(2.5px)';
-  const tempImg = new Image();
-  await new Promise((resolve) => {
-    tempImg.onload = resolve;
-    tempImg.src = tempCanvas.toDataURL();
-  });
-  tempCtx.filter = 'none';
-  tempCtx.drawImage(tempImg, 0, 0);
-  
   // Upscale back
   const finalCanvas = document.createElement('canvas');
   finalCanvas.width = img.naturalWidth;
@@ -129,7 +107,7 @@ export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
   finalCtx.imageSmoothingEnabled = false;
   finalCtx.drawImage(tempCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
   
-  // Aggressive threshold
+  // Aggressive grayscale + threshold
   const imageData = finalCtx.getImageData(0, 0, finalCanvas.width, finalCanvas.height);
   const data = imageData.data;
   
@@ -138,7 +116,7 @@ export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
     const g = data[i + 1];
     const b = data[i + 2];
     const luminosity = 0.299 * r + 0.587 * g + 0.114 * b;
-    const v = luminosity > 210 ? 255 : 0;
+    const v = luminosity > 225 ? 255 : 0;
     data[i] = data[i + 1] = data[i + 2] = v;
   }
   
