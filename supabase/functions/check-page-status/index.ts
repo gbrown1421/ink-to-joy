@@ -100,37 +100,78 @@ serve(async (req) => {
       throw new Error('No image URL returned from Mimi Panda');
     }
 
-    // Simplified backend: Return only the master Mimi output
-    // Difficulty processing moved to client-side Canvas API
-    console.log('Mimi job completed! Master URL:', resultUrl);
+    // Download Mimi image and store it in our Supabase storage (enables CORS for client-side processing)
+    console.log('Mimi job completed! Downloading image from:', resultUrl);
 
-    // Save the master image URL (client will generate variants)
-    const { error: updateError } = await supabase
-      .from('pages')
-      .update({
-        intermediate_image_url: resultUrl,
-        status: 'ready',
-      })
-      .eq('id', pageId);
+    try {
+      const imageResponse = await fetch(resultUrl);
+      if (!imageResponse.ok) {
+        throw new Error(`Failed to download image: ${imageResponse.statusText}`);
+      }
 
-    if (updateError) {
-      console.error('Error updating page:', updateError);
+      const imageBlob = await imageResponse.blob();
+      const filename = `${pageId}-master.jpg`;
+      const storagePath = `books/${page.book_id}/pages/${filename}`;
+
+      console.log('Uploading master image to storage:', storagePath);
+      const { error: uploadError } = await supabase.storage
+        .from('book-images')
+        .upload(storagePath, imageBlob, {
+          contentType: 'image/jpeg',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.error('Failed to upload master image to storage:', uploadError);
+        throw uploadError;
+      }
+
+      // Get public URL from our storage
+      const { data: urlData } = supabase.storage
+        .from('book-images')
+        .getPublicUrl(storagePath);
+
+      const masterImageUrl = urlData.publicUrl;
+      console.log('Master image uploaded to our storage:', masterImageUrl);
+
+      // Save the master image URL (client will generate variants)
+      const { error: updateError } = await supabase
+        .from('pages')
+        .update({
+          intermediate_image_url: masterImageUrl,
+          status: 'ready',
+        })
+        .eq('id', pageId);
+
+      if (updateError) {
+        console.error('Error updating page:', updateError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to update page', success: false }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log('✓ Page marked ready with master image');
+
       return new Response(
-        JSON.stringify({ error: 'Failed to update page', success: false }),
+        JSON.stringify({ 
+          status: 'ready',
+          success: true,
+          masterImageUrl,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (downloadError) {
+      console.error('Error downloading/uploading master image:', downloadError);
+      return new Response(
+        JSON.stringify({ 
+          status: 'failed', 
+          success: false, 
+          error: `Failed to process master image: ${downloadError instanceof Error ? downloadError.message : 'Unknown error'}` 
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    console.log('✓ Page marked ready with master image');
-
-    return new Response(
-      JSON.stringify({ 
-        status: 'ready',
-        success: true,
-        masterImageUrl: resultUrl,
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
   } catch (error) {
     console.error('Error checking status:', error);
     
