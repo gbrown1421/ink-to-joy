@@ -3,13 +3,30 @@
  * Beginner = light simplification, Quick = heavy simplification
  */
 
-async function loadImage(url: string): Promise<HTMLImageElement> {
+/**
+ * Load image from URL using fetch-then-blob to avoid tainted canvas
+ * This approach works with Supabase public URLs and CORS restrictions
+ */
+async function loadImageFromBlobUrl(url: string): Promise<HTMLImageElement> {
+  const resp = await fetch(url, { cache: 'no-store' });
+  if (!resp.ok) {
+    throw new Error(`Failed to fetch master image: ${resp.status} ${resp.statusText}`);
+  }
+
+  const blob = await resp.blob();
+  const objectUrl = URL.createObjectURL(blob);
+
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = url;
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(img);
+    };
+    img.onerror = (err) => {
+      URL.revokeObjectURL(objectUrl);
+      reject(err);
+    };
+    img.src = objectUrl;
   });
 }
 
@@ -20,7 +37,7 @@ async function loadImage(url: string): Promise<HTMLImageElement> {
  * Result: Simpler than intermediate, but keeps faces, clothes, main shapes clear
  */
 export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
-  const img = await loadImage(masterUrl);
+  const img = await loadImageFromBlobUrl(masterUrl);
   
   const scale = 0.7;
   const tempW = Math.floor(img.naturalWidth * scale);
@@ -80,7 +97,7 @@ export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
  * Result: Bold shapes, thick lines, very few interior details - toddler-friendly
  */
 export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
-  const img = await loadImage(masterUrl);
+  const img = await loadImageFromBlobUrl(masterUrl);
   
   const scale = 0.4;
   const tempW = Math.floor(img.naturalWidth * scale);
