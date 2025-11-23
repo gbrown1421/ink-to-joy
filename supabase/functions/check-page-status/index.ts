@@ -114,37 +114,106 @@ serve(async (req) => {
     // Import sharp for post-processing
     const sharp = (await import('https://deno.land/x/sharp@v0.33.2/mod.ts')).default;
 
-    // ===== Store Mimi result directly (no post-processing needed) =====
-    // Mimi Panda already generated the correct style based on book difficulty
-    console.log('Storing Mimi result...');
+    console.log('Generating 3 difficulty variants from Mimi base image...');
     
-    const coloringBuffer = await sharp(imageBuffer)
-      .png()
+    // Normalize base image: remove alpha, grayscale, normalize
+    const baseSharp = sharp(imageBuffer)
+      .removeAlpha()
+      .grayscale()
+      .normalize();
+    
+    const metadata = await baseSharp.metadata();
+    const width = metadata.width ?? 1024;
+    const height = metadata.height ?? 1024;
+
+    // INTERMEDIATE: basically Mimi output, but binarized (no gray)
+    console.log('Creating intermediate variant...');
+    const intermediateBuffer = await baseSharp
+      .clone()
+      .threshold(210)
+      .toFormat('png')
       .toBuffer();
 
-    const coloringPath = `${page.book_id}/${page.id}-coloring.png`;
-    const { error: uploadError } = await supabase.storage
-      .from('book-images')
-      .upload(coloringPath, coloringBuffer, {
+    // BEGINNER: slightly smoother, fewer tiny details
+    console.log('Creating beginner variant...');
+    const beginnerBuffer = await baseSharp
+      .clone()
+      .blur(0.6)
+      .threshold(205)
+      .median(3)
+      .toFormat('png')
+      .toBuffer();
+
+    // QUICK: big chunky shapes for 3-4 yr olds
+    console.log('Creating quick variant...');
+    const quickScale = 0.45;
+    const quickBuffer = await baseSharp
+      .clone()
+      .blur(1.3)
+      .resize(Math.round(width * quickScale), Math.round(height * quickScale), {
+        kernel: sharp.kernel.cubic,
+      })
+      .resize(width, height, {
+        kernel: sharp.kernel.nearest,
+      })
+      .threshold(215)
+      .median(5)
+      .toFormat('png')
+      .toBuffer();
+
+    // Upload all 3 variants to storage
+    console.log('Uploading all 3 variants to storage...');
+    const basePath = `${page.book_id}/${page.id}`;
+    
+    const [quickUpload, beginnerUpload, intermediateUpload] = await Promise.all([
+      supabase.storage.from('book-images').upload(`${basePath}-quick.png`, quickBuffer, {
         contentType: 'image/png',
         upsert: true,
-      });
+      }),
+      supabase.storage.from('book-images').upload(`${basePath}-beginner.png`, beginnerBuffer, {
+        contentType: 'image/png',
+        upsert: true,
+      }),
+      supabase.storage.from('book-images').upload(`${basePath}-intermediate.png`, intermediateBuffer, {
+        contentType: 'image/png',
+        upsert: true,
+      }),
+    ]);
 
-    if (uploadError) {
-      console.error('Error storing coloring image:', uploadError);
-      throw uploadError;
+    if (quickUpload.error || beginnerUpload.error || intermediateUpload.error) {
+      console.error('Error uploading variants:', { quickUpload, beginnerUpload, intermediateUpload });
+      throw new Error('Failed to upload one or more difficulty variants');
     }
 
-    const { data: { publicUrl: coloringImageUrl } } = supabase.storage
+    const { data: { publicUrl: quickUrl } } = supabase.storage
       .from('book-images')
-      .getPublicUrl(coloringPath);
+      .getPublicUrl(`${basePath}-quick.png`);
+    
+    const { data: { publicUrl: beginnerUrl } } = supabase.storage
+      .from('book-images')
+      .getPublicUrl(`${basePath}-beginner.png`);
+    
+    const { data: { publicUrl: intermediateUrl } } = supabase.storage
+      .from('book-images')
+      .getPublicUrl(`${basePath}-intermediate.png`);
 
-    console.log('✓ Coloring image stored at:', coloringImageUrl);
+    console.log('✓ All variants uploaded:', { quickUrl, beginnerUrl, intermediateUrl });
 
-    // Update page with the coloring image URL
+    // Map difficulty to the correct URL
+    const difficulty = page.books?.difficulty || 'intermediate';
+    let coloringImageUrl = intermediateUrl;
+    if (difficulty === 'quick') coloringImageUrl = quickUrl;
+    if (difficulty === 'beginner') coloringImageUrl = beginnerUrl;
+
+    console.log(`Using ${difficulty} variant:`, coloringImageUrl);
+
+    // Update page with all variant URLs
     const { error: updateError } = await supabase
       .from('pages')
       .update({
+        easy_image_url: quickUrl,
+        beginner_image_url: beginnerUrl,
+        intermediate_image_url: intermediateUrl,
         coloring_image_url: coloringImageUrl,
         status: 'ready',
       })

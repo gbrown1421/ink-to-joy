@@ -10,11 +10,10 @@ const corsHeaders = {
 // This matches the exact API call from mimi-panda.com website when using "Version 2 → Simplified (for kids)"
 const MIMI_PANDA_API_URL = 'https://mimi-panda.com/api/service/coloring';
 
-// DIFFICULTY PROCESSING PIPELINE - Using Mimi's native modes:
-// - Quick & Easy: v2_simplified (simple outlines for toddlers)
-// - Beginner: v2_general (fewer details, good facial detail)
-// - Intermediate: v2_comic (cartoon outlines)
-// We call the appropriate Mimi mode based on book difficulty, no post-processing needed
+// DIFFICULTY PROCESSING PIPELINE:
+// - Call Mimi Panda ONCE with V2 "Simplified (for kids)" mode
+// - Generate 3 difficulty variants using Sharp post-processing
+// - Return the appropriate variant based on selected difficulty
 
 // Mimi Panda type mapping (matching website options):
 // - v2_general: "General" mode - fewer details and good facial detail
@@ -131,12 +130,8 @@ serve(async (req) => {
     // Submit to Mimi Panda API for coloring book projects
     const apiToken = Deno.env.get('MIMI_PANDA_API_TOKEN');
     
-    // Map difficulty to Mimi Panda type
-    const mimiType = book.difficulty === 'quick' 
-      ? 'v2_simplified'  // Simple outlines for toddlers
-      : book.difficulty === 'beginner'
-      ? 'v2_general'     // Fewer details, good facial detail
-      : 'v2_comic';      // Cartoon outlines for intermediate
+    // Always use V2 Simplified mode - Sharp will create difficulty variants
+    const mimiType = 'v2_simplified';
     
     // Debug logging
     console.log('=== MIMI PANDA API REQUEST ===');
