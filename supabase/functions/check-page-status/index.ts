@@ -134,12 +134,18 @@ serve(async (req) => {
 
     console.log('Stored intermediate image at:', intermediateUrl);
 
-    // Update page with intermediate URL
+    // STABILITY NOTE: All difficulties now use the same Mimi V2 Simplified output
+    // for consistent, clean daycare-quality line art. No post-processing applied.
+    // TODO: Implement true multi-level difficulty styles when conversion is stable.
+    
+    // Update page with the clean Mimi result for all difficulties
     const { error: updateError } = await supabase
       .from('pages')
       .update({
         intermediate_image_url: intermediateUrl,
-        coloring_image_url: intermediateUrl,  // Keep for backwards compatibility
+        coloring_image_url: intermediateUrl,
+        beginner_image_url: intermediateUrl,      // Same for all difficulties
+        easy_image_url: intermediateUrl,          // Same for all difficulties
         status: 'ready',
       })
       .eq('id', pageId);
@@ -151,24 +157,6 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    // Trigger background processing for Beginner and Quick & Easy versions
-    console.log('Triggering difficulty post-processing...');
-    
-    // Fire and forget - don't wait for this to complete
-    fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/process-page-difficulty`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        pageId: page.id,
-        intermediateImageUrl: intermediateUrl,
-      }),
-    }).catch(err => {
-      console.error('Failed to trigger difficulty processing:', err);
-    });
 
     return new Response(
       JSON.stringify({ 
