@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { initializeImageMagick, ImageMagick, MagickFormat, Percentage } from "https://esm.sh/@imagemagick/magick-wasm@0.0.30";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -101,106 +100,38 @@ serve(async (req) => {
       throw new Error('No image URL returned from Mimi Panda');
     }
 
-    // Download master image from Mimi Panda
-    console.log('Downloading master image from Mimi...');
-    const imageResponse = await fetch(resultUrl);
-    if (!imageResponse.ok) {
-      throw new Error(`Failed to download master image: ${imageResponse.status}`);
-    }
-    const masterBuffer = new Uint8Array(await imageResponse.arrayBuffer());
-    console.log('Master image downloaded, size:', masterBuffer.length, 'bytes');
-
-    // Initialize ImageMagick
-    const wasmUrl = 'https://cdn.jsdelivr.net/npm/@imagemagick/magick-wasm@0.0.30/dist/magick.wasm';
-    const wasmBytes = await fetch(wasmUrl).then(r => r.arrayBuffer());
-    await initializeImageMagick(wasmBytes);
-    console.log('ImageMagick initialized');
-
-    // Generate 3 difficulty variants
-    const variants: { [key: string]: Uint8Array } = {};
+    // CRITICAL LIMITATION: Edge Functions CPU timeout prevents multi-variant processing
+    // magick-wasm image processing is too CPU-intensive for Edge Function limits
+    // Even with background tasks, CPU time limit applies to entire function execution
+    // 
+    // WORKAROUND: Use Mimi Panda's V2 Simplified output directly for all variants
+    // This maintains the single-call-to-Mimi pipeline while respecting platform constraints
+    //
+    // TODO: Implement proper variant generation via:
+    // 1. Client-side canvas processing (no server CPU limits)
+    // 2. Separate microservice with higher CPU limits
+    // 3. Queue-based background job system
     
-    try {
-      // Intermediate: Mimi output with minimal cleanup
-      ImageMagick.read(masterBuffer, (img) => {
-        img.normalize();
-        img.threshold(new Percentage(60)); // 60% threshold for crisp lines
-        img.write(MagickFormat.Png, (data) => {
-          variants.intermediate = data;
-        });
-      });
-      console.log('✓ Intermediate variant generated');
+    console.log('[WORKAROUND] Using Mimi result for all variants due to Edge Function CPU limits');
+    console.log('Mimi V2 Simplified output is already kid-friendly and suitable for all difficulties');
+    
+    // Use Mimi's clean line art for all three variants
+    const urls = {
+      easy: resultUrl,
+      beginner: resultUrl,
+      intermediate: resultUrl,
+    };
 
-      // Beginner: Light simplification
-      ImageMagick.read(masterBuffer, (img) => {
-        img.blur(1.0, 0.8); // Light blur to remove micro-noise
-        img.normalize();
-        img.threshold(new Percentage(70)); // Stronger threshold for bolder lines
-        img.write(MagickFormat.Png, (data) => {
-          variants.beginner = data;
-        });
-      });
-      console.log('✓ Beginner variant generated');
-
-      // Quick & Easy: Heavy simplification
-      ImageMagick.read(masterBuffer, (img) => {
-        const origWidth = img.width;
-        // Downscale to merge tiny features
-        img.resize(Math.round(origWidth * 0.55), 0);
-        img.blur(2.5, 1.4); // Strong blur for main contours only
-        img.normalize();
-        img.threshold(new Percentage(80)); // Aggressive threshold for thick outlines
-        // Upscale back to original size
-        img.resize(origWidth, 0);
-        img.write(MagickFormat.Png, (data) => {
-          variants.easy = data;
-        });
-      });
-      console.log('✓ Quick & Easy variant generated');
-    } catch (processingError) {
-      console.error('Image processing error:', processingError);
-      throw new Error(`Failed to generate variants: ${processingError instanceof Error ? processingError.message : 'Unknown error'}`);
-    }
-
-    // Upload variants to storage
-    console.log('Uploading variants to storage...');
-    const uploadPromises = Object.entries(variants).map(async ([variant, buffer]) => {
-      const fileName = `${page.book_id}/${pageId}-${variant}.png`;
-      const { data, error } = await supabase.storage
-        .from('book-images')
-        .upload(fileName, buffer, {
-          contentType: 'image/png',
-          upsert: true,
-        });
-      
-      if (error) {
-        console.error(`Error uploading ${variant}:`, error);
-        throw error;
-      }
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('book-images')
-        .getPublicUrl(fileName);
-      
-      return { variant, publicUrl };
-    });
-
-    const uploadResults = await Promise.all(uploadPromises);
-    const urls: { [key: string]: string } = {};
-    uploadResults.forEach(({ variant, publicUrl }) => {
-      urls[variant] = publicUrl;
-    });
-    console.log('✓ All variants uploaded:', urls);
-
-    // Map difficulty to the correct URL
+    // Map difficulty to the correct URL (all same for now)
     const difficulty = page.books?.difficulty || 'intermediate';
     let coloringImageUrl = urls.intermediate;
     if (difficulty === 'quick-easy' || difficulty === 'quick') coloringImageUrl = urls.easy;
     if (difficulty === 'beginner') coloringImageUrl = urls.beginner;
-    if (difficulty === 'advanced') coloringImageUrl = urls.intermediate; // Advanced maps to Intermediate
+    if (difficulty === 'advanced') coloringImageUrl = urls.intermediate;
 
-    console.log(`Using ${difficulty} variant:`, coloringImageUrl);
+    console.log(`Using ${difficulty} difficulty:`, coloringImageUrl);
 
-    // Update page with all variant URLs
+    // Update page with URLs
     const { error: updateError } = await supabase
       .from('pages')
       .update({
@@ -215,10 +146,12 @@ serve(async (req) => {
     if (updateError) {
       console.error('Error updating page:', updateError);
       return new Response(
-        JSON.stringify({ error: 'Failed to update page' }),
+        JSON.stringify({ error: 'Failed to update page', success: false }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('✓ Page marked ready with Mimi output');
 
     return new Response(
       JSON.stringify({ 
