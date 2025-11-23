@@ -141,7 +141,7 @@ const Upload = () => {
           if (!data.success || !data.intermediateImageUrl) {
             const errorMsg = data.error || 'No master image returned';
             console.error('Processing failed:', errorMsg);
-            toast.error(`Processing failed: ${errorMsg}`);
+            toast.error(`Image processing failed: ${errorMsg}`);
             setPages(prev => prev.map(p => 
               p.id === tempId 
                 ? { ...p, status: "failed", error: errorMsg } 
@@ -151,42 +151,14 @@ const Upload = () => {
           }
 
           console.log('Master image ready:', data.intermediateImageUrl);
-          console.log('Generating difficulty variant for:', bookDifficulty);
+          toast.success('Page processed successfully!');
           
-          // Generate lazy difficulty variant
-          try {
-            const { data: variantData, error: variantError } = await supabase.functions.invoke('generate-difficulty-variant', {
-              body: { pageId },
-            });
-
-            if (variantError) {
-              console.error('Variant generation error:', variantError);
-              throw variantError;
-            }
-
-            if (!variantData?.success || !variantData?.imageUrl) {
-              throw new Error('Failed to generate difficulty variant');
-            }
-
-            console.log('Difficulty variant ready:', variantData.imageUrl);
-            toast.success('Page processed successfully!');
-            
-            setPages(prev => prev.map(p => 
-              p.id === tempId 
-                ? { ...p, status: "ready", coloringImageUrl: variantData.imageUrl } 
-                : p
-            ));
-          } catch (variantError) {
-            console.error('Error generating variant:', variantError);
-            const errorMsg = variantError instanceof Error ? variantError.message : 'Unknown error';
-            toast.error(`Variant generation failed: ${errorMsg}`);
-            
-            setPages(prev => prev.map(p => 
-              p.id === tempId 
-                ? { ...p, status: "failed", error: errorMsg } 
-                : p
-            ));
-          }
+          // Use master image directly for all difficulties
+          setPages(prev => prev.map(p => 
+            p.id === tempId 
+              ? { ...p, status: "ready", coloringImageUrl: data.intermediateImageUrl } 
+              : p
+          ));
           return;
         } else if (data.status === "failed") {
           const errorMsg = data.error || 'Processing failed';
@@ -339,11 +311,17 @@ const Upload = () => {
                         ) : (
                           <>
                             <AlertCircle className="w-8 h-8 text-destructive" />
-                            {page.error && (
-                              <span className="text-xs text-center text-destructive">
-                                {page.error}
-                              </span>
-                            )}
+                            <span className="text-xs text-center text-destructive font-medium">
+                              {page.error || 'Processing failed'}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="mt-2"
+                              onClick={() => removePage(page.id)}
+                            >
+                              Remove
+                            </Button>
                           </>
                         )}
                       </div>
