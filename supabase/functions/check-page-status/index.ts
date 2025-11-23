@@ -83,7 +83,8 @@ serve(async (req) => {
     const mimiData = await mimiResponse.json();
     console.log('Mimi status:', mimiData.status);
 
-    if (mimiData.status !== 'completed') {
+    // BUG FIX: Mimi Panda returns "ready" (not "completed") when job is done
+    if (mimiData.status !== 'ready') {
       return new Response(
         JSON.stringify({ status: 'processing' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
