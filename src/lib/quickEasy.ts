@@ -1,53 +1,54 @@
 /**
  * Client-side Quick & Easy simplifier for toddler coloring pages
  * Takes a Mimi Panda line-art image and creates a much simpler version
+ * by downscaling (merges details) and hard thresholding (removes grays)
  */
 
-async function loadImage(src: string): Promise<HTMLImageElement> {
+export async function makeQuickEasyFromBase(baseUrl: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
+    img.crossOrigin = 'anonymous';
+    
+    img.onload = () => {
+      // Downscale to merge fine details and create thicker lines
+      const scale = 0.45;
+      const w = Math.floor(img.naturalWidth * scale);
+      const h = Math.floor(img.naturalHeight * scale);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        reject(new Error('No 2d context'));
+        return;
+      }
+
+      // Draw smaller to merge fine details
+      ctx.drawImage(img, 0, 0, w, h);
+
+      const imageData = ctx.getImageData(0, 0, w, h);
+      const data = imageData.data;
+
+      // Hard threshold → black lines or white, no gray
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const luminosity = 0.299 * r + 0.587 * g + 0.114 * b;
+        const v = luminosity > 210 ? 255 : 0;
+        data[i] = data[i + 1] = data[i + 2] = v;
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+      const out = canvas.toDataURL('image/png');
+      resolve(out);
+    };
+    
+    img.onerror = (err) => reject(err);
+    img.src = baseUrl;
   });
-}
-
-export async function makeQuickEasyFromBase(baseUrl: string): Promise<string> {
-  const img = await loadImage(baseUrl);
-  const w = img.width;
-  const h = img.height;
-
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d")!;
-
-  // Draw base Mimi line art
-  ctx.drawImage(img, 0, 0, w, h);
-
-  // Strong simplification: threshold to pure black/white
-  const imgData = ctx.getImageData(0, 0, w, h);
-  const data = imgData.data;
-
-  for (let i = 0; i < data.length; i += 4) {
-    const v = data[i]; // grayscale already from Mimi line art
-    // push most greys to white, keep only darkest as black
-    const out = v > 215 ? 255 : 0;
-    data[i] = data[i + 1] = data[i + 2] = out;
-  }
-
-  ctx.putImageData(imgData, 0, 0);
-
-  // Thicken lines a bit by re-drawing slightly offset
-  const thick = ctx.getImageData(0, 0, w, h);
-  ctx.globalCompositeOperation = "source-over";
-  ctx.putImageData(thick, 1, 0);
-  ctx.putImageData(thick, -1, 0);
-  ctx.putImageData(thick, 0, 1);
-  ctx.putImageData(thick, 0, -1);
-
-  return canvas.toDataURL("image/png");
 }
 
 /**
