@@ -38,10 +38,10 @@ serve(async (req) => {
       );
     }
 
-    // Get page record with book difficulty
+    // Get page record
     const { data: page, error: pageError } = await supabase
       .from('pages')
-      .select('*, books!inner(difficulty)')
+      .select('*')
       .eq('id', pageId)
       .single();
 
@@ -57,7 +57,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           status: page.status, 
-          coloringImageUrl: page.intermediate_image_url || page.coloring_image_url
+          coloringImageUrl: page.coloring_image_url
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -131,14 +131,14 @@ serve(async (req) => {
         .from('book-images')
         .getPublicUrl(storagePath);
 
-      const masterImageUrl = urlData.publicUrl;
-      console.log('Master image uploaded to our storage:', masterImageUrl);
+      const coloringImageUrl = urlData.publicUrl;
+      console.log('Coloring image uploaded to our storage:', coloringImageUrl);
 
-      // Save the master image URL (client will generate variants)
+      // Save the coloring image URL
       const { error: updateError } = await supabase
         .from('pages')
         .update({
-          intermediate_image_url: masterImageUrl,
+          coloring_image_url: coloringImageUrl,
           status: 'ready',
         })
         .eq('id', pageId);
@@ -151,13 +151,13 @@ serve(async (req) => {
         );
       }
 
-      console.log('✓ Page marked ready with master image');
+      console.log('✓ Page marked ready with coloring image');
 
       return new Response(
         JSON.stringify({ 
           status: 'ready',
           success: true,
-          masterImageUrl,
+          coloringImageUrl,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );

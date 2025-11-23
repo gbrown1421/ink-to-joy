@@ -138,8 +138,8 @@ const Upload = () => {
         console.log('Status check response:', data);
 
         if (data.status === "ready") {
-          if (!data.success || !data.masterImageUrl) {
-            const errorMsg = data.error || 'No master image returned';
+          if (!data.success || !data.coloringImageUrl) {
+            const errorMsg = data.error || 'No coloring image returned';
             console.error('Processing failed:', errorMsg);
             toast.error(`Processing failed: ${errorMsg}`);
             setPages(prev => prev.map(p => 
@@ -150,27 +150,27 @@ const Upload = () => {
             return;
           }
 
-          console.log('Master image ready, generating difficulty variants...');
+          console.log('Coloring image ready:', data.coloringImageUrl);
           
-          // Mark page as processing variants
-          setPages(prev => prev.map(p => 
-            p.id === tempId 
-              ? { ...p, status: "processing" } 
-              : p
-          ));
+          // Check if we need Quick & Easy simplification
+          const isQuickEasy = bookDifficulty === 'quick-easy' || bookDifficulty === 'quick';
+          
+          if (isQuickEasy) {
+            console.log('Applying Quick & Easy simplification...');
+            setPages(prev => prev.map(p => 
+              p.id === tempId 
+                ? { ...p, status: "processing" } 
+                : p
+            ));
 
-          try {
-            // Generate all 3 difficulty variants client-side
-            console.log('Starting client-side difficulty variant generation...');
-            const { generateDifficultyVariants, dataUrlToBlob } = await import('@/lib/difficultyClient');
-            const { easyDataUrl, beginnerDataUrl, intermediateDataUrl } = await generateDifficultyVariants(data.masterImageUrl);
-            
-            console.log('Difficulty variants generated successfully, uploading...');
+            try {
+              const { makeQuickEasyFromBase, dataUrlToBlob } = await import('@/lib/quickEasy');
+              const quickEasyDataUrl = await makeQuickEasyFromBase(data.coloringImageUrl);
+              
+              console.log('Quick & Easy variant generated, uploading...');
 
-            // Upload all 3 variants to storage
-            const uploadVariant = async (dataUrl: string, suffix: string) => {
-              const blob = dataUrlToBlob(dataUrl);
-              const filename = `${pageId}-${suffix}.png`;
+              const blob = dataUrlToBlob(quickEasyDataUrl);
+              const filename = `${pageId}-quick-easy.png`;
               const path = `books/${bookId}/pages/${filename}`;
               
               const { error: uploadError } = await supabase.storage
@@ -181,7 +181,7 @@ const Upload = () => {
                 });
 
               if (uploadError) {
-                console.error(`Failed to upload ${suffix} variant:`, uploadError);
+                console.error('Failed to upload Quick & Easy variant:', uploadError);
                 throw uploadError;
               }
 
@@ -189,60 +189,48 @@ const Upload = () => {
                 .from('book-images')
                 .getPublicUrl(path);
 
-              return urlData.publicUrl;
-            };
+              const quickEasyUrl = urlData.publicUrl;
+              console.log('Quick & Easy variant uploaded:', quickEasyUrl);
 
-            // Upload all variants in parallel
-            const [easyUrl, beginnerUrl, intermediateUrl] = await Promise.all([
-              uploadVariant(easyDataUrl, 'easy'),
-              uploadVariant(beginnerDataUrl, 'beginner'),
-              uploadVariant(intermediateDataUrl, 'intermediate'),
-            ]);
+              // Update page with Quick & Easy URL as coloring_image_url
+              const { error: updateError } = await supabase
+                .from('pages')
+                .update({ coloring_image_url: quickEasyUrl })
+                .eq('id', pageId);
 
-            console.log('All variants uploaded:', { easyUrl, beginnerUrl, intermediateUrl });
+              if (updateError) {
+                console.error('Failed to update coloring_image_url:', updateError);
+                throw updateError;
+              }
 
-            // Update page with all variant URLs
-            const { error: updateError } = await supabase
-              .from('pages')
-              .update({ 
-                easy_image_url: easyUrl,
-                beginner_image_url: beginnerUrl,
-                intermediate_image_url: intermediateUrl,
-              })
-              .eq('id', pageId);
-
-            if (updateError) {
-              console.error('Failed to save variant URLs:', updateError);
-              throw updateError;
+              console.log('PAGE IMAGE URL:', { difficulty: bookDifficulty, coloring_image_url: quickEasyUrl, original_mimi_url: data.coloringImageUrl });
+              toast.success('Page processed successfully!');
+              
+              setPages(prev => prev.map(p => 
+                p.id === tempId 
+                  ? { ...p, status: "ready", coloringImageUrl: quickEasyUrl } 
+                  : p
+              ));
+            } catch (quickError) {
+              console.error('Error applying Quick & Easy simplification:', quickError);
+              const errorMsg = quickError instanceof Error ? quickError.message : 'Unknown error';
+              toast.error(`Quick & Easy failed: ${errorMsg}`);
+              
+              // Fall back to base Mimi image
+              setPages(prev => prev.map(p => 
+                p.id === tempId 
+                  ? { ...p, status: "ready", coloringImageUrl: data.coloringImageUrl } 
+                  : p
+              ));
             }
-
-            console.log('All difficulty variants saved successfully');
-            console.log('PAGE URLS:', { easy_image_url: easyUrl, beginner_image_url: beginnerUrl, intermediate_image_url: intermediateUrl });
+          } else {
+            // Beginner/Intermediate: use base Mimi image as-is
+            console.log('PAGE IMAGE URL:', { difficulty: bookDifficulty, coloring_image_url: data.coloringImageUrl });
             toast.success('Page processed successfully!');
             
-            // Pick the correct URL for display based on book difficulty
-            const displayUrl = 
-              bookDifficulty === 'quick-easy' || bookDifficulty === 'quick' ? easyUrl :
-              bookDifficulty === 'beginner' ? beginnerUrl :
-              intermediateUrl;
-
-            console.log('Display URL for difficulty', bookDifficulty, ':', displayUrl);
-
             setPages(prev => prev.map(p => 
               p.id === tempId 
-                ? { ...p, status: "ready", coloringImageUrl: displayUrl } 
-                : p
-            ));
-          } catch (variantError) {
-            console.error('Error generating/uploading difficulty variants:', variantError);
-            const errorMsg = variantError instanceof Error ? variantError.message : 'Unknown error';
-            console.error('Full error:', variantError);
-            toast.error(`Variant generation failed: ${errorMsg}`);
-            
-            // Fall back to master image
-            setPages(prev => prev.map(p => 
-              p.id === tempId 
-                ? { ...p, status: "ready", coloringImageUrl: data.masterImageUrl } 
+                ? { ...p, status: "ready", coloringImageUrl: data.coloringImageUrl } 
                 : p
             ));
           }
