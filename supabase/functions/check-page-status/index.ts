@@ -38,10 +38,10 @@ serve(async (req) => {
       );
     }
 
-    // Get page record
+    // Get page record with book difficulty
     const { data: page, error: pageError } = await supabase
       .from('pages')
-      .select('*')
+      .select('*, books!inner(difficulty)')
       .eq('id', pageId)
       .single();
 
@@ -111,41 +111,81 @@ serve(async (req) => {
     
     console.log('Downloaded Mimi result:', imageBuffer.byteLength, 'bytes');
 
-    // Store as "intermediate" (this is our Mimi V2 Simplified base)
-    const storagePath = `${page.book_id}/${page.id}-intermediate.png`;
-    const { error: storageError } = await supabase.storage
+    // Import sharp for post-processing
+    const sharp = (await import('https://deno.land/x/sharp@v0.33.2/mod.ts')).default;
+
+    // Get book difficulty (quick | beginner | intermediate)
+    const difficulty = (page.books as any)?.difficulty || 'beginner';
+    console.log('Book difficulty:', difficulty);
+
+    // Store base Mimi result as "intermediate" (Beginner & Intermediate will use this)
+    const intermediateBuffer = await sharp(imageBuffer)
+      .png()
+      .toBuffer();
+
+    const intermediatePath = `${page.book_id}/${page.id}-intermediate.png`;
+    const { error: intermediateError } = await supabase.storage
       .from('book-images')
-      .upload(storagePath, imageBuffer, {
+      .upload(intermediatePath, intermediateBuffer, {
         contentType: 'image/png',
         upsert: true,
       });
 
-    if (storageError) {
-      console.error('Error storing intermediate image:', storageError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to store image' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (intermediateError) {
+      console.error('Error storing intermediate image:', intermediateError);
+      throw intermediateError;
     }
 
     const { data: { publicUrl: intermediateUrl } } = supabase.storage
       .from('book-images')
-      .getPublicUrl(storagePath);
+      .getPublicUrl(intermediatePath);
 
-    console.log('Stored intermediate image at:', intermediateUrl);
+    console.log('Stored intermediate (Beginner/Intermediate) at:', intermediateUrl);
 
-    // STABILITY NOTE: All difficulties now use the same Mimi V2 Simplified output
-    // for consistent, clean daycare-quality line art. No post-processing applied.
-    // TODO: Implement true multi-level difficulty styles when conversion is stable.
-    
-    // Update page with the clean Mimi result for all difficulties
+    // For Quick & Easy: apply extra simplification for toddlers
+    let easyUrl = intermediateUrl;
+    if (difficulty === 'quick') {
+      console.log('Applying toddler simplification for Quick & Easy...');
+      
+      const toddlerBuffer = await sharp(imageBuffer)
+        .resize({ width: 1000, withoutEnlargement: true })
+        .blur(1.2)          // Smooth away tiny wiggles
+        .threshold(210)     // Pure black/white, no grey
+        .png()
+        .toBuffer();
+
+      const easyPath = `${page.book_id}/${page.id}-easy.png`;
+      const { error: easyError } = await supabase.storage
+        .from('book-images')
+        .upload(easyPath, toddlerBuffer, {
+          contentType: 'image/png',
+          upsert: true,
+        });
+
+      if (easyError) {
+        console.error('Error storing easy image:', easyError);
+        throw easyError;
+      }
+
+      const { data: { publicUrl: easyPublicUrl } } = supabase.storage
+        .from('book-images')
+        .getPublicUrl(easyPath);
+
+      easyUrl = easyPublicUrl;
+      console.log('Stored Quick & Easy (toddler-simplified) at:', easyUrl);
+    } else {
+      console.log('Using same image for all difficulties (Beginner/Intermediate mode)');
+    }
+
+    // Update page with appropriate URLs based on difficulty
+    // Quick & Easy gets simplified version, Beginner & Intermediate get Mimi output
     const { error: updateError } = await supabase
       .from('pages')
       .update({
-        intermediate_image_url: intermediateUrl,
-        coloring_image_url: intermediateUrl,
-        beginner_image_url: intermediateUrl,      // Same for all difficulties
-        easy_image_url: intermediateUrl,          // Same for all difficulties
+        intermediate_image_url: intermediateUrl,  // Mimi base (for Beginner & Intermediate)
+        beginner_image_url: intermediateUrl,      // Mimi base
+        easy_image_url: easyUrl,                   // Simplified for toddlers (if quick)
+        coloring_image_url: intermediateUrl,       // Default to Mimi base
         status: 'ready',
       })
       .eq('id', pageId);
