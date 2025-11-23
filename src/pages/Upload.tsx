@@ -155,7 +155,6 @@ const Upload = () => {
           try {
             let finalImageUrl = data.intermediateImageUrl;
 
-            // Show we're doing a second-stage processing step, but don't leave it in "processing" forever
             if (bookDifficulty === 'beginner' || bookDifficulty === 'quick') {
               setPages(prev =>
                 prev.map(p =>
@@ -168,11 +167,63 @@ const Upload = () => {
               if (bookDifficulty === 'beginner') {
                 console.log('Generating BEGINNER variant (light simplification)...');
                 const beginnerBlob = await makeBeginnerVariant(data.intermediateImageUrl);
-                finalImageUrl = URL.createObjectURL(beginnerBlob);
+                
+                // Upload to Supabase Storage
+                const fileName = `${pageId}-beginner.png`;
+                const filePath = `books/${bookId}/pages/${fileName}`;
+                
+                const { error: uploadError } = await supabase.storage
+                  .from('book-images')
+                  .upload(filePath, beginnerBlob, { 
+                    contentType: 'image/png',
+                    upsert: true 
+                  });
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabase.storage
+                  .from('book-images')
+                  .getPublicUrl(filePath);
+
+                // Update pages table
+                const { error: updateError } = await supabase
+                  .from('pages')
+                  .update({ beginner_image_url: publicUrl })
+                  .eq('id', pageId);
+
+                if (updateError) throw updateError;
+
+                finalImageUrl = publicUrl;
               } else if (bookDifficulty === 'quick') {
                 console.log('Generating QUICK variant (heavy simplification)...');
                 const quickBlob = await makeQuickVariant(data.intermediateImageUrl);
-                finalImageUrl = URL.createObjectURL(quickBlob);
+                
+                // Upload to Supabase Storage
+                const fileName = `${pageId}-quick.png`;
+                const filePath = `books/${bookId}/pages/${fileName}`;
+                
+                const { error: uploadError } = await supabase.storage
+                  .from('book-images')
+                  .upload(filePath, quickBlob, { 
+                    contentType: 'image/png',
+                    upsert: true 
+                  });
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabase.storage
+                  .from('book-images')
+                  .getPublicUrl(filePath);
+
+                // Update pages table
+                const { error: updateError } = await supabase
+                  .from('pages')
+                  .update({ easy_image_url: publicUrl })
+                  .eq('id', pageId);
+
+                if (updateError) throw updateError;
+
+                finalImageUrl = publicUrl;
               }
             } else {
               console.log('Using master image for INTERMEDIATE difficulty.');
