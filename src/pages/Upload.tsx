@@ -161,10 +161,11 @@ const Upload = () => {
 
           try {
             // Generate all 3 difficulty variants client-side
+            console.log('Starting client-side difficulty variant generation...');
             const { generateDifficultyVariants, dataUrlToBlob } = await import('@/lib/difficultyClient');
             const { easyDataUrl, beginnerDataUrl, intermediateDataUrl } = await generateDifficultyVariants(data.masterImageUrl);
             
-            console.log('Difficulty variants generated, uploading...');
+            console.log('Difficulty variants generated successfully, uploading...');
 
             // Upload all 3 variants to storage
             const uploadVariant = async (dataUrl: string, suffix: string) => {
@@ -216,6 +217,7 @@ const Upload = () => {
             }
 
             console.log('All difficulty variants saved successfully');
+            console.log('PAGE URLS:', { easy_image_url: easyUrl, beginner_image_url: beginnerUrl, intermediate_image_url: intermediateUrl });
             toast.success('Page processed successfully!');
             
             // Pick the correct URL for display based on book difficulty
@@ -223,6 +225,8 @@ const Upload = () => {
               bookDifficulty === 'quick-easy' || bookDifficulty === 'quick' ? easyUrl :
               bookDifficulty === 'beginner' ? beginnerUrl :
               intermediateUrl;
+
+            console.log('Display URL for difficulty', bookDifficulty, ':', displayUrl);
 
             setPages(prev => prev.map(p => 
               p.id === tempId 
@@ -232,6 +236,7 @@ const Upload = () => {
           } catch (variantError) {
             console.error('Error generating/uploading difficulty variants:', variantError);
             const errorMsg = variantError instanceof Error ? variantError.message : 'Unknown error';
+            console.error('Full error:', variantError);
             toast.error(`Variant generation failed: ${errorMsg}`);
             
             // Fall back to master image
