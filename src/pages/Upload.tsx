@@ -241,7 +241,7 @@ const Upload = () => {
             console.error('Variant processing failed, falling back to master image:', variantError);
 
             // IMPORTANT: do NOT mark as failed; just fall back to Mimi output
-            toast.error('Simplified variant failed; using standard coloring page instead.');
+            toast.warning('Couldn\'t simplify image. Using standard version instead.');
 
             setPages(prev =>
               prev.map(p =>
