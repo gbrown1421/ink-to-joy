@@ -150,65 +150,91 @@ const Upload = () => {
             return;
           }
 
-          console.log('Master image ready');
+          console.log('Master image ready, generating difficulty variants...');
           
-          // Generate Quick & Easy variant client-side if needed
-          try {
-            let displayUrl = data.masterImageUrl;
+          // Mark page as processing variants
+          setPages(prev => prev.map(p => 
+            p.id === tempId 
+              ? { ...p, status: "processing" } 
+              : p
+          ));
 
-            if (bookDifficulty === 'quick-easy' || bookDifficulty === 'quick') {
-              console.log('Generating Quick & Easy variant client-side...');
-              const { generateQuickEasyFromMaster } = await import('@/lib/quickEasyProcessor');
-              const easyBlob = await generateQuickEasyFromMaster(data.masterImageUrl);
-              
-              // Upload Quick & Easy variant to storage
-              const easyFilename = `${pageId}-easy.png`;
-              const easyPath = `books/${bookId}/pages/${easyFilename}`;
+          try {
+            // Generate all 3 difficulty variants client-side
+            const { generateDifficultyVariants, dataUrlToBlob } = await import('@/lib/difficultyClient');
+            const { easyDataUrl, beginnerDataUrl, intermediateDataUrl } = await generateDifficultyVariants(data.masterImageUrl);
+            
+            console.log('Difficulty variants generated, uploading...');
+
+            // Upload all 3 variants to storage
+            const uploadVariant = async (dataUrl: string, suffix: string) => {
+              const blob = dataUrlToBlob(dataUrl);
+              const filename = `${pageId}-${suffix}.png`;
+              const path = `books/${bookId}/pages/${filename}`;
               
               const { error: uploadError } = await supabase.storage
                 .from('book-images')
-                .upload(easyPath, easyBlob, {
+                .upload(path, blob, {
                   contentType: 'image/png',
                   upsert: true,
                 });
 
               if (uploadError) {
-                console.error('Failed to upload Quick & Easy variant:', uploadError);
+                console.error(`Failed to upload ${suffix} variant:`, uploadError);
                 throw uploadError;
               }
 
               const { data: urlData } = supabase.storage
                 .from('book-images')
-                .getPublicUrl(easyPath);
+                .getPublicUrl(path);
 
-              displayUrl = urlData.publicUrl;
+              return urlData.publicUrl;
+            };
 
-              // Update page with Quick & Easy URL
-              const { error: updateError } = await supabase
-                .from('pages')
-                .update({ easy_image_url: displayUrl })
-                .eq('id', pageId);
+            // Upload all variants in parallel
+            const [easyUrl, beginnerUrl, intermediateUrl] = await Promise.all([
+              uploadVariant(easyDataUrl, 'easy'),
+              uploadVariant(beginnerDataUrl, 'beginner'),
+              uploadVariant(intermediateDataUrl, 'intermediate'),
+            ]);
 
-              if (updateError) {
-                console.error('Failed to save Quick & Easy URL:', updateError);
-                throw updateError;
-              }
+            console.log('All variants uploaded:', { easyUrl, beginnerUrl, intermediateUrl });
 
-              console.log('Quick & Easy variant generated and saved:', displayUrl);
+            // Update page with all variant URLs
+            const { error: updateError } = await supabase
+              .from('pages')
+              .update({ 
+                easy_image_url: easyUrl,
+                beginner_image_url: beginnerUrl,
+                intermediate_image_url: intermediateUrl,
+              })
+              .eq('id', pageId);
+
+            if (updateError) {
+              console.error('Failed to save variant URLs:', updateError);
+              throw updateError;
             }
 
+            console.log('All difficulty variants saved successfully');
             toast.success('Page processed successfully!');
             
+            // Pick the correct URL for display based on book difficulty
+            const displayUrl = 
+              bookDifficulty === 'quick-easy' || bookDifficulty === 'quick' ? easyUrl :
+              bookDifficulty === 'beginner' ? beginnerUrl :
+              intermediateUrl;
+
             setPages(prev => prev.map(p => 
               p.id === tempId 
                 ? { ...p, status: "ready", coloringImageUrl: displayUrl } 
                 : p
             ));
           } catch (variantError) {
-            console.error('Error generating Quick & Easy variant:', variantError);
-            // Fall back to master image
+            console.error('Error generating/uploading difficulty variants:', variantError);
             const errorMsg = variantError instanceof Error ? variantError.message : 'Unknown error';
-            toast.error(`Quick & Easy generation failed: ${errorMsg}`);
+            toast.error(`Variant generation failed: ${errorMsg}`);
+            
+            // Fall back to master image
             setPages(prev => prev.map(p => 
               p.id === tempId 
                 ? { ...p, status: "ready", coloringImageUrl: data.masterImageUrl } 
