@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Palette, Upload as UploadIcon, ArrowRight, Loader2, X, CheckCircle2, AlertCircle, Home, ArrowLeft } from "lucide-react";
+import { Palette, Upload as UploadIcon, ArrowRight, Loader2, X, CheckCircle2, AlertCircle, Home } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useDropzone } from "react-dropzone";
@@ -138,8 +138,8 @@ const Upload = () => {
         console.log('Status check response:', data);
 
         if (data.status === "ready") {
-          if (!data.success) {
-            const errorMsg = data.error || 'Processing failed';
+          if (!data.success || !data.masterImageUrl) {
+            const errorMsg = data.error || 'No master image returned';
             console.error('Processing failed:', errorMsg);
             toast.error(`Processing failed: ${errorMsg}`);
             setPages(prev => prev.map(p => 
@@ -150,35 +150,48 @@ const Upload = () => {
             return;
           }
 
-          // Choose URL based on book difficulty
-          let displayUrl = data.intermediateImageUrl;
-          if (bookDifficulty === 'quick-easy' || bookDifficulty === 'quick') {
-            displayUrl = data.easyImageUrl || data.intermediateImageUrl;
-          } else if (bookDifficulty === 'beginner') {
-            displayUrl = data.beginnerImageUrl || data.intermediateImageUrl;
-          } else if (bookDifficulty === 'advanced') {
-            displayUrl = data.intermediateImageUrl;
-          }
+          console.log('Master image ready, generating difficulty variants...');
           
-          if (!displayUrl) {
-            console.error('No image URL in ready response:', data);
-            toast.error('Processing completed but no image URL returned');
+          // Generate and upload difficulty variants client-side
+          try {
+            await generateAndUploadVariants(pageId, data.masterImageUrl, bookDifficulty);
+            
+            // Fetch the page to get the updated URLs
+            const { data: updatedPage } = await supabase
+              .from('pages')
+              .select('easy_image_url, beginner_image_url, intermediate_image_url')
+              .eq('id', pageId)
+              .single();
+
+            let displayUrl = data.masterImageUrl;
+            if (updatedPage) {
+              if (bookDifficulty === 'quick-easy' || bookDifficulty === 'quick') {
+                displayUrl = updatedPage.easy_image_url || data.masterImageUrl;
+              } else if (bookDifficulty === 'beginner') {
+                displayUrl = updatedPage.beginner_image_url || data.masterImageUrl;
+              } else {
+                displayUrl = updatedPage.intermediate_image_url || data.masterImageUrl;
+              }
+            }
+
+            console.log(`Page ready with ${bookDifficulty} difficulty:`, displayUrl);
+            toast.success(`Page processed successfully!`);
+            
             setPages(prev => prev.map(p => 
               p.id === tempId 
-                ? { ...p, status: "failed", error: "No image URL returned" } 
+                ? { ...p, status: "ready", coloringImageUrl: displayUrl } 
                 : p
             ));
-            return;
+          } catch (variantError) {
+            console.error('Error generating variants:', variantError);
+            // Fall back to master image
+            toast.warning('Using master image (variant generation failed)');
+            setPages(prev => prev.map(p => 
+              p.id === tempId 
+                ? { ...p, status: "ready", coloringImageUrl: data.masterImageUrl } 
+                : p
+            ));
           }
-          
-          console.log(`Page ready with ${bookDifficulty} difficulty image:`, displayUrl);
-          toast.success(`Page processed successfully! (${bookDifficulty} difficulty)`);
-          
-          setPages(prev => prev.map(p => 
-            p.id === tempId 
-              ? { ...p, status: "ready", coloringImageUrl: displayUrl } 
-              : p
-          ));
           return;
         } else if (data.status === "failed") {
           const errorMsg = data.error || 'Processing failed';
@@ -218,6 +231,45 @@ const Upload = () => {
     };
 
     checkStatus();
+  };
+
+  const generateAndUploadVariants = async (
+    pageId: string, 
+    masterUrl: string, 
+    difficulty: string
+  ) => {
+    const { generateBeginnerFromMaster, generateEasyFromMaster, uploadDifficultyVariant } = 
+      await import('@/utils/difficultyTransforms');
+
+    if (!bookId) throw new Error('No book ID');
+
+    // Always save intermediate (master) first
+    const intermediateBlob = await fetch(masterUrl).then(r => r.blob());
+    const intermediateUrl = await uploadDifficultyVariant(bookId, pageId, 'intermediate', intermediateBlob);
+
+    // Generate and upload based on difficulty
+    let easyUrl: string | null = null;
+    let beginnerUrl: string | null = null;
+
+    if (difficulty === 'quick-easy' || difficulty === 'quick') {
+      const easyBlob = await generateEasyFromMaster(masterUrl);
+      easyUrl = await uploadDifficultyVariant(bookId, pageId, 'easy', easyBlob);
+    } else if (difficulty === 'beginner') {
+      const beginnerBlob = await generateBeginnerFromMaster(masterUrl);
+      beginnerUrl = await uploadDifficultyVariant(bookId, pageId, 'beginner', beginnerBlob);
+    }
+
+    // Update page record with URLs
+    const updates: any = { intermediate_image_url: intermediateUrl };
+    if (easyUrl) updates.easy_image_url = easyUrl;
+    if (beginnerUrl) updates.beginner_image_url = beginnerUrl;
+
+    const { error } = await supabase
+      .from('pages')
+      .update(updates)
+      .eq('id', pageId);
+
+    if (error) throw error;
   };
 
   const removePage = (id: string) => {

@@ -100,45 +100,15 @@ serve(async (req) => {
       throw new Error('No image URL returned from Mimi Panda');
     }
 
-    // CRITICAL LIMITATION: Edge Functions CPU timeout prevents multi-variant processing
-    // magick-wasm image processing is too CPU-intensive for Edge Function limits
-    // Even with background tasks, CPU time limit applies to entire function execution
-    // 
-    // WORKAROUND: Use Mimi Panda's V2 Simplified output directly for all variants
-    // This maintains the single-call-to-Mimi pipeline while respecting platform constraints
-    //
-    // TODO: Implement proper variant generation via:
-    // 1. Client-side canvas processing (no server CPU limits)
-    // 2. Separate microservice with higher CPU limits
-    // 3. Queue-based background job system
-    
-    console.log('[WORKAROUND] Using Mimi result for all variants due to Edge Function CPU limits');
-    console.log('Mimi V2 Simplified output is already kid-friendly and suitable for all difficulties');
-    
-    // Use Mimi's clean line art for all three variants
-    const urls = {
-      easy: resultUrl,
-      beginner: resultUrl,
-      intermediate: resultUrl,
-    };
+    // Simplified backend: Return only the master Mimi output
+    // Difficulty processing moved to client-side Canvas API
+    console.log('Mimi job completed! Master URL:', resultUrl);
 
-    // Map difficulty to the correct URL (all same for now)
-    const difficulty = page.books?.difficulty || 'intermediate';
-    let coloringImageUrl = urls.intermediate;
-    if (difficulty === 'quick-easy' || difficulty === 'quick') coloringImageUrl = urls.easy;
-    if (difficulty === 'beginner') coloringImageUrl = urls.beginner;
-    if (difficulty === 'advanced') coloringImageUrl = urls.intermediate;
-
-    console.log(`Using ${difficulty} difficulty:`, coloringImageUrl);
-
-    // Update page with URLs
+    // Save the master image URL (client will generate variants)
     const { error: updateError } = await supabase
       .from('pages')
       .update({
-        easy_image_url: urls.easy,
-        beginner_image_url: urls.beginner,
-        intermediate_image_url: urls.intermediate,
-        coloring_image_url: coloringImageUrl,
+        intermediate_image_url: resultUrl,
         status: 'ready',
       })
       .eq('id', pageId);
@@ -151,16 +121,13 @@ serve(async (req) => {
       );
     }
 
-    console.log('✓ Page marked ready with Mimi output');
+    console.log('✓ Page marked ready with master image');
 
     return new Response(
       JSON.stringify({ 
         status: 'ready',
         success: true,
-        coloringImageUrl,
-        easyImageUrl: urls.easy,
-        beginnerImageUrl: urls.beginner,
-        intermediateImageUrl: urls.intermediate,
+        masterImageUrl: resultUrl,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
