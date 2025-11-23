@@ -100,7 +100,7 @@ serve(async (req) => {
       throw new Error('No image URL returned from Mimi Panda');
     }
 
-    // Download the completed "Intermediate" (V2 Simplified) image from Mimi
+    // Download the completed Mimi V2 Simplified image (our "master" / intermediate)
     const imageResponse = await fetch(resultUrl);
     if (!imageResponse.ok) {
       throw new Error(`Failed to download Mimi result: ${imageResponse.status}`);
@@ -109,16 +109,17 @@ serve(async (req) => {
     const imageBlob = await imageResponse.blob();
     const imageBuffer = await imageBlob.arrayBuffer();
     
-    console.log('Downloaded Mimi result:', imageBuffer.byteLength, 'bytes');
+    console.log('Downloaded Mimi result (master):', imageBuffer.byteLength, 'bytes');
 
     // Import sharp for post-processing
     const sharp = (await import('https://deno.land/x/sharp@v0.33.2/mod.ts')).default;
 
-    // Get book difficulty (quick | beginner | intermediate)
+    // Get book difficulty to determine which URL to return
     const difficulty = (page.books as any)?.difficulty || 'beginner';
     console.log('Book difficulty:', difficulty);
 
-    // Store base Mimi result as "intermediate" (Beginner & Intermediate will use this)
+    // ===== STEP 1: Store raw Mimi result as INTERMEDIATE (master) =====
+    console.log('Storing Mimi master as intermediate...');
     const intermediateBuffer = await sharp(imageBuffer)
       .png()
       .toBuffer();
@@ -140,52 +141,91 @@ serve(async (req) => {
       .from('book-images')
       .getPublicUrl(intermediatePath);
 
-    console.log('Stored intermediate (Beginner/Intermediate) at:', intermediateUrl);
+    console.log('✓ Intermediate (master) stored at:', intermediateUrl);
 
-    // For Quick & Easy: apply extra simplification for toddlers
-    let easyUrl = intermediateUrl;
-    if (difficulty === 'quick') {
-      console.log('Applying toddler simplification for Quick & Easy...');
-      
-      const toddlerBuffer = await sharp(imageBuffer)
-        .resize({ width: 1000, withoutEnlargement: true })
-        .blur(1.2)          // Smooth away tiny wiggles
-        .threshold(210)     // Pure black/white, no grey
-        .png()
-        .toBuffer();
+    // ===== STEP 2: Generate BEGINNER version (light simplification) =====
+    console.log('Generating beginner version (light simplification)...');
+    const beginnerBuffer = await sharp(imageBuffer)
+      .grayscale()
+      .blur(0.5)          // Very light blur to remove tiny speckles
+      .normalize()        // Stretch histogram for cleaner blacks/whites
+      .threshold(200)     // Convert to pure black/white, threshold at 200
+      .png()
+      .toBuffer();
 
-      const easyPath = `${page.book_id}/${page.id}-easy.png`;
-      const { error: easyError } = await supabase.storage
-        .from('book-images')
-        .upload(easyPath, toddlerBuffer, {
-          contentType: 'image/png',
-          upsert: true,
-        });
+    const beginnerPath = `${page.book_id}/${page.id}-beginner.png`;
+    const { error: beginnerError } = await supabase.storage
+      .from('book-images')
+      .upload(beginnerPath, beginnerBuffer, {
+        contentType: 'image/png',
+        upsert: true,
+      });
 
-      if (easyError) {
-        console.error('Error storing easy image:', easyError);
-        throw easyError;
-      }
-
-      const { data: { publicUrl: easyPublicUrl } } = supabase.storage
-        .from('book-images')
-        .getPublicUrl(easyPath);
-
-      easyUrl = easyPublicUrl;
-      console.log('Stored Quick & Easy (toddler-simplified) at:', easyUrl);
-    } else {
-      console.log('Using same image for all difficulties (Beginner/Intermediate mode)');
+    if (beginnerError) {
+      console.error('Error storing beginner image:', beginnerError);
+      throw beginnerError;
     }
 
-    // Update page with appropriate URLs based on difficulty
-    // Quick & Easy gets simplified version, Beginner & Intermediate get Mimi output
+    const { data: { publicUrl: beginnerUrl } } = supabase.storage
+      .from('book-images')
+      .getPublicUrl(beginnerPath);
+
+    console.log('✓ Beginner version stored at:', beginnerUrl);
+
+    // ===== STEP 3: Generate QUICK & EASY version (heavy simplification) =====
+    console.log('Generating quick version (heavy simplification for toddlers)...');
+    
+    // Strategy: downscale aggressively to kill detail, then upscale with heavy blur/threshold
+    const metadata = await sharp(imageBuffer).metadata();
+    const targetWidth = Math.floor((metadata.width || 1000) * 0.5); // 50% downscale
+    
+    const quickBuffer = await sharp(imageBuffer)
+      .resize({ width: targetWidth, kernel: 'nearest' })  // Downscale with nearest-neighbor
+      .resize({ width: metadata.width, kernel: 'nearest' }) // Upscale back (pixelates)
+      .grayscale()
+      .blur(1.5)          // Heavy blur to merge lines and kill small details
+      .normalize()
+      .threshold(220)     // Very aggressive threshold for thick outlines
+      .png()
+      .toBuffer();
+
+    const quickPath = `${page.book_id}/${page.id}-quick.png`;
+    const { error: quickError } = await supabase.storage
+      .from('book-images')
+      .upload(quickPath, quickBuffer, {
+        contentType: 'image/png',
+        upsert: true,
+      });
+
+    if (quickError) {
+      console.error('Error storing quick image:', quickError);
+      throw quickError;
+    }
+
+    const { data: { publicUrl: quickUrl } } = supabase.storage
+      .from('book-images')
+      .getPublicUrl(quickPath);
+
+    console.log('✓ Quick & Easy version stored at:', quickUrl);
+
+    // ===== STEP 4: Determine which URL to return based on difficulty =====
+    let coloringImageUrl = intermediateUrl;
+    if (difficulty === 'beginner') {
+      coloringImageUrl = beginnerUrl;
+    } else if (difficulty === 'quick') {
+      coloringImageUrl = quickUrl;
+    }
+
+    console.log(`Selected ${difficulty} URL for display:`, coloringImageUrl);
+
+    // Update page with all three URLs
     const { error: updateError } = await supabase
       .from('pages')
       .update({
-        intermediate_image_url: intermediateUrl,  // Mimi base (for Beginner & Intermediate)
-        beginner_image_url: intermediateUrl,      // Mimi base
-        easy_image_url: easyUrl,                   // Simplified for toddlers (if quick)
-        coloring_image_url: intermediateUrl,       // Default to Mimi base
+        intermediate_image_url: intermediateUrl,  // Raw Mimi master
+        beginner_image_url: beginnerUrl,          // Light simplification
+        easy_image_url: quickUrl,                 // Heavy simplification
+        coloring_image_url: coloringImageUrl,     // Selected based on book difficulty
         status: 'ready',
       })
       .eq('id', pageId);
