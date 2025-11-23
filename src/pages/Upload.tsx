@@ -151,14 +151,95 @@ const Upload = () => {
           }
 
           console.log('Master image ready:', data.intermediateImageUrl);
-          toast.success('Page processed successfully!');
           
-          // Use master image directly for all difficulties
-          setPages(prev => prev.map(p => 
-            p.id === tempId 
-              ? { ...p, status: "ready", coloringImageUrl: data.intermediateImageUrl } 
-              : p
-          ));
+          // Process based on difficulty
+          try {
+            let finalImageUrl = data.intermediateImageUrl;
+            
+            if (bookDifficulty === 'intermediate') {
+              // Use master as-is for intermediate
+              console.log('Using master image for intermediate difficulty');
+              finalImageUrl = data.intermediateImageUrl;
+            } else if (bookDifficulty === 'beginner') {
+              // Generate beginner variant client-side
+              console.log('Generating beginner variant...');
+              setPages(prev => prev.map(p => 
+                p.id === tempId 
+                  ? { ...p, status: "processing" } 
+                  : p
+              ));
+              
+              const { makeBeginnerVariant } = await import('@/lib/difficultyVariants');
+              const beginnerBlob = await makeBeginnerVariant(data.intermediateImageUrl);
+              
+              // Upload to storage
+              const uploadPath = `books/${bookId}/pages/${pageId}-beginner.png`;
+              const { error: uploadError } = await supabase.storage
+                .from('book-images')
+                .upload(uploadPath, beginnerBlob, { upsert: true });
+              
+              if (uploadError) throw uploadError;
+              
+              const { data: { publicUrl } } = supabase.storage
+                .from('book-images')
+                .getPublicUrl(uploadPath);
+              
+              // Update page record
+              await supabase.from('pages')
+                .update({ beginner_image_url: publicUrl })
+                .eq('id', pageId);
+              
+              finalImageUrl = publicUrl;
+              console.log('Beginner variant created:', publicUrl);
+            } else if (bookDifficulty === 'quick') {
+              // Generate quick variant client-side
+              console.log('Generating quick variant...');
+              setPages(prev => prev.map(p => 
+                p.id === tempId 
+                  ? { ...p, status: "processing" } 
+                  : p
+              ));
+              
+              const { makeQuickVariant } = await import('@/lib/difficultyVariants');
+              const quickBlob = await makeQuickVariant(data.intermediateImageUrl);
+              
+              // Upload to storage
+              const uploadPath = `books/${bookId}/pages/${pageId}-quick.png`;
+              const { error: uploadError } = await supabase.storage
+                .from('book-images')
+                .upload(uploadPath, quickBlob, { upsert: true });
+              
+              if (uploadError) throw uploadError;
+              
+              const { data: { publicUrl } } = supabase.storage
+                .from('book-images')
+                .getPublicUrl(uploadPath);
+              
+              // Update page record
+              await supabase.from('pages')
+                .update({ easy_image_url: publicUrl })
+                .eq('id', pageId);
+              
+              finalImageUrl = publicUrl;
+              console.log('Quick variant created:', publicUrl);
+            }
+            
+            toast.success('Page processed successfully!');
+            setPages(prev => prev.map(p => 
+              p.id === tempId 
+                ? { ...p, status: "ready", coloringImageUrl: finalImageUrl } 
+                : p
+            ));
+          } catch (variantError) {
+            console.error('Error processing variant:', variantError);
+            const errorMsg = variantError instanceof Error ? variantError.message : 'Variant processing failed';
+            toast.error(`Processing failed: ${errorMsg}`);
+            setPages(prev => prev.map(p => 
+              p.id === tempId 
+                ? { ...p, status: "failed", error: errorMsg } 
+                : p
+            ));
+          }
           return;
         } else if (data.status === "failed") {
           const errorMsg = data.error || 'Processing failed';
