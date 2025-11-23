@@ -91,11 +91,17 @@ serve(async (req) => {
       );
     }
 
-    console.log('Mimi job completed! Result URL:', mimiData.result_url);
+    // BUG FIX: Mimi Panda returns images in an array, not result_url
+    const resultUrl = mimiData.images?.[0];
+    console.log('Mimi job completed! Result URL:', resultUrl);
     console.log('Full Mimi result:', JSON.stringify(mimiData, null, 2));
 
+    if (!resultUrl) {
+      throw new Error('No image URL returned from Mimi Panda');
+    }
+
     // Download the completed "Intermediate" (V2 Simplified) image from Mimi
-    const imageResponse = await fetch(mimiData.result_url);
+    const imageResponse = await fetch(resultUrl);
     if (!imageResponse.ok) {
       throw new Error(`Failed to download Mimi result: ${imageResponse.status}`);
     }
