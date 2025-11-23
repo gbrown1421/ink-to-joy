@@ -64,16 +64,37 @@ serve(async (req) => {
     }
 
     // Poll Mimi Panda API for job status
+    // Try the correct endpoint structure: /api/service/coloring should return job status with the key as query param
+    const statusUrl = `${MIMI_PANDA_API_BASE_URL}/${page.mimi_key}`;
     console.log('Checking Mimi status for key:', page.mimi_key);
-    const mimiResponse = await fetch(`${MIMI_PANDA_API_BASE_URL}/${page.mimi_key}`, {
+    console.log('Full status URL:', statusUrl);
+    
+    const mimiResponse = await fetch(statusUrl, {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('MIMI_PANDA_API_TOKEN')}`,
       },
     });
 
+    console.log('Mimi response status:', mimiResponse.status);
+    console.log('Mimi response content-type:', mimiResponse.headers.get('content-type'));
+
     if (!mimiResponse.ok) {
       const errorText = await mimiResponse.text();
-      console.error('Mimi Panda status check error:', mimiResponse.status, errorText);
+      console.error('Mimi Panda status check error:', mimiResponse.status);
+      console.error('Error response (first 500 chars):', errorText.substring(0, 500));
+      return new Response(
+        JSON.stringify({ status: 'processing' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if response is actually JSON
+    const contentType = mimiResponse.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      const responseText = await mimiResponse.text();
+      console.error('Expected JSON but got:', contentType);
+      console.error('Response body (first 500 chars):', responseText.substring(0, 500));
       return new Response(
         JSON.stringify({ status: 'processing' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
