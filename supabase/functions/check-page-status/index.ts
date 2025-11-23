@@ -1,5 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import {
+  ImageMagick,
+  initializeImageMagick,
+  MagickFormat,
+  Percentage,
+} from "https://esm.sh/@imagemagick/magick-wasm@0.0.30";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -111,55 +117,64 @@ serve(async (req) => {
     
     console.log('Downloaded Mimi result (master):', imageBuffer.byteLength, 'bytes');
 
-    // Import sharp for post-processing
-    const sharp = (await import('https://deno.land/x/sharp@v0.33.2/mod.ts')).default;
+    // Initialize magick-wasm for post-processing
+    const wasmUrl = 'https://esm.sh/@imagemagick/magick-wasm@0.0.30/magick.wasm';
+    const wasmResponse = await fetch(wasmUrl);
+    const wasmBytes = new Uint8Array(await wasmResponse.arrayBuffer());
+    await initializeImageMagick(wasmBytes);
 
     console.log('Generating 3 difficulty variants from Mimi base image...');
     
-    // Normalize base image: remove alpha, grayscale, normalize
-    const baseSharp = sharp(imageBuffer)
-      .removeAlpha()
-      .grayscale()
-      .normalize();
+    // Get image dimensions
+    let width = 1024;
+    let height = 1024;
     
-    const metadata = await baseSharp.metadata();
-    const width = metadata.width ?? 1024;
-    const height = metadata.height ?? 1024;
+    const variants: { intermediate: Uint8Array; beginner: Uint8Array; quick: Uint8Array } = await new Promise((resolve, reject) => {
+      ImageMagick.read(new Uint8Array(imageBuffer), (img) => {
+        width = img.width;
+        height = img.height;
+        
+        // INTERMEDIATE: basically Mimi output, but binarized (no gray)
+        console.log('Creating intermediate variant...');
+        img.grayscale();
+        img.normalize();
+        img.threshold(new Percentage(82)); // 210/255 = 82%
+        const intermediateBuffer = img.write(MagickFormat.Png, data => data);
 
-    // INTERMEDIATE: basically Mimi output, but binarized (no gray)
-    console.log('Creating intermediate variant...');
-    const intermediateBuffer = await baseSharp
-      .clone()
-      .threshold(210)
-      .toFormat('png')
-      .toBuffer();
+        // BEGINNER: slightly smoother, fewer tiny details
+        console.log('Creating beginner variant...');
+        ImageMagick.read(new Uint8Array(imageBuffer), (img2) => {
+          img2.grayscale();
+          img2.normalize();
+          img2.blur(0.6, 1.0);
+          img2.threshold(new Percentage(80)); // 205/255 = 80%
+          const beginnerBuffer = img2.write(MagickFormat.Png, data => data);
 
-    // BEGINNER: slightly smoother, fewer tiny details
-    console.log('Creating beginner variant...');
-    const beginnerBuffer = await baseSharp
-      .clone()
-      .blur(0.6)
-      .threshold(205)
-      .median(3)
-      .toFormat('png')
-      .toBuffer();
+          // QUICK: big chunky shapes for 3-4 yr olds
+          console.log('Creating quick variant...');
+          ImageMagick.read(new Uint8Array(imageBuffer), (img3) => {
+            const quickScale = 0.45;
+            img3.grayscale();
+            img3.blur(1.3, 1.0);
+            img3.resize(Math.round(width * quickScale), Math.round(height * quickScale));
+            // Scale back up using resize (will create chunky effect)
+            img3.resize(width, height);
+            img3.threshold(new Percentage(84)); // 215/255 = 84%
+            const quickBuffer = img3.write(MagickFormat.Png, data => data);
 
-    // QUICK: big chunky shapes for 3-4 yr olds
-    console.log('Creating quick variant...');
-    const quickScale = 0.45;
-    const quickBuffer = await baseSharp
-      .clone()
-      .blur(1.3)
-      .resize(Math.round(width * quickScale), Math.round(height * quickScale), {
-        kernel: sharp.kernel.cubic,
-      })
-      .resize(width, height, {
-        kernel: sharp.kernel.nearest,
-      })
-      .threshold(215)
-      .median(5)
-      .toFormat('png')
-      .toBuffer();
+            resolve({
+              intermediate: intermediateBuffer,
+              beginner: beginnerBuffer,
+              quick: quickBuffer
+            });
+          });
+        });
+      });
+    });
+
+    const intermediateBuffer = variants.intermediate;
+    const beginnerBuffer = variants.beginner;
+    const quickBuffer = variants.quick;
 
     // Upload all 3 variants to storage
     console.log('Uploading all 3 variants to storage...');
