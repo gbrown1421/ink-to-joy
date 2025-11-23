@@ -100,15 +100,16 @@ serve(async (req) => {
       throw new Error('No image URL returned from Mimi Panda');
     }
 
+    // DEPLOYMENT CHECK: v2.0 - No image processing, direct URL usage
     // For now, use the Mimi result directly for all variants to avoid CPU timeout
     // TODO: Implement proper variant generation in a separate background task
-    console.log('Using Mimi result for all variants (no post-processing)');
+    console.log('[v2.0] Using Mimi result for all variants (no post-processing)');
     
     const quickUrl = resultUrl;
     const beginnerUrl = resultUrl;
     const intermediateUrl = resultUrl;
 
-    console.log('✓ All variants uploaded:', { quickUrl, beginnerUrl, intermediateUrl });
+    console.log('[v2.0] All variants set to Mimi URL:', resultUrl);
 
     // Map difficulty to the correct URL
     const difficulty = page.books?.difficulty || 'intermediate';
