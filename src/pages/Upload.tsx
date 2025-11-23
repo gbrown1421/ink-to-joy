@@ -153,7 +153,7 @@ const Upload = () => {
           console.log('Coloring image ready:', data.coloringImageUrl);
           
           // Check if we need Quick & Easy simplification
-          const isQuickEasy = bookDifficulty === 'quick-easy' || bookDifficulty === 'quick';
+          const isQuickEasy = bookDifficulty === 'quick-easy' || bookDifficulty === 'quick' || bookDifficulty === 'quick_easy' || bookDifficulty === 'easy';
           
           if (isQuickEasy) {
             console.log('Applying Quick & Easy simplification...');
