@@ -71,6 +71,7 @@ const Finalize = () => {
 
     setIsGenerating(true);
     try {
+      // Get PDF data from export function
       const { data, error } = await supabase.functions.invoke('export-pdf', {
         body: { bookId }
       });
@@ -78,12 +79,144 @@ const Finalize = () => {
       if (error) throw error;
 
       setPdfData(data);
-      toast.success("PDF data ready! Download functionality coming soon.");
+      
+      // Generate PDF blob using jsPDF
+      const pdfBlob = await generatePDFBlob(data);
+      
+      // Upload PDF to storage
+      const fileName = `${bookId}/book.pdf`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('book-pdfs')
+        .upload(fileName, pdfBlob, {
+          contentType: 'application/pdf',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('book-pdfs')
+        .getPublicUrl(fileName);
+
+      // Update book record with PDF metadata
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      const { error: updateError } = await supabase
+        .from('books')
+        .update({
+          status: 'completed',
+          pdf_url: publicUrl,
+          pdf_created_at: new Date().toISOString(),
+          pdf_expires_at: expiresAt.toISOString(),
+          pdf_deleted: false,
+          total_price: 0, // Set to actual price if available
+        })
+        .eq('id', bookId);
+
+      if (updateError) throw updateError;
+
+      // Delete page images after PDF is created
+      await deletePageImages();
+
+      toast.success("PDF generated and saved for 30 days!");
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error("Failed to generate PDF");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const generatePDFBlob = async (pdfData: { bookName: string; pages: PageData[] }): Promise<Blob> => {
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'in',
+      format: 'letter'
+    });
+
+    const pageWidth = 8.5;
+    const pageHeight = 11;
+    const margin = 0.5;
+
+    for (let i = 0; i < pdfData.pages.length; i++) {
+      const page = pdfData.pages[i];
+      
+      if (i > 0) {
+        pdf.addPage();
+      }
+
+      if (page.headingText) {
+        pdf.setFontSize(24);
+        pdf.text(page.headingText, pageWidth / 2, margin + 0.3, { align: 'center' });
+      }
+
+      try {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = page.coloringImageUrl;
+        });
+
+        const availableHeight = pageHeight - (2 * margin) - (page.headingText ? 0.5 : 0);
+        const availableWidth = pageWidth - (2 * margin);
+        
+        const imgAspectRatio = img.width / img.height;
+        let imgWidth = availableWidth;
+        let imgHeight = imgWidth / imgAspectRatio;
+        
+        if (imgHeight > availableHeight) {
+          imgHeight = availableHeight;
+          imgWidth = imgHeight * imgAspectRatio;
+        }
+
+        const xPos = (pageWidth - imgWidth) / 2;
+        const yPos = margin + (page.headingText ? 0.6 : 0);
+
+        pdf.addImage(img, 'PNG', xPos, yPos, imgWidth, imgHeight);
+      } catch (error) {
+        console.error(`Error loading image for page ${i + 1}:`, error);
+      }
+    }
+
+    return pdf.output('blob');
+  };
+
+  const deletePageImages = async () => {
+    if (!bookId) return;
+
+    try {
+      // Delete all pages for this book
+      const { error: pagesError } = await supabase
+        .from('pages')
+        .delete()
+        .eq('book_id', bookId);
+
+      if (pagesError) throw pagesError;
+
+      // Delete images from storage
+      const { data: files, error: listError } = await supabase.storage
+        .from('book-images')
+        .list(`books/${bookId}/pages`);
+
+      if (listError) throw listError;
+
+      if (files && files.length > 0) {
+        const filePaths = files.map(f => `books/${bookId}/pages/${f.name}`);
+        const { error: deleteError } = await supabase.storage
+          .from('book-images')
+          .remove(filePaths);
+
+        if (deleteError) throw deleteError;
+      }
+
+      console.log('Page images deleted successfully');
+    } catch (error) {
+      console.error('Error deleting page images:', error);
     }
   };
 
