@@ -26,6 +26,7 @@ const Upload = () => {
   const [pages, setPages] = useState<UploadedPage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [projectType, setProjectType] = useState<"coloring" | "toon">("coloring");
+  const [bookDifficulty, setBookDifficulty] = useState<string>("intermediate");
 
   useEffect(() => {
     loadBookDetails();
@@ -37,16 +38,18 @@ const Upload = () => {
     try {
       const { data, error } = await supabase
         .from('books')
-        .select('project_type')
+        .select('project_type, difficulty')
         .eq('id', bookId)
         .single();
 
       if (error) throw error;
       if (data) {
         setProjectType(data.project_type as "coloring" | "toon");
+        setBookDifficulty(data.difficulty || "intermediate");
       }
     } catch (error) {
       console.error('Error loading book details:', error);
+      toast.error('Failed to load book details');
     }
   };
 
@@ -124,25 +127,56 @@ const Upload = () => {
           console.error('Status check error:', error);
           const errorMsg = error.message || 'Status check failed';
           toast.error(`Processing error: ${errorMsg}`);
-          throw error;
+          setPages(prev => prev.map(p => 
+            p.id === tempId 
+              ? { ...p, status: "failed", error: errorMsg } 
+              : p
+          ));
+          return;
         }
 
         console.log('Status check response:', data);
 
         if (data.status === "ready") {
-          const coloringImageUrl = data.coloringImageUrl;
-          
-          if (!coloringImageUrl) {
-            console.error('No coloring image URL in ready response:', data);
-            toast.error('Processing completed but no image URL returned');
-          } else {
-            console.log('Page ready with image:', coloringImageUrl);
-            toast.success('Page processed successfully!');
+          if (!data.success) {
+            const errorMsg = data.error || 'Processing failed';
+            console.error('Processing failed:', errorMsg);
+            toast.error(`Processing failed: ${errorMsg}`);
+            setPages(prev => prev.map(p => 
+              p.id === tempId 
+                ? { ...p, status: "failed", error: errorMsg } 
+                : p
+            ));
+            return;
           }
+
+          // Choose URL based on book difficulty
+          let displayUrl = data.intermediateImageUrl;
+          if (bookDifficulty === 'quick-easy' || bookDifficulty === 'quick') {
+            displayUrl = data.easyImageUrl || data.intermediateImageUrl;
+          } else if (bookDifficulty === 'beginner') {
+            displayUrl = data.beginnerImageUrl || data.intermediateImageUrl;
+          } else if (bookDifficulty === 'advanced') {
+            displayUrl = data.intermediateImageUrl;
+          }
+          
+          if (!displayUrl) {
+            console.error('No image URL in ready response:', data);
+            toast.error('Processing completed but no image URL returned');
+            setPages(prev => prev.map(p => 
+              p.id === tempId 
+                ? { ...p, status: "failed", error: "No image URL returned" } 
+                : p
+            ));
+            return;
+          }
+          
+          console.log(`Page ready with ${bookDifficulty} difficulty image:`, displayUrl);
+          toast.success(`Page processed successfully! (${bookDifficulty} difficulty)`);
           
           setPages(prev => prev.map(p => 
             p.id === tempId 
-              ? { ...p, status: "ready", coloringImageUrl } 
+              ? { ...p, status: "ready", coloringImageUrl: displayUrl } 
               : p
           ));
           return;
@@ -163,18 +197,23 @@ const Upload = () => {
         if (attempts < maxAttempts) {
           setTimeout(checkStatus, 5000);
         } else {
+          const timeoutMsg = 'Processing timeout - please try again';
+          toast.error(timeoutMsg);
           setPages(prev => prev.map(p => 
             p.id === tempId 
-              ? { ...p, status: "failed", error: "Timeout" } 
+              ? { ...p, status: "failed", error: timeoutMsg } 
               : p
           ));
         }
       } catch (error) {
         console.error('Error checking page status:', error);
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(checkStatus, 5000);
-        }
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        setPages(prev => prev.map(p => 
+          p.id === tempId 
+            ? { ...p, status: "failed", error: errorMsg } 
+            : p
+        ));
+        toast.error(`Processing error: ${errorMsg}`);
       }
     };
 

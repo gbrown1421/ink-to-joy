@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { initializeImageMagick, ImageMagick, MagickFormat, Percentage } from "https://esm.sh/@imagemagick/magick-wasm@0.0.30";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -100,22 +101,102 @@ serve(async (req) => {
       throw new Error('No image URL returned from Mimi Panda');
     }
 
-    // DEPLOYMENT CHECK: v2.0 - No image processing, direct URL usage
-    // For now, use the Mimi result directly for all variants to avoid CPU timeout
-    // TODO: Implement proper variant generation in a separate background task
-    console.log('[v2.0] Using Mimi result for all variants (no post-processing)');
-    
-    const quickUrl = resultUrl;
-    const beginnerUrl = resultUrl;
-    const intermediateUrl = resultUrl;
+    // Download master image from Mimi Panda
+    console.log('Downloading master image from Mimi...');
+    const imageResponse = await fetch(resultUrl);
+    if (!imageResponse.ok) {
+      throw new Error(`Failed to download master image: ${imageResponse.status}`);
+    }
+    const masterBuffer = new Uint8Array(await imageResponse.arrayBuffer());
+    console.log('Master image downloaded, size:', masterBuffer.length, 'bytes');
 
-    console.log('[v2.0] All variants set to Mimi URL:', resultUrl);
+    // Initialize ImageMagick
+    const wasmUrl = 'https://cdn.jsdelivr.net/npm/@imagemagick/magick-wasm@0.0.30/dist/magick.wasm';
+    const wasmBytes = await fetch(wasmUrl).then(r => r.arrayBuffer());
+    await initializeImageMagick(wasmBytes);
+    console.log('ImageMagick initialized');
+
+    // Generate 3 difficulty variants
+    const variants: { [key: string]: Uint8Array } = {};
+    
+    try {
+      // Intermediate: Mimi output with minimal cleanup
+      ImageMagick.read(masterBuffer, (img) => {
+        img.normalize();
+        img.threshold(new Percentage(60)); // 60% threshold for crisp lines
+        img.write(MagickFormat.Png, (data) => {
+          variants.intermediate = data;
+        });
+      });
+      console.log('✓ Intermediate variant generated');
+
+      // Beginner: Light simplification
+      ImageMagick.read(masterBuffer, (img) => {
+        img.blur(1.0, 0.8); // Light blur to remove micro-noise
+        img.normalize();
+        img.threshold(new Percentage(70)); // Stronger threshold for bolder lines
+        img.write(MagickFormat.Png, (data) => {
+          variants.beginner = data;
+        });
+      });
+      console.log('✓ Beginner variant generated');
+
+      // Quick & Easy: Heavy simplification
+      ImageMagick.read(masterBuffer, (img) => {
+        const origWidth = img.width;
+        // Downscale to merge tiny features
+        img.resize(Math.round(origWidth * 0.55), 0);
+        img.blur(2.5, 1.4); // Strong blur for main contours only
+        img.normalize();
+        img.threshold(new Percentage(80)); // Aggressive threshold for thick outlines
+        // Upscale back to original size
+        img.resize(origWidth, 0);
+        img.write(MagickFormat.Png, (data) => {
+          variants.easy = data;
+        });
+      });
+      console.log('✓ Quick & Easy variant generated');
+    } catch (processingError) {
+      console.error('Image processing error:', processingError);
+      throw new Error(`Failed to generate variants: ${processingError instanceof Error ? processingError.message : 'Unknown error'}`);
+    }
+
+    // Upload variants to storage
+    console.log('Uploading variants to storage...');
+    const uploadPromises = Object.entries(variants).map(async ([variant, buffer]) => {
+      const fileName = `${page.book_id}/${pageId}-${variant}.png`;
+      const { data, error } = await supabase.storage
+        .from('book-images')
+        .upload(fileName, buffer, {
+          contentType: 'image/png',
+          upsert: true,
+        });
+      
+      if (error) {
+        console.error(`Error uploading ${variant}:`, error);
+        throw error;
+      }
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('book-images')
+        .getPublicUrl(fileName);
+      
+      return { variant, publicUrl };
+    });
+
+    const uploadResults = await Promise.all(uploadPromises);
+    const urls: { [key: string]: string } = {};
+    uploadResults.forEach(({ variant, publicUrl }) => {
+      urls[variant] = publicUrl;
+    });
+    console.log('✓ All variants uploaded:', urls);
 
     // Map difficulty to the correct URL
     const difficulty = page.books?.difficulty || 'intermediate';
-    let coloringImageUrl = intermediateUrl;
-    if (difficulty === 'quick') coloringImageUrl = quickUrl;
-    if (difficulty === 'beginner') coloringImageUrl = beginnerUrl;
+    let coloringImageUrl = urls.intermediate;
+    if (difficulty === 'quick-easy' || difficulty === 'quick') coloringImageUrl = urls.easy;
+    if (difficulty === 'beginner') coloringImageUrl = urls.beginner;
+    if (difficulty === 'advanced') coloringImageUrl = urls.intermediate; // Advanced maps to Intermediate
 
     console.log(`Using ${difficulty} variant:`, coloringImageUrl);
 
@@ -123,9 +204,9 @@ serve(async (req) => {
     const { error: updateError } = await supabase
       .from('pages')
       .update({
-        easy_image_url: quickUrl,
-        beginner_image_url: beginnerUrl,
-        intermediate_image_url: intermediateUrl,
+        easy_image_url: urls.easy,
+        beginner_image_url: urls.beginner,
+        intermediate_image_url: urls.intermediate,
         coloring_image_url: coloringImageUrl,
         status: 'ready',
       })
@@ -141,8 +222,12 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        status: 'ready', 
+        status: 'ready',
+        success: true,
         coloringImageUrl,
+        easyImageUrl: urls.easy,
+        beginnerImageUrl: urls.beginner,
+        intermediateImageUrl: urls.intermediate,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
