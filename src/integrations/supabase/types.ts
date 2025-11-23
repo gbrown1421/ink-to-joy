@@ -20,21 +20,42 @@ export type Database = {
           difficulty: string
           id: string
           name: string
+          order_id: string | null
+          pdf_created_at: string | null
+          pdf_deleted: boolean | null
+          pdf_expires_at: string | null
+          pdf_url: string | null
           project_type: string
+          status: string | null
+          total_price: number | null
         }
         Insert: {
           created_at?: string
           difficulty: string
           id?: string
           name: string
+          order_id?: string | null
+          pdf_created_at?: string | null
+          pdf_deleted?: boolean | null
+          pdf_expires_at?: string | null
+          pdf_url?: string | null
           project_type?: string
+          status?: string | null
+          total_price?: number | null
         }
         Update: {
           created_at?: string
           difficulty?: string
           id?: string
           name?: string
+          order_id?: string | null
+          pdf_created_at?: string | null
+          pdf_deleted?: boolean | null
+          pdf_expires_at?: string | null
+          pdf_url?: string | null
           project_type?: string
+          status?: string | null
+          total_price?: number | null
         }
         Relationships: []
       }

@@ -22,7 +22,21 @@ interface Page {
   heading_text: string;
   keep: boolean;
   page_order: number;
+  status: string;
 }
+
+const getDisplayUrlForPage = (page: Page, difficulty: string): string | null => {
+  switch (difficulty) {
+    case "quick":
+    case "quick-easy":
+      return page.easy_image_url || null;
+    case "beginner":
+      return page.beginner_image_url || null;
+    case "intermediate":
+    default:
+      return page.intermediate_image_url || null;
+  }
+};
 
 // Border styles mapped by difficulty level
 const getBorderStylesForDifficulty = (difficulty: string) => {
@@ -178,6 +192,27 @@ const Review = () => {
     }
   };
 
+  const handleRetryPage = async (page: Page) => {
+    try {
+      toast.info(`Retrying processing for page ${page.page_order}...`);
+      
+      // Reset page status and clear URLs
+      await updatePage(page.id, {
+        status: 'pending_mimi',
+        easy_image_url: null,
+        beginner_image_url: null,
+        intermediate_image_url: null,
+      });
+
+      // Trigger reprocessing by calling the same endpoint used during upload
+      // This assumes the original image is still stored
+      toast.success("Page reprocessing started");
+    } catch (error) {
+      console.error('Error retrying page:', error);
+      toast.error("Failed to retry page processing");
+    }
+  };
+
   const handleContinue = () => {
     const keptPages = pages.filter(p => p.keep);
     if (keptPages.length === 0) {
@@ -243,24 +278,39 @@ const Review = () => {
             {selectedPage && (
               <Card className="p-6 space-y-6">
                 <div className="bg-background rounded-lg p-4">
-                  <BorderWrapper
-                    borderStyle={selectedPage.border_style}
-                    headingText={selectedPage.heading_text}
-                    difficulty={difficulty}
-                  >
-                    <img 
-                      src={
-                        difficulty === 'quick-easy' && selectedPage.easy_image_url
-                          ? selectedPage.easy_image_url
-                          : difficulty === 'beginner' && selectedPage.beginner_image_url
-                          ? selectedPage.beginner_image_url
-                          : selectedPage.intermediate_image_url || selectedPage.coloring_image_url
-                      }
-                      alt="Coloring page preview"
-                      className="w-full rounded-lg"
-                      style={{ imageRendering: 'crisp-edges' }}
-                    />
-                  </BorderWrapper>
+                  {(() => {
+                    const displayUrl = getDisplayUrlForPage(selectedPage, difficulty);
+                    if (!displayUrl) {
+                      return (
+                        <div className="flex flex-col items-center justify-center p-12 bg-destructive/10 rounded-lg border-2 border-destructive/50">
+                          <p className="text-sm text-destructive mb-4 text-center">
+                            Processing failed – click to retry
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRetryPage(selectedPage)}
+                          >
+                            Retry Processing
+                          </Button>
+                        </div>
+                      );
+                    }
+                    return (
+                      <BorderWrapper
+                        borderStyle={selectedPage.border_style}
+                        headingText={selectedPage.heading_text}
+                        difficulty={difficulty}
+                      >
+                        <img 
+                          src={displayUrl}
+                          alt="Coloring page preview"
+                          className="w-full rounded-lg"
+                          style={{ imageRendering: 'crisp-edges' }}
+                        />
+                      </BorderWrapper>
+                    );
+                  })()}
                 </div>
 
                 <div className="space-y-4">
@@ -319,17 +369,23 @@ const Review = () => {
                               <div {...provided.dragHandleProps}>
                                 <GripVertical className="w-5 h-5 text-muted-foreground" />
                               </div>
-                              <img 
-                                src={
-                                  difficulty === 'quick-easy' && page.easy_image_url
-                                    ? page.easy_image_url
-                                    : difficulty === 'beginner' && page.beginner_image_url
-                                    ? page.beginner_image_url
-                                    : page.intermediate_image_url || page.coloring_image_url
+                              {(() => {
+                                const displayUrl = getDisplayUrlForPage(page, difficulty);
+                                if (!displayUrl) {
+                                  return (
+                                    <div className="w-16 h-16 bg-destructive/10 rounded flex items-center justify-center border-2 border-destructive/50">
+                                      <span className="text-xs text-destructive font-bold">!</span>
+                                    </div>
+                                  );
                                 }
-                                alt={`Page ${index + 1}`}
-                                className="w-16 h-16 object-cover rounded"
-                              />
+                                return (
+                                  <img 
+                                    src={displayUrl}
+                                    alt={`Page ${index + 1}`}
+                                    className="w-16 h-16 object-cover rounded"
+                                  />
+                                );
+                              })()}
                               <div className="flex-1">
                                 <p className="text-sm font-medium">Page {index + 1}</p>
                                 <p className="text-xs text-muted-foreground truncate">

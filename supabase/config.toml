@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.test-difficulty-diagnostic]
 verify_jwt = false
+
+[functions.cleanup-expired-pdfs]
+verify_jwt = false
