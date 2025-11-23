@@ -10,17 +10,19 @@ const corsHeaders = {
 // This matches the exact API call from mimi-panda.com website when using "Version 2 → Simplified (for kids)"
 const MIMI_PANDA_API_URL = 'https://mimi-panda.com/api/service/coloring';
 
-// DIFFICULTY PROCESSING PIPELINE:
-// 1. Upload-page: Calls Mimi V2 Simplified for all difficulties (master/intermediate quality)
-// 2. Check-page-status: Post-processes master into three versions:
-//    - Intermediate: Raw Mimi output (clean daycare line art)
-//    - Beginner: Light simplification (blur 0.5, threshold 200)
-//    - Quick & Easy: Heavy simplification (blur 1.5, threshold 220, aggressive downscale)
-// 3. Frontend displays the version matching book difficulty
-const MIMI_CONFIG = { 
-  version: "v2",           // Version 2 (new) 
-  type: "v2_simplified"    // Simplified (for kids) - produces clean master image
-};
+// DIFFICULTY PROCESSING PIPELINE - Using Mimi's native modes:
+// - Quick & Easy: v2_simplified (simple outlines for toddlers)
+// - Beginner: v2_general (fewer details, good facial detail)
+// - Intermediate: v2_comic (cartoon outlines)
+// We call the appropriate Mimi mode based on book difficulty, no post-processing needed
+
+// Mimi Panda type mapping (matching website options):
+// - v2_general: "General" mode - fewer details and good facial detail
+// - v2_simplified: "Simplified" mode - simple outlines, perfect for kids
+// - v2_detailed: "Detailed" mode - precise outlines, details, and faces
+// - v2_comic: "Comic" mode - cartoon style outlines
+// - v2_anime: "Anime" style mode
+// - v2_sketch: "Sketch" mode - preserves natural style
 
 // Type mapping for reference (not currently used - all difficulties use v2_simplified):
 // - v2_general: "General" mode
@@ -129,17 +131,22 @@ serve(async (req) => {
     // Submit to Mimi Panda API for coloring book projects
     const apiToken = Deno.env.get('MIMI_PANDA_API_TOKEN');
     
-    // Debug logging - matches mimi-panda.com website behavior
+    // Map difficulty to Mimi Panda type
+    const mimiType = book.difficulty === 'quick' 
+      ? 'v2_simplified'  // Simple outlines for toddlers
+      : book.difficulty === 'beginner'
+      ? 'v2_general'     // Fewer details, good facial detail
+      : 'v2_comic';      // Cartoon outlines for intermediate
+    
+    // Debug logging
     console.log('=== MIMI PANDA API REQUEST ===');
     console.log('API Token configured:', !!apiToken);
     console.log('API URL:', MIMI_PANDA_API_URL);
-    console.log('HARD-CODED Mimi Config:', MIMI_CONFIG);
-    console.log('  → Version:', MIMI_CONFIG.version, '(Version 2 - new)');
-    console.log('  → Type:', MIMI_CONFIG.type, '(Simplified for kids - daycare quality)');
+    console.log('Book difficulty:', book.difficulty);
+    console.log('Mimi type:', mimiType);
     console.log('Image name:', imageFile.name);
     console.log('Image size:', imageFile.size, 'bytes');
     console.log('Image type:', imageFile.type);
-    console.log('Book difficulty:', book.difficulty, '(All start with Mimi V2 Simplified master)');
     
     if (!apiToken) {
       console.error('MIMI_PANDA_API_TOKEN is not set');
@@ -151,8 +158,8 @@ serve(async (req) => {
     
     const mimiFormData = new FormData();
     mimiFormData.append('image', imageFile);
-    mimiFormData.append('version', MIMI_CONFIG.version);
-    mimiFormData.append('type', MIMI_CONFIG.type);
+    mimiFormData.append('version', 'v2');
+    mimiFormData.append('type', mimiType);
 
     console.log('Sending request to Mimi Panda API (matching website behavior)...');
     const mimiResponse = await fetch(MIMI_PANDA_API_URL, {

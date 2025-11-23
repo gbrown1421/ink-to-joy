@@ -114,118 +114,38 @@ serve(async (req) => {
     // Import sharp for post-processing
     const sharp = (await import('https://deno.land/x/sharp@v0.33.2/mod.ts')).default;
 
-    // Get book difficulty to determine which URL to return
-    const difficulty = (page.books as any)?.difficulty || 'beginner';
-    console.log('Book difficulty:', difficulty);
-
-    // ===== STEP 1: Store raw Mimi result as INTERMEDIATE (master) =====
-    console.log('Storing Mimi master as intermediate...');
-    const intermediateBuffer = await sharp(imageBuffer)
-      .png()
-      .toBuffer();
-
-    const intermediatePath = `${page.book_id}/${page.id}-intermediate.png`;
-    const { error: intermediateError } = await supabase.storage
-      .from('book-images')
-      .upload(intermediatePath, intermediateBuffer, {
-        contentType: 'image/png',
-        upsert: true,
-      });
-
-    if (intermediateError) {
-      console.error('Error storing intermediate image:', intermediateError);
-      throw intermediateError;
-    }
-
-    const { data: { publicUrl: intermediateUrl } } = supabase.storage
-      .from('book-images')
-      .getPublicUrl(intermediatePath);
-
-    console.log('✓ Intermediate (master) stored at:', intermediateUrl);
-
-    // ===== STEP 2: Generate BEGINNER version (light simplification) =====
-    console.log('Generating beginner version (light simplification)...');
-    const beginnerBuffer = await sharp(imageBuffer)
-      .grayscale()
-      .blur(0.5)          // Very light blur to remove tiny speckles
-      .normalize()        // Stretch histogram for cleaner blacks/whites
-      .threshold(200)     // Convert to pure black/white, threshold at 200
-      .png()
-      .toBuffer();
-
-    const beginnerPath = `${page.book_id}/${page.id}-beginner.png`;
-    const { error: beginnerError } = await supabase.storage
-      .from('book-images')
-      .upload(beginnerPath, beginnerBuffer, {
-        contentType: 'image/png',
-        upsert: true,
-      });
-
-    if (beginnerError) {
-      console.error('Error storing beginner image:', beginnerError);
-      throw beginnerError;
-    }
-
-    const { data: { publicUrl: beginnerUrl } } = supabase.storage
-      .from('book-images')
-      .getPublicUrl(beginnerPath);
-
-    console.log('✓ Beginner version stored at:', beginnerUrl);
-
-    // ===== STEP 3: Generate QUICK & EASY version (heavy simplification) =====
-    console.log('Generating quick version (heavy simplification for toddlers)...');
+    // ===== Store Mimi result directly (no post-processing needed) =====
+    // Mimi Panda already generated the correct style based on book difficulty
+    console.log('Storing Mimi result...');
     
-    // Strategy: downscale aggressively to kill detail, then upscale with heavy blur/threshold
-    const metadata = await sharp(imageBuffer).metadata();
-    const targetWidth = Math.floor((metadata.width || 1000) * 0.5); // 50% downscale
-    
-    const quickBuffer = await sharp(imageBuffer)
-      .resize({ width: targetWidth, kernel: 'nearest' })  // Downscale with nearest-neighbor
-      .resize({ width: metadata.width, kernel: 'nearest' }) // Upscale back (pixelates)
-      .grayscale()
-      .blur(1.5)          // Heavy blur to merge lines and kill small details
-      .normalize()
-      .threshold(220)     // Very aggressive threshold for thick outlines
+    const coloringBuffer = await sharp(imageBuffer)
       .png()
       .toBuffer();
 
-    const quickPath = `${page.book_id}/${page.id}-quick.png`;
-    const { error: quickError } = await supabase.storage
+    const coloringPath = `${page.book_id}/${page.id}-coloring.png`;
+    const { error: uploadError } = await supabase.storage
       .from('book-images')
-      .upload(quickPath, quickBuffer, {
+      .upload(coloringPath, coloringBuffer, {
         contentType: 'image/png',
         upsert: true,
       });
 
-    if (quickError) {
-      console.error('Error storing quick image:', quickError);
-      throw quickError;
+    if (uploadError) {
+      console.error('Error storing coloring image:', uploadError);
+      throw uploadError;
     }
 
-    const { data: { publicUrl: quickUrl } } = supabase.storage
+    const { data: { publicUrl: coloringImageUrl } } = supabase.storage
       .from('book-images')
-      .getPublicUrl(quickPath);
+      .getPublicUrl(coloringPath);
 
-    console.log('✓ Quick & Easy version stored at:', quickUrl);
+    console.log('✓ Coloring image stored at:', coloringImageUrl);
 
-    // ===== STEP 4: Determine which URL to return based on difficulty =====
-    let coloringImageUrl = intermediateUrl;
-    if (difficulty === 'beginner') {
-      coloringImageUrl = beginnerUrl;
-    } else if (difficulty === 'quick') {
-      coloringImageUrl = quickUrl;
-    }
-
-    console.log(`Selected ${difficulty} URL for display:`, coloringImageUrl);
-
-    // Update page with all three URLs
+    // Update page with the coloring image URL
     const { error: updateError } = await supabase
       .from('pages')
       .update({
-        intermediate_image_url: intermediateUrl,  // Raw Mimi master
-        beginner_image_url: beginnerUrl,          // Light simplification
-        easy_image_url: quickUrl,                 // Heavy simplification
-        coloring_image_url: coloringImageUrl,     // Selected based on book difficulty
+        coloring_image_url: coloringImageUrl,
         status: 'ready',
       })
       .eq('id', pageId);
@@ -241,7 +161,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         status: 'ready', 
-        coloringImageUrl: intermediateUrl,
+        coloringImageUrl,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
