@@ -138,8 +138,8 @@ const Upload = () => {
         console.log('Status check response:', data);
 
         if (data.status === "ready") {
-          if (!data.success || !data.coloringImageUrl) {
-            const errorMsg = data.error || 'No coloring image returned';
+          if (!data.success || !data.intermediateImageUrl) {
+            const errorMsg = data.error || 'No master image returned';
             console.error('Processing failed:', errorMsg);
             toast.error(`Processing failed: ${errorMsg}`);
             setPages(prev => prev.map(p => 
@@ -150,87 +150,40 @@ const Upload = () => {
             return;
           }
 
-          console.log('Coloring image ready:', data.coloringImageUrl);
+          console.log('Master image ready:', data.intermediateImageUrl);
+          console.log('Generating difficulty variant for:', bookDifficulty);
           
-          // Check if we need Quick & Easy simplification
-          const isQuickEasy = bookDifficulty === 'quick-easy' || bookDifficulty === 'quick' || bookDifficulty === 'quick_easy' || bookDifficulty === 'easy';
-          
-          if (isQuickEasy) {
-            console.log('Applying Quick & Easy simplification...');
-            setPages(prev => prev.map(p => 
-              p.id === tempId 
-                ? { ...p, status: "processing" } 
-                : p
-            ));
+          // Generate lazy difficulty variant
+          try {
+            const { data: variantData, error: variantError } = await supabase.functions.invoke('generate-difficulty-variant', {
+              body: { pageId },
+            });
 
-            try {
-              const { makeQuickEasyFromBase, dataUrlToBlob } = await import('@/lib/quickEasy');
-              const quickEasyDataUrl = await makeQuickEasyFromBase(data.coloringImageUrl);
-              
-              console.log('Quick & Easy variant generated, uploading...');
-
-              const blob = dataUrlToBlob(quickEasyDataUrl);
-              const filename = `${pageId}-quick-easy.png`;
-              const path = `books/${bookId}/pages/${filename}`;
-              
-              const { error: uploadError } = await supabase.storage
-                .from('book-images')
-                .upload(path, blob, {
-                  contentType: 'image/png',
-                  upsert: true,
-                });
-
-              if (uploadError) {
-                console.error('Failed to upload Quick & Easy variant:', uploadError);
-                throw uploadError;
-              }
-
-              const { data: urlData } = supabase.storage
-                .from('book-images')
-                .getPublicUrl(path);
-
-              const quickEasyUrl = urlData.publicUrl;
-              console.log('Quick & Easy variant uploaded:', quickEasyUrl);
-
-              // Update page with Quick & Easy URL as coloring_image_url
-              const { error: updateError } = await supabase
-                .from('pages')
-                .update({ coloring_image_url: quickEasyUrl })
-                .eq('id', pageId);
-
-              if (updateError) {
-                console.error('Failed to update coloring_image_url:', updateError);
-                throw updateError;
-              }
-
-              console.log('PAGE IMAGE URL:', { difficulty: bookDifficulty, coloring_image_url: quickEasyUrl, original_mimi_url: data.coloringImageUrl });
-              toast.success('Page processed successfully!');
-              
-              setPages(prev => prev.map(p => 
-                p.id === tempId 
-                  ? { ...p, status: "ready", coloringImageUrl: quickEasyUrl } 
-                  : p
-              ));
-            } catch (quickError) {
-              console.error('Error applying Quick & Easy simplification:', quickError);
-              const errorMsg = quickError instanceof Error ? quickError.message : 'Unknown error';
-              toast.error(`Quick & Easy failed: ${errorMsg}`);
-              
-              // Fall back to base Mimi image
-              setPages(prev => prev.map(p => 
-                p.id === tempId 
-                  ? { ...p, status: "ready", coloringImageUrl: data.coloringImageUrl } 
-                  : p
-              ));
+            if (variantError) {
+              console.error('Variant generation error:', variantError);
+              throw variantError;
             }
-          } else {
-            // Beginner/Intermediate: use base Mimi image as-is
-            console.log('PAGE IMAGE URL:', { difficulty: bookDifficulty, coloring_image_url: data.coloringImageUrl });
+
+            if (!variantData?.success || !variantData?.imageUrl) {
+              throw new Error('Failed to generate difficulty variant');
+            }
+
+            console.log('Difficulty variant ready:', variantData.imageUrl);
             toast.success('Page processed successfully!');
             
             setPages(prev => prev.map(p => 
               p.id === tempId 
-                ? { ...p, status: "ready", coloringImageUrl: data.coloringImageUrl } 
+                ? { ...p, status: "ready", coloringImageUrl: variantData.imageUrl } 
+                : p
+            ));
+          } catch (variantError) {
+            console.error('Error generating variant:', variantError);
+            const errorMsg = variantError instanceof Error ? variantError.message : 'Unknown error';
+            toast.error(`Variant generation failed: ${errorMsg}`);
+            
+            setPages(prev => prev.map(p => 
+              p.id === tempId 
+                ? { ...p, status: "failed", error: errorMsg } 
                 : p
             ));
           }

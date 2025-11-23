@@ -134,11 +134,11 @@ serve(async (req) => {
       const coloringImageUrl = urlData.publicUrl;
       console.log('Coloring image uploaded to our storage:', coloringImageUrl);
 
-      // Save the coloring image URL
+      // Save as master/intermediate image URL
       const { error: updateError } = await supabase
         .from('pages')
         .update({
-          coloring_image_url: coloringImageUrl,
+          intermediate_image_url: coloringImageUrl,
           status: 'ready',
         })
         .eq('id', pageId);
@@ -151,13 +151,13 @@ serve(async (req) => {
         );
       }
 
-      console.log('✓ Page marked ready with coloring image');
+      console.log('✓ Page marked ready with master image');
 
       return new Response(
         JSON.stringify({ 
           status: 'ready',
           success: true,
-          coloringImageUrl,
+          intermediateImageUrl: coloringImageUrl,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
