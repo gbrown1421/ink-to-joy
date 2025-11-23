@@ -125,56 +125,41 @@ serve(async (req) => {
 
     console.log('Generating 3 difficulty variants from Mimi base image...');
     
-    // Get image dimensions
-    let width = 1024;
-    let height = 1024;
-    
-    const variants: { intermediate: Uint8Array; beginner: Uint8Array; quick: Uint8Array } = await new Promise((resolve, reject) => {
+    // Process variants sequentially to avoid CPU timeout
+    // INTERMEDIATE: closest to Mimi output
+    console.log('Creating intermediate variant...');
+    const intermediateBuffer = await new Promise<Uint8Array>((resolve) => {
       ImageMagick.read(new Uint8Array(imageBuffer), (img) => {
-        width = img.width;
-        height = img.height;
-        
-        // INTERMEDIATE: basically Mimi output, but binarized (no gray)
-        console.log('Creating intermediate variant...');
-        img.grayscale();
-        img.normalize();
-        img.threshold(new Percentage(82)); // 210/255 = 82%
-        const intermediateBuffer = img.write(MagickFormat.Png, data => data);
-
-        // BEGINNER: slightly smoother, fewer tiny details
-        console.log('Creating beginner variant...');
-        ImageMagick.read(new Uint8Array(imageBuffer), (img2) => {
-          img2.grayscale();
-          img2.normalize();
-          img2.blur(0.6, 1.0);
-          img2.threshold(new Percentage(80)); // 205/255 = 80%
-          const beginnerBuffer = img2.write(MagickFormat.Png, data => data);
-
-          // QUICK: big chunky shapes for 3-4 yr olds
-          console.log('Creating quick variant...');
-          ImageMagick.read(new Uint8Array(imageBuffer), (img3) => {
-            const quickScale = 0.45;
-            img3.grayscale();
-            img3.blur(1.3, 1.0);
-            img3.resize(Math.round(width * quickScale), Math.round(height * quickScale));
-            // Scale back up using resize (will create chunky effect)
-            img3.resize(width, height);
-            img3.threshold(new Percentage(84)); // 215/255 = 84%
-            const quickBuffer = img3.write(MagickFormat.Png, data => data);
-
-            resolve({
-              intermediate: intermediateBuffer,
-              beginner: beginnerBuffer,
-              quick: quickBuffer
-            });
-          });
-        });
+        img.threshold(new Percentage(82));
+        resolve(img.write(MagickFormat.Png, data => data));
       });
     });
 
-    const intermediateBuffer = variants.intermediate;
-    const beginnerBuffer = variants.beginner;
-    const quickBuffer = variants.quick;
+    // BEGINNER: slightly simplified
+    console.log('Creating beginner variant...');
+    const beginnerBuffer = await new Promise<Uint8Array>((resolve) => {
+      ImageMagick.read(new Uint8Array(imageBuffer), (img) => {
+        img.blur(0.5, 0.5);
+        img.threshold(new Percentage(80));
+        resolve(img.write(MagickFormat.Png, data => data));
+      });
+    });
+
+    // QUICK: very chunky for toddlers
+    console.log('Creating quick variant...');
+    const quickBuffer = await new Promise<Uint8Array>((resolve) => {
+      ImageMagick.read(new Uint8Array(imageBuffer), (img) => {
+        const width = img.width;
+        const height = img.height;
+        const quickScale = 0.5;
+        
+        img.blur(1.0, 1.0);
+        img.resize(Math.round(width * quickScale), Math.round(height * quickScale));
+        img.resize(width, height);
+        img.threshold(new Percentage(85));
+        resolve(img.write(MagickFormat.Png, data => data));
+      });
+    });
 
     // Upload all 3 variants to storage
     console.log('Uploading all 3 variants to storage...');
