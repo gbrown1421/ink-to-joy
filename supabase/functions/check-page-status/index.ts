@@ -6,8 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Mimi Panda status check endpoint (must match creation endpoint base path)
-const MIMI_PANDA_API_BASE_URL = 'https://mimi-panda.com/api/service/coloring';
+// Mimi Panda status check endpoint - use the generic item endpoint to check job status
+const MIMI_PANDA_STATUS_URL = 'https://mimi-panda.com/api/service/item';
 
 /**
  * POLLS Mimi Panda API to check if a coloring job is complete.
@@ -63,9 +63,8 @@ serve(async (req) => {
       );
     }
 
-    // Poll Mimi Panda API for job status
-    // Try the correct endpoint structure: /api/service/coloring should return job status with the key as query param
-    const statusUrl = `${MIMI_PANDA_API_BASE_URL}/${page.mimi_key}`;
+    // Poll Mimi Panda API for job status using the generic item endpoint
+    const statusUrl = `${MIMI_PANDA_STATUS_URL}/${page.mimi_key}`;
     console.log('Checking Mimi status for key:', page.mimi_key);
     console.log('Full status URL:', statusUrl);
     
