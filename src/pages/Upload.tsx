@@ -274,11 +274,11 @@ const Upload = () => {
         if (attempts < maxAttempts) {
           setTimeout(checkStatus, 5000);
         } else {
-          const timeoutMsg = 'Image processing failed – click to retry upload';
-          toast.error(timeoutMsg);
+          const timeoutMsg = 'Processing timeout';
+          toast.error('Image processing failed – click to retry upload');
           setPages(prev => prev.map(p => 
             p.id === tempId 
-              ? { ...p, status: "failed", error: timeoutMsg } 
+              ? { ...p, status: "failed", error: 'Image processing failed – click to retry upload' } 
               : p
           ));
         }
@@ -406,10 +406,10 @@ const Upload = () => {
                             </span>
                           </>
                         ) : (
-                          <>
+                           <>
                             <AlertCircle className="w-8 h-8 text-destructive" />
                             <span className="text-xs text-center text-destructive font-medium">
-                              {page.error || 'Processing failed'}
+                              {page.error || 'Image processing failed – click to retry upload'}
                             </span>
                             <Button
                               variant="outline"
