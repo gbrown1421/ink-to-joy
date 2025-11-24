@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 // fal.ai Lineart Configuration
-const FAL_AI_API_URL = 'https://fal.run/fal-ai/lineartx';
+const FAL_AI_API_URL = 'https://fal.run/fal-ai/image-preprocessors/lineart';
 
 // Difficulty → coarseness mapping
 // Lower coarseness = more detail, Higher coarseness = simpler lines
