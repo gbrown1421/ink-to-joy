@@ -26,9 +26,15 @@ interface Page {
 }
 
 const getDisplayUrlForPage = (page: Page, difficulty: string): string | null => {
-  // All difficulties now use the same master coloring image
-  // Variants are only for display in Upload step, not stored
-  return page.coloring_image_url || null;
+  // Use difficulty-specific stored variants
+  if (difficulty === 'quick' || difficulty === 'quick-easy') {
+    return page.easy_image_url || page.coloring_image_url || page.intermediate_image_url;
+  } else if (difficulty === 'beginner') {
+    return page.beginner_image_url || page.coloring_image_url || page.intermediate_image_url;
+  } else {
+    // Intermediate
+    return page.intermediate_image_url || page.coloring_image_url;
+  }
 };
 
 // Border styles mapped by difficulty level

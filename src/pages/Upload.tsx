@@ -152,24 +152,71 @@ const Upload = () => {
 
           console.log('Master coloring image ready:', data.coloringImageUrl);
 
-          // Apply difficulty variants CLIENT-SIDE ONLY for display
-          let displayUrl = data.coloringImageUrl;
           const masterUrl = data.coloringImageUrl;
+          let finalImageUrl = masterUrl;
 
           try {
             if (bookDifficulty === 'quick' || bookDifficulty === 'quick-easy') {
-              console.log('Generating QUICK variant (heavy simplification) for display...');
+              console.log('Generating QUICK variant (heavy simplification)...');
               const { makeQuickVariant } = await import('@/lib/difficultyVariants');
               const blob = await makeQuickVariant(masterUrl);
-              displayUrl = URL.createObjectURL(blob);
+
+              const path = `books/${bookId}/pages/${data.pageId}-quick.png`;
+              const { error: uploadError } = await supabase.storage
+                .from('book-images')
+                .upload(path, blob, { upsert: true });
+
+              if (uploadError) throw uploadError;
+
+              const { data: { publicUrl } } = supabase.storage
+                .from('book-images')
+                .getPublicUrl(path);
+
+              // Update DB with quick variant URL
+              await supabase
+                .from('pages')
+                .update({ easy_image_url: publicUrl })
+                .eq('id', data.pageId);
+
+              finalImageUrl = publicUrl;
+              console.log('Quick variant stored:', publicUrl);
+
             } else if (bookDifficulty === 'beginner') {
-              console.log('Generating BEGINNER variant (light simplification) for display...');
+              console.log('Generating BEGINNER variant (light simplification)...');
               const { makeBeginnerVariant } = await import('@/lib/difficultyVariants');
               const blob = await makeBeginnerVariant(masterUrl);
-              displayUrl = URL.createObjectURL(blob);
+
+              const path = `books/${bookId}/pages/${data.pageId}-beginner.png`;
+              const { error: uploadError } = await supabase.storage
+                .from('book-images')
+                .upload(path, blob, { upsert: true });
+
+              if (uploadError) throw uploadError;
+
+              const { data: { publicUrl } } = supabase.storage
+                .from('book-images')
+                .getPublicUrl(path);
+
+              // Update DB with beginner variant URL
+              await supabase
+                .from('pages')
+                .update({ beginner_image_url: publicUrl })
+                .eq('id', data.pageId);
+
+              finalImageUrl = publicUrl;
+              console.log('Beginner variant stored:', publicUrl);
+
             } else {
               console.log('Using master image for INTERMEDIATE difficulty.');
+              // Update DB to store master as intermediate
+              await supabase
+                .from('pages')
+                .update({ intermediate_image_url: masterUrl })
+                .eq('id', data.pageId);
             }
+
+            console.log('Master:', masterUrl);
+            console.log('Final display URL:', finalImageUrl);
 
             toast.success('Page processed successfully!');
             setPages(prev =>
@@ -178,7 +225,7 @@ const Upload = () => {
                   ? { 
                       ...p, 
                       status: "ready", 
-                      coloringImageUrl: displayUrl,
+                      coloringImageUrl: finalImageUrl,
                       masterImageUrl: masterUrl 
                     }
                   : p

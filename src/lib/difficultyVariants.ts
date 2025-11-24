@@ -32,14 +32,14 @@ async function loadImageFromBlobUrl(url: string): Promise<HTMLImageElement> {
 
 /**
  * Beginner variant: Light simplification
- * - Downscale to ~0.7x
- * - Grayscale + threshold ~200
- * Result: Simpler than intermediate, but keeps faces, clothes, main shapes clear
+ * Pure black lines on white background, no gray tones
+ * - Downscale to 0.6x to simplify details
+ * - Hard threshold at 195 to eliminate all gray
  */
 export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
   const img = await loadImageFromBlobUrl(masterUrl);
   
-  const scale = 0.7;
+  const scale = 0.6;
   const tempW = Math.floor(img.naturalWidth * scale);
   const tempH = Math.floor(img.naturalHeight * scale);
   
@@ -54,7 +54,7 @@ export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
   tempCtx.imageSmoothingQuality = 'high';
   tempCtx.drawImage(img, 0, 0, tempW, tempH);
   
-  // Upscale back
+  // Upscale back to thicken lines
   const finalCanvas = document.createElement('canvas');
   finalCanvas.width = img.naturalWidth;
   finalCanvas.height = img.naturalHeight;
@@ -64,17 +64,23 @@ export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
   finalCtx.imageSmoothingEnabled = false;
   finalCtx.drawImage(tempCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
   
-  // Grayscale + threshold
+  // Hard threshold to produce pure black/white, no gray
   const imageData = finalCtx.getImageData(0, 0, finalCanvas.width, finalCanvas.height);
   const data = imageData.data;
+  const THRESHOLD = 195;
   
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i];
     const g = data[i + 1];
     const b = data[i + 2];
-    const luminosity = 0.299 * r + 0.587 * g + 0.114 * b;
-    const v = luminosity > 200 ? 255 : 0;
-    data[i] = data[i + 1] = data[i + 2] = v;
+    const l = 0.299 * r + 0.587 * g + 0.114 * b;
+    
+    // Black lines on white background
+    const isLine = l < THRESHOLD;
+    data[i]     = isLine ? 0 : 255;  // R
+    data[i + 1] = isLine ? 0 : 255;  // G
+    data[i + 2] = isLine ? 0 : 255;  // B
+    data[i + 3] = 255;               // fully opaque
   }
   
   finalCtx.putImageData(imageData, 0, 0);
@@ -85,21 +91,22 @@ export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
         if (blob) resolve(blob);
         else reject(new Error('Failed to create blob'));
       },
-      'image/png'
+      'image/png',
+      1.0
     );
   });
 }
 
 /**
- * Quick & Easy variant: Heavy simplification
- * - Strong downscale to ~0.4x
- * - Grayscale + aggressive threshold ~225
- * Result: Bold shapes, thick lines, very few interior details - toddler-friendly
+ * Quick & Easy variant: Heavy simplification for toddlers
+ * Pure black lines on white background, no gray tones
+ * - Strong downscale to 0.35x for bold, simple shapes
+ * - Aggressive threshold at 215 to maximize white space
  */
 export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
   const img = await loadImageFromBlobUrl(masterUrl);
   
-  const scale = 0.4;
+  const scale = 0.35;
   const tempW = Math.floor(img.naturalWidth * scale);
   const tempH = Math.floor(img.naturalHeight * scale);
   
@@ -114,7 +121,7 @@ export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
   tempCtx.imageSmoothingQuality = 'high';
   tempCtx.drawImage(img, 0, 0, tempW, tempH);
   
-  // Upscale back
+  // Upscale back to thicken lines
   const finalCanvas = document.createElement('canvas');
   finalCanvas.width = img.naturalWidth;
   finalCanvas.height = img.naturalHeight;
@@ -124,17 +131,23 @@ export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
   finalCtx.imageSmoothingEnabled = false;
   finalCtx.drawImage(tempCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
   
-  // Aggressive grayscale + threshold
+  // Aggressive hard threshold to produce pure black/white, no gray
   const imageData = finalCtx.getImageData(0, 0, finalCanvas.width, finalCanvas.height);
   const data = imageData.data;
+  const THRESHOLD = 215;
   
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i];
     const g = data[i + 1];
     const b = data[i + 2];
-    const luminosity = 0.299 * r + 0.587 * g + 0.114 * b;
-    const v = luminosity > 225 ? 255 : 0;
-    data[i] = data[i + 1] = data[i + 2] = v;
+    const l = 0.299 * r + 0.587 * g + 0.114 * b;
+    
+    // Black lines on white background
+    const isLine = l < THRESHOLD;
+    data[i]     = isLine ? 0 : 255;  // R
+    data[i + 1] = isLine ? 0 : 255;  // G
+    data[i + 2] = isLine ? 0 : 255;  // B
+    data[i + 3] = 255;               // fully opaque
   }
   
   finalCtx.putImageData(imageData, 0, 0);
@@ -145,7 +158,8 @@ export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
         if (blob) resolve(blob);
         else reject(new Error('Failed to create blob'));
       },
-      'image/png'
+      'image/png',
+      1.0
     );
   });
 }
