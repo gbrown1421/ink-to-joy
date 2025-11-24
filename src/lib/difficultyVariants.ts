@@ -5,8 +5,63 @@
 
 interface VariantConfig {
   scale: number;        // downscale factor (lower = more simplification)
-  threshold: number;    // 0-255 luminosity threshold (lower = more detail preserved)
+  threshold: number;    // 0-255 luminosity threshold for black/white separation
   dilatePasses: number; // number of dilation iterations (more = thicker lines)
+}
+
+/**
+ * Normalize FAL master image from white-on-black to black-on-white
+ * Returns a blob URL that can be used as the base for variants
+ */
+export async function normalizeMasterToBlackOnWhite(masterUrl: string): Promise<string> {
+  try {
+    const resp = await fetch(masterUrl, { cache: 'no-store' });
+    if (!resp.ok) {
+      throw new Error(`Failed to fetch master: ${resp.status}`);
+    }
+
+    const blob = await resp.blob();
+    const img = await createImageBitmap(blob);
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('No 2d context');
+    
+    ctx.drawImage(img, 0, 0);
+    
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    // Invert: FAL gives white lines on black, we want black lines on white
+    const threshold = 210;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      
+      // Reverse the logic: dark becomes white (background), bright becomes black (lines)
+      const v = lum > threshold ? 0 : 255;
+      data[i] = data[i + 1] = data[i + 2] = v;
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+    
+    const normalizedBlob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => blob ? resolve(blob) : reject(new Error('Failed to create blob')),
+        'image/png',
+        1.0
+      );
+    });
+    
+    return URL.createObjectURL(normalizedBlob);
+  } catch (error) {
+    console.error('Error normalizing master:', error);
+    throw new Error('normalization-failed');
+  }
 }
 
 /**
@@ -109,13 +164,12 @@ async function processVariant(masterUrl: string, config: VariantConfig): Promise
       const luminosity = 0.299 * r + 0.587 * g + 0.114 * b;
       
       // Hard threshold: pure black or pure white
-      // Note: FAL returns inverted (white lines on black bg), so we invert the logic
-      // to produce black lines on white bg for final output
-      const isLine = luminosity > config.threshold; // Inverted: bright pixels become lines
-      data[i]     = isLine ? 0 : 255; // R - lines are black, bg is white
-      data[i + 1] = isLine ? 0 : 255; // G
-      data[i + 2] = isLine ? 0 : 255; // B
-      data[i + 3] = 255;              // fully opaque
+      // Input is already normalized (black lines on white), so high lum = white background
+      const v = luminosity > config.threshold ? 255 : 0;
+      data[i]     = v; // R
+      data[i + 1] = v; // G
+      data[i + 2] = v; // B
+      data[i + 3] = 255; // fully opaque
     }
     
     // Apply dilation passes to thicken lines
@@ -143,29 +197,29 @@ async function processVariant(masterUrl: string, config: VariantConfig): Promise
 }
 
 /**
- * Beginner variant: Moderate simplification
- * - 0.55x downscale
- * - 210 threshold (keeps more edges)
+ * Beginner variant: Light simplification
+ * - 0.7x downscale (keeps more detail)
+ * - 205 threshold (facial features & key clothing edges survive)
  * - 1-pass dilation (slightly thicker lines)
  */
 export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
   return processVariant(masterUrl, {
-    scale: 0.55,
-    threshold: 210,
+    scale: 0.7,
+    threshold: 205,
     dilatePasses: 1,
   });
 }
 
 /**
- * Quick & Easy variant: Heavy simplification for toddlers
- * - 0.30x downscale (strong simplification)
- * - 200 threshold (only strongest edges)
- * - 2-pass dilation (chunky, bold lines)
+ * Quick & Easy variant: Heavy simplification for 3-4 year olds
+ * - 0.4x downscale (strong simplification, big shapes only)
+ * - 235 threshold (aggressive - removes fine interior shading)
+ * - 2-pass dilation (chunky, bold, toddler-friendly lines)
  */
 export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
   return processVariant(masterUrl, {
-    scale: 0.30,
-    threshold: 200,
+    scale: 0.4,
+    threshold: 235,
     dilatePasses: 2,
   });
 }
