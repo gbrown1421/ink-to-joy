@@ -148,8 +148,8 @@ serve(async (req) => {
       body: JSON.stringify({
         image_url: publicUrl,
         coarseness: coarseness,
-        detect_resolution: 1024,
-        image_resolution: 1024
+        detect_resolution: 2048,  // Increased for better quality
+        image_resolution: 2048     // Increased for better quality
       }),
     });
 
