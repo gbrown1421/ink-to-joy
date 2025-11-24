@@ -26,15 +26,9 @@ interface Page {
 }
 
 const getDisplayUrlForPage = (page: Page, difficulty: string): string | null => {
-  // Use difficulty-specific stored variants
-  if (difficulty === 'quick' || difficulty === 'quick-easy') {
-    return page.easy_image_url || page.coloring_image_url || page.intermediate_image_url;
-  } else if (difficulty === 'beginner') {
-    return page.beginner_image_url || page.coloring_image_url || page.intermediate_image_url;
-  } else {
-    // Intermediate
-    return page.intermediate_image_url || page.coloring_image_url;
-  }
+  // Always use coloring_image_url (the master from FAL)
+  // Variants are generated client-side in Upload.tsx for display only
+  return page.coloring_image_url || page.intermediate_image_url;
 };
 
 // Border styles mapped by difficulty level
