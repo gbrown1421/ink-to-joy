@@ -162,6 +162,19 @@ const Finalize = () => {
           img.src = page.coloringImageUrl;
         });
 
+        // Create canvas to invert image colors (white lines on black → black lines on white)
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        
+        if (ctx) {
+          // Apply invert filter
+          ctx.filter = 'invert(1)';
+          ctx.drawImage(img, 0, 0);
+          ctx.filter = 'none';
+        }
+
         const availableHeight = pageHeight - (2 * margin) - (page.headingText ? 0.5 : 0);
         const availableWidth = pageWidth - (2 * margin);
         
@@ -177,7 +190,8 @@ const Finalize = () => {
         const xPos = (pageWidth - imgWidth) / 2;
         const yPos = margin + (page.headingText ? 0.6 : 0);
 
-        pdf.addImage(img, 'PNG', xPos, yPos, imgWidth, imgHeight);
+        // Use inverted canvas image instead of original
+        pdf.addImage(canvas, 'PNG', xPos, yPos, imgWidth, imgHeight);
       } catch (error) {
         console.error(`Error loading image for page ${i + 1}:`, error);
       }

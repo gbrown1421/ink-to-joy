@@ -213,13 +213,23 @@ serve(async (req) => {
     const intermediateImageUrl = lineartUrlData.publicUrl;
     console.log('Lineart uploaded:', intermediateImageUrl);
 
+    // Determine which field to populate based on difficulty
+    const imageField = book.difficulty === 'quick' || book.difficulty === 'quick-easy'
+      ? 'easy_image_url'
+      : book.difficulty === 'beginner'
+      ? 'beginner_image_url'
+      : 'intermediate_image_url';
+
+    console.log(`Setting ${imageField} for difficulty: ${book.difficulty}`);
+
     // Create page record with status=ready (fal.ai is synchronous)
     const { data: page, error: pageError } = await supabase
       .from('pages')
       .insert({
         book_id: bookId,
         original_image_url: publicUrl,
-        intermediate_image_url: intermediateImageUrl,
+        intermediate_image_url: intermediateImageUrl, // Always set master
+        [imageField]: intermediateImageUrl, // Also set difficulty-specific field
         status: 'ready',
         page_order: orderIndex,
       })
