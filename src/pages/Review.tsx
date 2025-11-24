@@ -306,7 +306,10 @@ const Review = () => {
                           src={displayUrl}
                           alt="Coloring page preview"
                           className="w-full rounded-lg"
-                          style={{ imageRendering: 'crisp-edges' }}
+                          style={{ 
+                            imageRendering: 'crisp-edges',
+                            filter: 'invert(1)' // Invert colors: black bg → white bg, white lines → black lines
+                          }}
                         />
                       </BorderWrapper>
                     );
@@ -383,6 +386,7 @@ const Review = () => {
                                     src={displayUrl}
                                     alt={`Page ${index + 1}`}
                                     className="w-16 h-16 object-cover rounded"
+                                    style={{ filter: 'invert(1)' }}
                                   />
                                 );
                               })()}
