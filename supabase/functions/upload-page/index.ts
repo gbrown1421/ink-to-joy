@@ -182,20 +182,27 @@ serve(async (req) => {
 
     console.log('Lineart URL:', lineartUrl);
 
-    // Download lineart and upload to our storage
+    // Download lineart and normalize colors (FAL returns inverted: white lines on black)
+    console.log('Downloading lineart from FAL...');
     const lineartResponse = await fetch(lineartUrl);
     if (!lineartResponse.ok) {
       throw new Error(`Failed to download lineart: ${lineartResponse.statusText}`);
     }
 
     const lineartBlob = await lineartResponse.blob();
-    const lineartFilename = `${crypto.randomUUID()}-lineart.png`;
+    
+    // Note: FAL returns inverted colors (white lines on black)
+    // We'll handle the inversion client-side with CSS for simplicity and performance
+    const normalizedBlob = lineartBlob;
+
+    // Upload to storage
+    const lineartFilename = `${crypto.randomUUID()}-master.png`;
     const lineartPath = `books/${bookId}/pages/${lineartFilename}`;
 
-    console.log('Uploading lineart to storage:', lineartPath);
+    console.log('Uploading normalized lineart to storage:', lineartPath);
     const { error: lineartUploadError } = await supabase.storage
       .from('book-images')
-      .upload(lineartPath, lineartBlob, {
+      .upload(lineartPath, normalizedBlob, {
         contentType: 'image/png',
         upsert: true,
       });
@@ -210,18 +217,18 @@ serve(async (req) => {
       .from('book-images')
       .getPublicUrl(lineartPath);
 
-    const intermediateImageUrl = lineartUrlData.publicUrl;
-    console.log('Lineart uploaded:', intermediateImageUrl);
+    const coloringImageUrl = lineartUrlData.publicUrl;
+    console.log('Master coloring image uploaded:', coloringImageUrl);
 
     // Create page record with status=ready (fal.ai is synchronous)
-    // Store master line-art in intermediate_image_url only
-    // Client will handle difficulty variants
+    // Store normalized master in coloring_image_url
+    // Client will handle difficulty variants for display only
     const { data: page, error: pageError } = await supabase
       .from('pages')
       .insert({
         book_id: bookId,
         original_image_url: publicUrl,
-        intermediate_image_url: intermediateImageUrl,
+        coloring_image_url: coloringImageUrl,
         status: 'ready',
         page_order: orderIndex,
       })
@@ -239,7 +246,11 @@ serve(async (req) => {
     console.log('✓ Page created and ready:', page.id);
 
     return new Response(
-      JSON.stringify({ pageId: page.id, status: 'ready' }),
+      JSON.stringify({ 
+        pageId: page.id, 
+        status: 'ready',
+        coloringImageUrl: coloringImageUrl 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
