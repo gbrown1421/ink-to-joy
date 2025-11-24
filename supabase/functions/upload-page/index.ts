@@ -6,27 +6,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Mimi Panda API Configuration
-// This matches the exact API call from mimi-panda.com website when using "Version 2 → Simplified (for kids)"
-const MIMI_PANDA_API_URL = 'https://mimi-panda.com/api/service/coloring';
+// fal.ai Lineart Configuration
+const FAL_AI_API_URL = 'https://fal.run/fal-ai/lineartx';
 
-// DIFFICULTY PROCESSING PIPELINE:
-// - Call Mimi Panda ONCE with V2 "Simplified (for kids)" mode
-// - Generate 3 difficulty variants using Sharp post-processing
-// - Return the appropriate variant based on selected difficulty
-
-// Mimi Panda type mapping (matching website options):
-// - v2_general: "General" mode - fewer details and good facial detail
-// - v2_simplified: "Simplified" mode - simple outlines, perfect for kids
-// - v2_detailed: "Detailed" mode - precise outlines, details, and faces
-// - v2_comic: "Comic" mode - cartoon style outlines
-// - v2_anime: "Anime" style mode
-// - v2_sketch: "Sketch" mode - preserves natural style
-
-// Type mapping for reference (not currently used - all difficulties use v2_simplified):
-// - v2_general: "General" mode
-// - v2_simplified: "Simplified (for kids)" mode ← WE USE THIS
-// - v2_detailed: "Detailed (for adults)" mode
+// Difficulty → coarseness mapping
+// Lower coarseness = more detail, Higher coarseness = simpler lines
+const difficultyToCoarseness: Record<string, number> = {
+  quick: 0.8,        // Very simple for toddlers
+  beginner: 0.6,     // Simple lines
+  intermediate: 0.4, // Moderate detail
+  advanced: 0.2      // Fine detail
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -127,78 +117,110 @@ serve(async (req) => {
       );
     }
 
-    // Submit to Mimi Panda API for coloring book projects
-    const apiToken = Deno.env.get('MIMI_PANDA_API_TOKEN');
+    // Submit to fal.ai API for coloring book projects
+    const apiKey = Deno.env.get('FAL_AI_API_KEY');
+    const coarseness = difficultyToCoarseness[book.difficulty] || 0.6;
     
-    // Always use V2 Simplified mode - Sharp will create difficulty variants
-    const mimiType = 'v2_simplified';
-    
-    // Debug logging
-    console.log('=== MIMI PANDA API REQUEST ===');
-    console.log('API Token configured:', !!apiToken);
-    console.log('API URL:', MIMI_PANDA_API_URL);
+    console.log('=== FAL.AI API REQUEST ===');
+    console.log('API Key configured:', !!apiKey);
+    console.log('API URL:', FAL_AI_API_URL);
     console.log('Book difficulty:', book.difficulty);
-    console.log('Mimi type:', mimiType);
+    console.log('Coarseness:', coarseness);
     console.log('Image name:', imageFile.name);
     console.log('Image size:', imageFile.size, 'bytes');
     console.log('Image type:', imageFile.type);
     
-    if (!apiToken) {
-      console.error('MIMI_PANDA_API_TOKEN is not set');
+    if (!apiKey) {
+      console.error('FAL_AI_API_KEY is not set');
       return new Response(
-        JSON.stringify({ error: 'API token not configured' }),
+        JSON.stringify({ error: 'API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    
-    const mimiFormData = new FormData();
-    mimiFormData.append('image', imageFile);
-    mimiFormData.append('version', 'v2');
-    mimiFormData.append('type', mimiType);
 
-    console.log('Sending request to Mimi Panda API (matching website behavior)...');
-    const mimiResponse = await fetch(MIMI_PANDA_API_URL, {
+    console.log('Sending request to fal.ai...');
+    const falResponse = await fetch(FAL_AI_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiToken}`,
+        'Authorization': `Key ${apiKey}`,
+        'Content-Type': 'application/json',
       },
-      body: mimiFormData,
+      body: JSON.stringify({
+        image_url: publicUrl,
+        coarseness: coarseness,
+        detect_resolution: 1024,
+        image_resolution: 1024
+      }),
     });
 
-    console.log('=== MIMI PANDA API RESPONSE ===');
-    console.log('Status:', mimiResponse.status);
-    console.log('Status Text:', mimiResponse.statusText);
-    console.log('Content-Type:', mimiResponse.headers.get('content-type'));
+    console.log('=== FAL.AI API RESPONSE ===');
+    console.log('Status:', falResponse.status);
+    console.log('Status Text:', falResponse.statusText);
+    console.log('Content-Type:', falResponse.headers.get('content-type'));
     
-    if (!mimiResponse.ok) {
-      const errorText = await mimiResponse.text();
-      console.error('Mimi Panda API error:', errorText);
-      console.error('Response headers:', Object.fromEntries(mimiResponse.headers.entries()));
+    if (!falResponse.ok) {
+      const errorText = await falResponse.text();
+      console.error('fal.ai API error:', errorText);
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to create coloring job',
+          error: 'Failed to create lineart',
           details: errorText,
-          status: mimiResponse.status
+          status: falResponse.status
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const mimiData = await mimiResponse.json();
-    const mimiKey = mimiData.key;
+    const falData = await falResponse.json();
+    console.log('fal.ai response:', JSON.stringify(falData, null, 2));
     
-    console.log('Mimi job created with key:', mimiKey);
-    console.log('Full Mimi response:', JSON.stringify(mimiData, null, 2));
+    const lineartUrl = falData.image?.url;
+    
+    if (!lineartUrl) {
+      throw new Error('No image URL returned from fal.ai');
+    }
 
-    // Create page record with status=processing
-    // The check-page-status function will poll Mimi API and update when ready
+    console.log('Lineart URL:', lineartUrl);
+
+    // Download lineart and upload to our storage
+    const lineartResponse = await fetch(lineartUrl);
+    if (!lineartResponse.ok) {
+      throw new Error(`Failed to download lineart: ${lineartResponse.statusText}`);
+    }
+
+    const lineartBlob = await lineartResponse.blob();
+    const lineartFilename = `${crypto.randomUUID()}-lineart.png`;
+    const lineartPath = `books/${bookId}/pages/${lineartFilename}`;
+
+    console.log('Uploading lineart to storage:', lineartPath);
+    const { error: lineartUploadError } = await supabase.storage
+      .from('book-images')
+      .upload(lineartPath, lineartBlob, {
+        contentType: 'image/png',
+        upsert: true,
+      });
+
+    if (lineartUploadError) {
+      console.error('Failed to upload lineart:', lineartUploadError);
+      throw lineartUploadError;
+    }
+
+    // Get public URL
+    const { data: lineartUrlData } = supabase.storage
+      .from('book-images')
+      .getPublicUrl(lineartPath);
+
+    const intermediateImageUrl = lineartUrlData.publicUrl;
+    console.log('Lineart uploaded:', intermediateImageUrl);
+
+    // Create page record with status=ready (fal.ai is synchronous)
     const { data: page, error: pageError } = await supabase
       .from('pages')
       .insert({
         book_id: bookId,
         original_image_url: publicUrl,
-        mimi_key: mimiKey,
-        status: 'processing',
+        intermediate_image_url: intermediateImageUrl,
+        status: 'ready',
         page_order: orderIndex,
       })
       .select()
@@ -212,8 +234,10 @@ serve(async (req) => {
       );
     }
 
+    console.log('✓ Page created and ready:', page.id);
+
     return new Response(
-      JSON.stringify({ pageId: page.id, mimiKey }),
+      JSON.stringify({ pageId: page.id, status: 'ready' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
