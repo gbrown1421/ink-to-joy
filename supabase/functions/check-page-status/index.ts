@@ -6,8 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Mimi Panda status check endpoint - use the generic item endpoint to check job status
-const MIMI_PANDA_STATUS_URL = 'https://mimi-panda.com/api/service/item';
+// Mimi Panda status check endpoint - must match the creation endpoint
+const MIMI_PANDA_STATUS_URL = 'https://mimi-panda.com/api/service/coloring';
 
 /**
  * POLLS Mimi Panda API to check if a coloring job is complete.
