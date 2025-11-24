@@ -302,15 +302,14 @@ const Review = () => {
                         headingText={selectedPage.heading_text}
                         difficulty={difficulty}
                       >
-                        <img 
-                          src={displayUrl}
-                          alt="Coloring page preview"
-                          className="w-full rounded-lg"
-                          style={{ 
-                            imageRendering: 'crisp-edges',
-                            filter: 'invert(1)' // Invert colors: black bg → white bg, white lines → black lines
-                          }}
-                        />
+                        <div style={{ filter: 'invert(1)' }}>
+                          <img 
+                            src={displayUrl}
+                            alt="Coloring page preview"
+                            className="w-full rounded-lg"
+                            style={{ imageRendering: 'crisp-edges' }}
+                          />
+                        </div>
                       </BorderWrapper>
                     );
                   })()}
