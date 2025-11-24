@@ -9,14 +9,9 @@ const corsHeaders = {
 // fal.ai Lineart Configuration
 const FAL_AI_API_URL = 'https://fal.run/fal-ai/image-preprocessors/lineart';
 
-// Difficulty → coarseness mapping
-// Lower coarseness = more detail, Higher coarseness = simpler lines
-const difficultyToCoarseness: Record<string, number> = {
-  quick: 0.8,        // Very simple for toddlers
-  beginner: 0.6,     // Simple lines
-  intermediate: 0.4, // Moderate detail
-  advanced: 0.2      // Fine detail
-};
+// Use single optimal setting for clean, high-contrast line art
+// Client-side variants will handle difficulty-based simplification
+const LINEART_COARSENESS = 0.3; // Clean, detailed master for all difficulties
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -119,13 +114,12 @@ serve(async (req) => {
 
     // Submit to fal.ai API for coloring book projects
     const apiKey = Deno.env.get('FAL_AI_API_KEY');
-    const coarseness = difficultyToCoarseness[book.difficulty] || 0.6;
     
     console.log('=== FAL.AI API REQUEST ===');
     console.log('API Key configured:', !!apiKey);
     console.log('API URL:', FAL_AI_API_URL);
     console.log('Book difficulty:', book.difficulty);
-    console.log('Coarseness:', coarseness);
+    console.log('Coarseness:', LINEART_COARSENESS);
     console.log('Image name:', imageFile.name);
     console.log('Image size:', imageFile.size, 'bytes');
     console.log('Image type:', imageFile.type);
@@ -147,9 +141,9 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         image_url: publicUrl,
-        coarseness: coarseness,
-        detect_resolution: 2048,  // Increased for better quality
-        image_resolution: 2048     // Increased for better quality
+        coarseness: LINEART_COARSENESS,
+        detect_resolution: 2048,  // High resolution for clean lines
+        image_resolution: 2048     // High resolution output
       }),
     });
 
