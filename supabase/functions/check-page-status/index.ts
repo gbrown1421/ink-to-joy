@@ -73,7 +73,7 @@ serve(async (req) => {
       );
     }
 
-    // Poll Mimi Panda API for job status
+    // Poll Mimi Panda API for job status with aggressive retry logic
     const apiToken = Deno.env.get('MIMI_PANDA_API_TOKEN');
     const statusUrl = `${MIMI_PANDA_STATUS_URL}/${page.mimi_key}`;
     
@@ -83,22 +83,59 @@ serve(async (req) => {
     console.log('Checking Mimi status for key:', page.mimi_key);
     console.log('Full status URL:', statusUrl);
     
-    const mimiResponse = await fetch(statusUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiToken}`,
-      },
-    });
+    // Aggressive retry with exponential backoff
+    const MAX_RETRIES = 7;
+    const INITIAL_DELAY = 1000; // 1 second
+    let mimiResponse: Response | null = null;
+    let lastError = '';
+    
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      if (attempt > 0) {
+        const delay = INITIAL_DELAY * Math.pow(2, attempt - 1);
+        console.log(`Retry attempt ${attempt}/${MAX_RETRIES} after ${delay}ms delay`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+      
+      try {
+        mimiResponse = await fetch(statusUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${apiToken}`,
+          },
+        });
 
-    console.log('Mimi response status:', mimiResponse.status);
-    console.log('Mimi response content-type:', mimiResponse.headers.get('content-type'));
+        console.log(`Attempt ${attempt + 1}: Mimi response status: ${mimiResponse.status}`);
+        console.log('Mimi response content-type:', mimiResponse.headers.get('content-type'));
 
-    if (!mimiResponse.ok) {
-      const errorText = await mimiResponse.text();
-      console.error('Mimi Panda status check error:', mimiResponse.status);
-      console.error('Error response (first 500 chars):', errorText.substring(0, 500));
+        if (mimiResponse.ok) {
+          console.log(`✓ Success on attempt ${attempt + 1}`);
+          break; // Success! Exit retry loop
+        }
+
+        // Log error but continue retrying
+        const errorText = await mimiResponse.text();
+        lastError = errorText;
+        console.error(`Attempt ${attempt + 1} failed: ${mimiResponse.status}`);
+        console.error('Error response (first 500 chars):', errorText.substring(0, 500));
+        
+        // If we've exhausted retries, break
+        if (attempt === MAX_RETRIES - 1) {
+          console.error('All retry attempts exhausted');
+        }
+      } catch (fetchError) {
+        console.error(`Attempt ${attempt + 1} fetch error:`, fetchError);
+        lastError = fetchError instanceof Error ? fetchError.message : 'Unknown error';
+        if (attempt === MAX_RETRIES - 1) {
+          console.error('All retry attempts exhausted due to fetch errors');
+        }
+      }
+    }
+
+    // If all retries failed, return processing status
+    if (!mimiResponse || !mimiResponse.ok) {
+      console.error('Failed after all retries. Returning processing status.');
       return new Response(
-        JSON.stringify({ status: 'processing' }),
+        JSON.stringify({ status: 'processing', retries_exhausted: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
