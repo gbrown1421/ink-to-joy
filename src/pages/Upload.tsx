@@ -156,11 +156,16 @@ const Upload = () => {
           let finalImageUrl = masterUrl;
           
           try {
-            // Generate difficulty-specific variants and upload to storage
+            // Step 1: Normalize FAL output (white-on-black → black-on-white)
+            const { normalizeMasterToBlackOnWhite } = await import('@/lib/difficultyVariants');
+            const normalizedUrl = await normalizeMasterToBlackOnWhite(masterUrl);
+            console.log('Normalized master to black-on-white');
+            
+            // Step 2: Generate difficulty-specific variants from normalized master
             if (bookDifficulty === 'quick' || bookDifficulty === 'quick-easy') {
               console.log('Generating QUICK variant (heavy simplification)...');
               const { makeQuickVariant } = await import('@/lib/difficultyVariants');
-              const variantBlob = await makeQuickVariant(masterUrl);
+              const variantBlob = await makeQuickVariant(normalizedUrl);
               
               // Upload to storage
               const variantPath = `books/${bookId}/pages/${pageId}-quick.png`;
@@ -193,7 +198,7 @@ const Upload = () => {
             } else if (bookDifficulty === 'beginner') {
               console.log('Generating BEGINNER variant (light simplification)...');
               const { makeBeginnerVariant } = await import('@/lib/difficultyVariants');
-              const variantBlob = await makeBeginnerVariant(masterUrl);
+              const variantBlob = await makeBeginnerVariant(normalizedUrl);
               
               // Upload to storage
               const variantPath = `books/${bookId}/pages/${pageId}-beginner.png`;
@@ -224,18 +229,34 @@ const Upload = () => {
               console.log('Beginner variant uploaded:', finalImageUrl);
               
             } else {
-              // Intermediate uses master directly
-              console.log('Using master image for INTERMEDIATE difficulty.');
+              // Intermediate uses normalized master (black-on-white)
+              console.log('Using normalized master for INTERMEDIATE difficulty.');
+              
+              // Upload normalized version to storage for consistency
+              const normalizedBlob = await fetch(normalizedUrl).then(r => r.blob());
+              const intermediatePath = `books/${bookId}/pages/${pageId}-intermediate.png`;
+              const { error: uploadError } = await supabase.storage
+                .from('book-images')
+                .upload(intermediatePath, normalizedBlob, {
+                  contentType: 'image/png',
+                  upsert: true,
+                });
+              
+              if (uploadError) throw uploadError;
+              
+              const { data: urlData } = supabase.storage
+                .from('book-images')
+                .getPublicUrl(intermediatePath);
+              
+              finalImageUrl = urlData.publicUrl;
               
               // Update page with intermediate_image_url
               const { error: updateError } = await supabase
                 .from('pages')
-                .update({ intermediate_image_url: masterUrl })
+                .update({ intermediate_image_url: finalImageUrl })
                 .eq('id', pageId);
               
               if (updateError) console.error('Failed to update intermediate URL:', updateError);
-              
-              finalImageUrl = masterUrl;
             }
 
             console.log('Final display URL:', finalImageUrl);
@@ -253,13 +274,13 @@ const Upload = () => {
               )
             );
           } catch (variantError) {
-            // Non-fatal: log error, use master, mark as ready (not failed)
+            // Non-fatal: log error, fall back to raw FAL master, mark as ready (not failed)
             console.error('Variant generation/upload failed:', variantError);
-            toast('Using standard detail level for this page', { 
-              description: 'Variant processing encountered an issue'
+            toast('Used standard outline – variant simplification failed', { 
+              description: 'Showing original FAL output instead'
             });
 
-            // Fallback to master, still mark as ready (NOT failed)
+            // Fallback to raw FAL master URL, still mark as ready (NOT failed)
             setPages(prev =>
               prev.map(p =>
                 p.id === tempId
