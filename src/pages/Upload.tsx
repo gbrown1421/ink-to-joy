@@ -154,29 +154,90 @@ const Upload = () => {
 
           const masterUrl = data.coloringImageUrl;
           let finalImageUrl = masterUrl;
-
+          
           try {
-            // Generate variants CLIENT-SIDE ONLY (no upload to Supabase)
+            // Generate difficulty-specific variants and upload to storage
             if (bookDifficulty === 'quick' || bookDifficulty === 'quick-easy') {
               console.log('Generating QUICK variant (heavy simplification)...');
               const { makeQuickVariant } = await import('@/lib/difficultyVariants');
-              const blob = await makeQuickVariant(masterUrl);
-              finalImageUrl = URL.createObjectURL(blob);
-              console.log('Quick variant generated (client-side)');
-
+              const variantBlob = await makeQuickVariant(masterUrl);
+              
+              // Upload to storage
+              const variantPath = `books/${bookId}/pages/${pageId}-quick.png`;
+              const { error: uploadError } = await supabase.storage
+                .from('book-images')
+                .upload(variantPath, variantBlob, {
+                  contentType: 'image/png',
+                  upsert: true,
+                });
+              
+              if (uploadError) throw uploadError;
+              
+              // Get public URL
+              const { data: urlData } = supabase.storage
+                .from('book-images')
+                .getPublicUrl(variantPath);
+              
+              finalImageUrl = urlData.publicUrl;
+              
+              // Update page record with easy_image_url
+              const { error: updateError } = await supabase
+                .from('pages')
+                .update({ easy_image_url: finalImageUrl })
+                .eq('id', pageId);
+              
+              if (updateError) throw updateError;
+              
+              console.log('Quick variant uploaded:', finalImageUrl);
+              
             } else if (bookDifficulty === 'beginner') {
               console.log('Generating BEGINNER variant (light simplification)...');
               const { makeBeginnerVariant } = await import('@/lib/difficultyVariants');
-              const blob = await makeBeginnerVariant(masterUrl);
-              finalImageUrl = URL.createObjectURL(blob);
-              console.log('Beginner variant generated (client-side)');
-
+              const variantBlob = await makeBeginnerVariant(masterUrl);
+              
+              // Upload to storage
+              const variantPath = `books/${bookId}/pages/${pageId}-beginner.png`;
+              const { error: uploadError } = await supabase.storage
+                .from('book-images')
+                .upload(variantPath, variantBlob, {
+                  contentType: 'image/png',
+                  upsert: true,
+                });
+              
+              if (uploadError) throw uploadError;
+              
+              // Get public URL
+              const { data: urlData } = supabase.storage
+                .from('book-images')
+                .getPublicUrl(variantPath);
+              
+              finalImageUrl = urlData.publicUrl;
+              
+              // Update page record with beginner_image_url
+              const { error: updateError } = await supabase
+                .from('pages')
+                .update({ beginner_image_url: finalImageUrl })
+                .eq('id', pageId);
+              
+              if (updateError) throw updateError;
+              
+              console.log('Beginner variant uploaded:', finalImageUrl);
+              
             } else {
+              // Intermediate uses master directly
               console.log('Using master image for INTERMEDIATE difficulty.');
+              
+              // Update page with intermediate_image_url
+              const { error: updateError } = await supabase
+                .from('pages')
+                .update({ intermediate_image_url: masterUrl })
+                .eq('id', pageId);
+              
+              if (updateError) console.error('Failed to update intermediate URL:', updateError);
+              
               finalImageUrl = masterUrl;
             }
 
-            console.log('Master:', masterUrl);
             console.log('Final display URL:', finalImageUrl);
 
             toast.success('Page processed successfully!');
@@ -192,8 +253,11 @@ const Upload = () => {
               )
             );
           } catch (variantError) {
-            console.error('Variant generation failed, falling back to master:', variantError);
-            toast.warning("Variant generation failed, using standard version");
+            // Non-fatal: log error, use master, mark as ready (not failed)
+            console.error('Variant generation/upload failed:', variantError);
+            toast('Using standard detail level for this page', { 
+              description: 'Variant processing encountered an issue'
+            });
 
             // Fallback to master, still mark as ready (NOT failed)
             setPages(prev =>
@@ -343,15 +407,14 @@ const Upload = () => {
                 <Card key={page.id} className="relative p-2">
                   <div className="aspect-square rounded overflow-hidden bg-muted mb-2">
                     {page.status === "ready" && page.coloringImageUrl ? (
-                      <img 
-                        src={page.coloringImageUrl} 
-                        alt="Processed coloring page" 
-                        className="w-full h-full object-contain"
-                        style={{ 
-                          imageRendering: 'crisp-edges',
-                          filter: 'invert(1)' // FAL returns white lines on black, invert to black lines on white
-                        }}
-                      />
+                       <img 
+                         src={page.coloringImageUrl} 
+                         alt="Processed coloring page" 
+                         className="w-full h-full object-contain"
+                         style={{ 
+                           imageRendering: 'crisp-edges'
+                         }}
+                       />
                      ) : (
                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-2">
                         {page.status === "uploading" || page.status === "processing" ? (

@@ -26,9 +26,21 @@ interface Page {
 }
 
 const getDisplayUrlForPage = (page: Page, difficulty: string): string | null => {
-  // Always use coloring_image_url (the master from FAL)
-  // Variants are generated client-side in Upload.tsx for display only
-  return page.coloring_image_url || page.intermediate_image_url;
+  // Use difficulty-specific URLs uploaded during variant generation
+  if (difficulty === 'quick' || difficulty === 'quick-easy') {
+    return page.easy_image_url || 
+           page.beginner_image_url || 
+           page.intermediate_image_url || 
+           page.coloring_image_url;
+  } else if (difficulty === 'beginner') {
+    return page.beginner_image_url || 
+           page.intermediate_image_url || 
+           page.coloring_image_url;
+  } else {
+    // Intermediate/Advanced uses master
+    return page.intermediate_image_url || 
+           page.coloring_image_url;
+  }
 };
 
 // Border styles mapped by difficulty level
@@ -267,15 +279,14 @@ const Review = () => {
                         headingText={selectedPage.heading_text}
                         difficulty={difficulty}
                       >
-                        <img 
-                          src={displayUrl}
-                          alt="Coloring page preview"
-                          className="w-full rounded-lg"
-                          style={{ 
-                            imageRendering: 'crisp-edges',
-                            filter: 'invert(1)' // FAL returns white lines on black, invert to black lines on white
-                          }}
-                        />
+                         <img 
+                           src={displayUrl}
+                           alt="Coloring page preview"
+                           className="w-full rounded-lg"
+                           style={{ 
+                             imageRendering: 'crisp-edges'
+                           }}
+                         />
                       </BorderWrapper>
                     );
                   })()}
@@ -347,15 +358,14 @@ const Review = () => {
                                   );
                                 }
                                 return (
-                                  <img 
-                                    src={displayUrl}
-                                    alt={`Page ${index + 1}`}
-                                    className="w-16 h-16 object-cover rounded"
-                                    style={{ 
-                                      imageRendering: 'crisp-edges',
-                                      filter: 'invert(1)' // FAL returns white lines on black, invert to black lines on white
-                                    }}
-                                  />
+                                   <img 
+                                     src={displayUrl}
+                                     alt={`Page ${index + 1}`}
+                                     className="w-16 h-16 object-cover rounded"
+                                     style={{ 
+                                       imageRendering: 'crisp-edges'
+                                     }}
+                                   />
                                 );
                               })()}
                               <div className="flex-1">

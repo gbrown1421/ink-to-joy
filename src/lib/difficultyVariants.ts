@@ -1,11 +1,16 @@
 /**
  * Client-side difficulty variant processing using Canvas
- * Beginner = light simplification with 1-pass dilation
- * Quick = heavy simplification with 2-pass dilation
+ * Produces pure black-on-white coloring pages with different levels of simplification
  */
 
+interface VariantConfig {
+  scale: number;        // downscale factor (lower = more simplification)
+  threshold: number;    // 0-255 luminosity threshold (lower = more detail preserved)
+  dilatePasses: number; // number of dilation iterations (more = thicker lines)
+}
+
 /**
- * Load image from URL using fetch-then-blob to avoid tainted canvas
+ * Load image from URL using fetch-then-blob to avoid CORS tainting
  */
 async function loadImageFromBlobUrl(url: string): Promise<HTMLImageElement> {
   const resp = await fetch(url, { cache: 'no-store' });
@@ -18,13 +23,14 @@ async function loadImageFromBlobUrl(url: string): Promise<HTMLImageElement> {
 
   return new Promise((resolve, reject) => {
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.onload = () => {
       URL.revokeObjectURL(objectUrl);
       resolve(img);
     };
     img.onerror = (err) => {
       URL.revokeObjectURL(objectUrl);
-      reject(err);
+      reject(new Error('Failed to load image'));
     };
     img.src = objectUrl;
   });
@@ -61,138 +67,105 @@ function dilate(imageData: ImageData): ImageData {
 }
 
 /**
- * Beginner variant: Light simplification
- * - Downscale to 0.6x
- * - Threshold at 212 (more aggressive than before)
- * - 1-pass dilation to thicken lines slightly
+ * Core variant processing function
+ * Applies downscaling, binary threshold, and line thickening
+ */
+async function processVariant(masterUrl: string, config: VariantConfig): Promise<Blob> {
+  try {
+    const img = await loadImageFromBlobUrl(masterUrl);
+    
+    const tempW = Math.floor(img.naturalWidth * config.scale);
+    const tempH = Math.floor(img.naturalHeight * config.scale);
+    
+    // Downscale canvas for simplification
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = tempW;
+    tempCanvas.height = tempH;
+    const tempCtx = tempCanvas.getContext('2d');
+    if (!tempCtx) throw new Error('No 2d context');
+    
+    tempCtx.imageSmoothingEnabled = true;
+    tempCtx.imageSmoothingQuality = 'high';
+    tempCtx.drawImage(img, 0, 0, tempW, tempH);
+    
+    // Upscale back to original size (creates chunky effect)
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = img.naturalWidth;
+    finalCanvas.height = img.naturalHeight;
+    const finalCtx = finalCanvas.getContext('2d');
+    if (!finalCtx) throw new Error('No 2d context');
+    
+    finalCtx.imageSmoothingEnabled = false; // Keep blocky look
+    finalCtx.drawImage(tempCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
+    
+    // Convert to grayscale and apply binary threshold
+    let imageData = finalCtx.getImageData(0, 0, finalCanvas.width, finalCanvas.height);
+    const data = imageData.data;
+    
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const luminosity = 0.299 * r + 0.587 * g + 0.114 * b;
+      
+      // Hard threshold: pure black or pure white
+      // Note: FAL returns inverted (white lines on black bg), so we invert the logic
+      // to produce black lines on white bg for final output
+      const isLine = luminosity > config.threshold; // Inverted: bright pixels become lines
+      data[i]     = isLine ? 0 : 255; // R - lines are black, bg is white
+      data[i + 1] = isLine ? 0 : 255; // G
+      data[i + 2] = isLine ? 0 : 255; // B
+      data[i + 3] = 255;              // fully opaque
+    }
+    
+    // Apply dilation passes to thicken lines
+    for (let i = 0; i < config.dilatePasses; i++) {
+      imageData = dilate(imageData);
+    }
+    
+    finalCtx.putImageData(imageData, 0, 0);
+    
+    // Export as PNG
+    return new Promise((resolve, reject) => {
+      finalCanvas.toBlob(
+        (blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error('Failed to create blob'));
+        },
+        'image/png',
+        1.0
+      );
+    });
+  } catch (error) {
+    console.error('Error in processVariant:', error);
+    throw new Error('variant-processing-failed');
+  }
+}
+
+/**
+ * Beginner variant: Moderate simplification
+ * - 0.55x downscale
+ * - 210 threshold (keeps more edges)
+ * - 1-pass dilation (slightly thicker lines)
  */
 export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
-  const img = await loadImageFromBlobUrl(masterUrl);
-  
-  const scale = 0.6;
-  const tempW = Math.floor(img.naturalWidth * scale);
-  const tempH = Math.floor(img.naturalHeight * scale);
-  
-  // Downscale canvas
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = tempW;
-  tempCanvas.height = tempH;
-  const tempCtx = tempCanvas.getContext('2d');
-  if (!tempCtx) throw new Error('No 2d context');
-  
-  tempCtx.imageSmoothingEnabled = true;
-  tempCtx.imageSmoothingQuality = 'high';
-  tempCtx.drawImage(img, 0, 0, tempW, tempH);
-  
-  // Upscale back
-  const finalCanvas = document.createElement('canvas');
-  finalCanvas.width = img.naturalWidth;
-  finalCanvas.height = img.naturalHeight;
-  const finalCtx = finalCanvas.getContext('2d');
-  if (!finalCtx) throw new Error('No 2d context');
-  
-  finalCtx.imageSmoothingEnabled = false;
-  finalCtx.drawImage(tempCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
-  
-  // Binary threshold
-  let imageData = finalCtx.getImageData(0, 0, finalCanvas.width, finalCanvas.height);
-  const data = imageData.data;
-  const THRESHOLD = 212;
-  
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    const l = 0.299 * r + 0.587 * g + 0.114 * b;
-    
-    const isLine = l < THRESHOLD;
-    data[i]     = isLine ? 0 : 255;
-    data[i + 1] = isLine ? 0 : 255;
-    data[i + 2] = isLine ? 0 : 255;
-    data[i + 3] = 255;
-  }
-  
-  // Apply 1-pass dilation
-  imageData = dilate(imageData);
-  finalCtx.putImageData(imageData, 0, 0);
-  
-  return new Promise((resolve, reject) => {
-    finalCanvas.toBlob(
-      (blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error('Failed to create blob'));
-      },
-      'image/png',
-      1.0
-    );
+  return processVariant(masterUrl, {
+    scale: 0.55,
+    threshold: 210,
+    dilatePasses: 1,
   });
 }
 
 /**
  * Quick & Easy variant: Heavy simplification for toddlers
- * - Strong downscale to 0.35x
- * - Aggressive threshold at 238
- * - 2-pass dilation for chunky, bold lines
+ * - 0.30x downscale (strong simplification)
+ * - 200 threshold (only strongest edges)
+ * - 2-pass dilation (chunky, bold lines)
  */
 export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
-  const img = await loadImageFromBlobUrl(masterUrl);
-  
-  const scale = 0.35;
-  const tempW = Math.floor(img.naturalWidth * scale);
-  const tempH = Math.floor(img.naturalHeight * scale);
-  
-  // Downscale canvas
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = tempW;
-  tempCanvas.height = tempH;
-  const tempCtx = tempCanvas.getContext('2d');
-  if (!tempCtx) throw new Error('No 2d context');
-  
-  tempCtx.imageSmoothingEnabled = true;
-  tempCtx.imageSmoothingQuality = 'high';
-  tempCtx.drawImage(img, 0, 0, tempW, tempH);
-  
-  // Upscale back
-  const finalCanvas = document.createElement('canvas');
-  finalCanvas.width = img.naturalWidth;
-  finalCanvas.height = img.naturalHeight;
-  const finalCtx = finalCanvas.getContext('2d');
-  if (!finalCtx) throw new Error('No 2d context');
-  
-  finalCtx.imageSmoothingEnabled = false;
-  finalCtx.drawImage(tempCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
-  
-  // Aggressive binary threshold
-  let imageData = finalCtx.getImageData(0, 0, finalCanvas.width, finalCanvas.height);
-  const data = imageData.data;
-  const THRESHOLD = 238;
-  
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    const l = 0.299 * r + 0.587 * g + 0.114 * b;
-    
-    const isLine = l < THRESHOLD;
-    data[i]     = isLine ? 0 : 255;
-    data[i + 1] = isLine ? 0 : 255;
-    data[i + 2] = isLine ? 0 : 255;
-    data[i + 3] = 255;
-  }
-  
-  // Apply 2-pass dilation for chunky lines
-  imageData = dilate(imageData);
-  imageData = dilate(imageData);
-  finalCtx.putImageData(imageData, 0, 0);
-  
-  return new Promise((resolve, reject) => {
-    finalCanvas.toBlob(
-      (blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error('Failed to create blob'));
-      },
-      'image/png',
-      1.0
-    );
+  return processVariant(masterUrl, {
+    scale: 0.30,
+    threshold: 200,
+    dilatePasses: 2,
   });
 }
