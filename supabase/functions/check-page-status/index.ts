@@ -63,12 +63,13 @@ serve(async (req) => {
       );
     }
 
-    // Add small delay before first check to allow job to be created in Mimi system
+    // Add significant delay before first check to allow job to be created in Mimi system
     const pageAge = Date.now() - new Date(page.created_at).getTime();
-    if (pageAge < 3000) {
-      console.log('Page too new, waiting before first check:', pageAge, 'ms');
+    const MIN_AGE_MS = 30000; // 30 seconds
+    if (pageAge < MIN_AGE_MS) {
+      console.log('Page too new, waiting before first check. Age:', pageAge, 'ms, Required:', MIN_AGE_MS, 'ms');
       return new Response(
-        JSON.stringify({ status: 'processing' }),
+        JSON.stringify({ status: 'processing', waiting_period: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
