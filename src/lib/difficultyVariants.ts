@@ -1,11 +1,11 @@
 /**
  * Client-side difficulty variant processing using Canvas
- * Beginner = light simplification, Quick = heavy simplification
+ * Beginner = light simplification with 1-pass dilation
+ * Quick = heavy simplification with 2-pass dilation
  */
 
 /**
  * Load image from URL using fetch-then-blob to avoid tainted canvas
- * This approach works with Supabase public URLs and CORS restrictions
  */
 async function loadImageFromBlobUrl(url: string): Promise<HTMLImageElement> {
   const resp = await fetch(url, { cache: 'no-store' });
@@ -31,10 +31,40 @@ async function loadImageFromBlobUrl(url: string): Promise<HTMLImageElement> {
 }
 
 /**
+ * Apply morphological dilation to thicken lines
+ * Makes a 3x3 neighborhood around each black pixel also black
+ */
+function dilate(imageData: ImageData): ImageData {
+  const { width, height, data } = imageData;
+  const result = new ImageData(width, height);
+  result.data.set(data); // Copy original
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const idx = (y * width + x) * 4;
+      
+      // If current pixel is black, make 3x3 neighborhood black
+      if (data[idx] === 0) {
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const nIdx = ((y + dy) * width + (x + dx)) * 4;
+            result.data[nIdx] = 0;     // R
+            result.data[nIdx + 1] = 0; // G
+            result.data[nIdx + 2] = 0; // B
+          }
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
  * Beginner variant: Light simplification
- * Pure black lines on white background, no gray tones
- * - Downscale to 0.6x to simplify details
- * - Hard threshold at 195 to eliminate all gray
+ * - Downscale to 0.6x
+ * - Threshold at 212 (more aggressive than before)
+ * - 1-pass dilation to thicken lines slightly
  */
 export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
   const img = await loadImageFromBlobUrl(masterUrl);
@@ -54,7 +84,7 @@ export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
   tempCtx.imageSmoothingQuality = 'high';
   tempCtx.drawImage(img, 0, 0, tempW, tempH);
   
-  // Upscale back to thicken lines
+  // Upscale back
   const finalCanvas = document.createElement('canvas');
   finalCanvas.width = img.naturalWidth;
   finalCanvas.height = img.naturalHeight;
@@ -64,10 +94,10 @@ export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
   finalCtx.imageSmoothingEnabled = false;
   finalCtx.drawImage(tempCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
   
-  // Hard threshold to produce pure black/white, no gray
-  const imageData = finalCtx.getImageData(0, 0, finalCanvas.width, finalCanvas.height);
+  // Binary threshold
+  let imageData = finalCtx.getImageData(0, 0, finalCanvas.width, finalCanvas.height);
   const data = imageData.data;
-  const THRESHOLD = 195;
+  const THRESHOLD = 212;
   
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i];
@@ -75,14 +105,15 @@ export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
     const b = data[i + 2];
     const l = 0.299 * r + 0.587 * g + 0.114 * b;
     
-    // Black lines on white background
     const isLine = l < THRESHOLD;
-    data[i]     = isLine ? 0 : 255;  // R
-    data[i + 1] = isLine ? 0 : 255;  // G
-    data[i + 2] = isLine ? 0 : 255;  // B
-    data[i + 3] = 255;               // fully opaque
+    data[i]     = isLine ? 0 : 255;
+    data[i + 1] = isLine ? 0 : 255;
+    data[i + 2] = isLine ? 0 : 255;
+    data[i + 3] = 255;
   }
   
+  // Apply 1-pass dilation
+  imageData = dilate(imageData);
   finalCtx.putImageData(imageData, 0, 0);
   
   return new Promise((resolve, reject) => {
@@ -99,9 +130,9 @@ export async function makeBeginnerVariant(masterUrl: string): Promise<Blob> {
 
 /**
  * Quick & Easy variant: Heavy simplification for toddlers
- * Pure black lines on white background, no gray tones
- * - Strong downscale to 0.35x for bold, simple shapes
- * - Aggressive threshold at 215 to maximize white space
+ * - Strong downscale to 0.35x
+ * - Aggressive threshold at 238
+ * - 2-pass dilation for chunky, bold lines
  */
 export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
   const img = await loadImageFromBlobUrl(masterUrl);
@@ -121,7 +152,7 @@ export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
   tempCtx.imageSmoothingQuality = 'high';
   tempCtx.drawImage(img, 0, 0, tempW, tempH);
   
-  // Upscale back to thicken lines
+  // Upscale back
   const finalCanvas = document.createElement('canvas');
   finalCanvas.width = img.naturalWidth;
   finalCanvas.height = img.naturalHeight;
@@ -131,10 +162,10 @@ export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
   finalCtx.imageSmoothingEnabled = false;
   finalCtx.drawImage(tempCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
   
-  // Aggressive hard threshold to produce pure black/white, no gray
-  const imageData = finalCtx.getImageData(0, 0, finalCanvas.width, finalCanvas.height);
+  // Aggressive binary threshold
+  let imageData = finalCtx.getImageData(0, 0, finalCanvas.width, finalCanvas.height);
   const data = imageData.data;
-  const THRESHOLD = 215;
+  const THRESHOLD = 238;
   
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i];
@@ -142,14 +173,16 @@ export async function makeQuickVariant(masterUrl: string): Promise<Blob> {
     const b = data[i + 2];
     const l = 0.299 * r + 0.587 * g + 0.114 * b;
     
-    // Black lines on white background
     const isLine = l < THRESHOLD;
-    data[i]     = isLine ? 0 : 255;  // R
-    data[i + 1] = isLine ? 0 : 255;  // G
-    data[i + 2] = isLine ? 0 : 255;  // B
-    data[i + 3] = 255;               // fully opaque
+    data[i]     = isLine ? 0 : 255;
+    data[i + 1] = isLine ? 0 : 255;
+    data[i + 2] = isLine ? 0 : 255;
+    data[i + 3] = 255;
   }
   
+  // Apply 2-pass dilation for chunky lines
+  imageData = dilate(imageData);
+  imageData = dilate(imageData);
   finalCtx.putImageData(imageData, 0, 0);
   
   return new Promise((resolve, reject) => {

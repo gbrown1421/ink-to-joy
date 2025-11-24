@@ -156,63 +156,24 @@ const Upload = () => {
           let finalImageUrl = masterUrl;
 
           try {
+            // Generate variants CLIENT-SIDE ONLY (no upload to Supabase)
             if (bookDifficulty === 'quick' || bookDifficulty === 'quick-easy') {
               console.log('Generating QUICK variant (heavy simplification)...');
               const { makeQuickVariant } = await import('@/lib/difficultyVariants');
               const blob = await makeQuickVariant(masterUrl);
-
-              const path = `books/${bookId}/pages/${data.pageId}-quick.png`;
-              const { error: uploadError } = await supabase.storage
-                .from('book-images')
-                .upload(path, blob, { upsert: true });
-
-              if (uploadError) throw uploadError;
-
-              const { data: { publicUrl } } = supabase.storage
-                .from('book-images')
-                .getPublicUrl(path);
-
-              // Update DB with quick variant URL
-              await supabase
-                .from('pages')
-                .update({ easy_image_url: publicUrl })
-                .eq('id', data.pageId);
-
-              finalImageUrl = publicUrl;
-              console.log('Quick variant stored:', publicUrl);
+              finalImageUrl = URL.createObjectURL(blob);
+              console.log('Quick variant generated (client-side)');
 
             } else if (bookDifficulty === 'beginner') {
               console.log('Generating BEGINNER variant (light simplification)...');
               const { makeBeginnerVariant } = await import('@/lib/difficultyVariants');
               const blob = await makeBeginnerVariant(masterUrl);
-
-              const path = `books/${bookId}/pages/${data.pageId}-beginner.png`;
-              const { error: uploadError } = await supabase.storage
-                .from('book-images')
-                .upload(path, blob, { upsert: true });
-
-              if (uploadError) throw uploadError;
-
-              const { data: { publicUrl } } = supabase.storage
-                .from('book-images')
-                .getPublicUrl(path);
-
-              // Update DB with beginner variant URL
-              await supabase
-                .from('pages')
-                .update({ beginner_image_url: publicUrl })
-                .eq('id', data.pageId);
-
-              finalImageUrl = publicUrl;
-              console.log('Beginner variant stored:', publicUrl);
+              finalImageUrl = URL.createObjectURL(blob);
+              console.log('Beginner variant generated (client-side)');
 
             } else {
               console.log('Using master image for INTERMEDIATE difficulty.');
-              // Update DB to store master as intermediate
-              await supabase
-                .from('pages')
-                .update({ intermediate_image_url: masterUrl })
-                .eq('id', data.pageId);
+              finalImageUrl = masterUrl;
             }
 
             console.log('Master:', masterUrl);
@@ -226,16 +187,15 @@ const Upload = () => {
                       ...p, 
                       status: "ready", 
                       coloringImageUrl: finalImageUrl,
-                      masterImageUrl: masterUrl 
                     }
                   : p
               )
             );
           } catch (variantError) {
             console.error('Variant generation failed, falling back to master:', variantError);
-            toast.warning("Couldn't simplify image. Using standard version instead.");
+            toast.warning("Variant generation failed, using standard version");
 
-            // Fallback to master, still mark as ready
+            // Fallback to master, still mark as ready (NOT failed)
             setPages(prev =>
               prev.map(p =>
                 p.id === tempId
@@ -243,7 +203,6 @@ const Upload = () => {
                       ...p,
                       status: "ready",
                       coloringImageUrl: masterUrl,
-                      masterImageUrl: masterUrl,
                       error: undefined,
                     }
                   : p
