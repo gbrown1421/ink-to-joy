@@ -74,14 +74,19 @@ serve(async (req) => {
     }
 
     // Poll Mimi Panda API for job status
+    const apiToken = Deno.env.get('MIMI_PANDA_API_TOKEN');
     const statusUrl = `${MIMI_PANDA_STATUS_URL}/${page.mimi_key}`;
+    
+    console.log('=== STATUS CHECK REQUEST ===');
+    console.log('API Token configured:', !!apiToken);
+    console.log('Token length:', apiToken?.length || 0);
     console.log('Checking Mimi status for key:', page.mimi_key);
     console.log('Full status URL:', statusUrl);
     
     const mimiResponse = await fetch(statusUrl, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('MIMI_PANDA_API_TOKEN')}`,
+        'Authorization': `Bearer ${apiToken}`,
       },
     });
 
