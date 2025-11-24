@@ -63,7 +63,17 @@ serve(async (req) => {
       );
     }
 
-    // Poll Mimi Panda API for job status using the generic item endpoint
+    // Add small delay before first check to allow job to be created in Mimi system
+    const pageAge = Date.now() - new Date(page.created_at).getTime();
+    if (pageAge < 3000) {
+      console.log('Page too new, waiting before first check:', pageAge, 'ms');
+      return new Response(
+        JSON.stringify({ status: 'processing' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Poll Mimi Panda API for job status
     const statusUrl = `${MIMI_PANDA_STATUS_URL}/${page.mimi_key}`;
     console.log('Checking Mimi status for key:', page.mimi_key);
     console.log('Full status URL:', statusUrl);
@@ -101,18 +111,31 @@ serve(async (req) => {
     }
 
     const mimiData = await mimiResponse.json();
+    console.log('Mimi response data:', JSON.stringify(mimiData));
     console.log('Mimi status:', mimiData.status);
 
-    // Check if job is completed
-    if (mimiData.status !== 'completed') {
+    // Per docs: status is "in_queue", "processing", "ready", or "failed"
+    if (mimiData.status === 'failed') {
+      await supabase
+        .from('pages')
+        .update({ status: 'failed' })
+        .eq('id', pageId);
+      
+      return new Response(
+        JSON.stringify({ status: 'failed', error: 'Mimi processing failed' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (mimiData.status !== 'ready') {
       return new Response(
         JSON.stringify({ status: 'processing' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Extract result URL from completed job
-    const resultUrl = mimiData.result_url;
+    // Per docs: images are in an array
+    const resultUrl = mimiData.images?.[0];
     console.log('Mimi job completed! Result URL:', resultUrl);
     console.log('Full Mimi result:', JSON.stringify(mimiData, null, 2));
 
