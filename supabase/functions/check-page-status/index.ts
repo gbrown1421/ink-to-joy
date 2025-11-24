@@ -6,8 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Mimi Panda status check endpoint - must match the creation endpoint
-const MIMI_PANDA_STATUS_URL = 'https://mimi-panda.com/api/service/coloring';
+// Mimi Panda status check endpoint - use item endpoint to check job status
+const MIMI_PANDA_STATUS_URL = 'https://mimi-panda.com/api/service/item';
 
 /**
  * POLLS Mimi Panda API to check if a coloring job is complete.
@@ -103,16 +103,16 @@ serve(async (req) => {
     const mimiData = await mimiResponse.json();
     console.log('Mimi status:', mimiData.status);
 
-    // BUG FIX: Mimi Panda returns "ready" (not "completed") when job is done
-    if (mimiData.status !== 'ready') {
+    // Check if job is completed
+    if (mimiData.status !== 'completed') {
       return new Response(
         JSON.stringify({ status: 'processing' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // BUG FIX: Mimi Panda returns images in an array, not result_url
-    const resultUrl = mimiData.images?.[0];
+    // Extract result URL from completed job
+    const resultUrl = mimiData.result_url;
     console.log('Mimi job completed! Result URL:', resultUrl);
     console.log('Full Mimi result:', JSON.stringify(mimiData, null, 2));
 
