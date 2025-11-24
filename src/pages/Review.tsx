@@ -26,16 +26,9 @@ interface Page {
 }
 
 const getDisplayUrlForPage = (page: Page, difficulty: string): string | null => {
-  switch (difficulty) {
-    case "quick":
-    case "quick-easy":
-      return page.easy_image_url || null;
-    case "beginner":
-      return page.beginner_image_url || null;
-    case "intermediate":
-    default:
-      return page.intermediate_image_url || null;
-  }
+  // All difficulties now use the same master coloring image
+  // Variants are only for display in Upload step, not stored
+  return page.coloring_image_url || null;
 };
 
 // Border styles mapped by difficulty level
@@ -192,27 +185,6 @@ const Review = () => {
     }
   };
 
-  const handleRetryPage = async (page: Page) => {
-    try {
-      toast.info(`Retrying processing for page ${page.page_order}...`);
-      
-      // Reset page status and clear URLs
-      await updatePage(page.id, {
-        status: 'pending_mimi',
-        easy_image_url: null,
-        beginner_image_url: null,
-        intermediate_image_url: null,
-      });
-
-      // Trigger reprocessing by calling the same endpoint used during upload
-      // This assumes the original image is still stored
-      toast.success("Page reprocessing started");
-    } catch (error) {
-      console.error('Error retrying page:', error);
-      toast.error("Failed to retry page processing");
-    }
-  };
-
   const handleContinue = () => {
     const keptPages = pages.filter(p => p.keep);
     if (keptPages.length === 0) {
@@ -282,17 +254,10 @@ const Review = () => {
                     const displayUrl = getDisplayUrlForPage(selectedPage, difficulty);
                     if (!displayUrl) {
                       return (
-                        <div className="flex flex-col items-center justify-center p-12 bg-destructive/10 rounded-lg border-2 border-destructive/50">
-                          <p className="text-sm text-destructive mb-4 text-center">
-                            Processing failed – click to retry
+                        <div className="flex flex-col items-center justify-center p-12 bg-muted rounded-lg border-2 border-border">
+                          <p className="text-sm text-muted-foreground mb-4 text-center">
+                            Page image not ready – go back and re-upload this photo.
                           </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleRetryPage(selectedPage)}
-                          >
-                            Retry Processing
-                          </Button>
                         </div>
                       );
                     }
@@ -302,14 +267,15 @@ const Review = () => {
                         headingText={selectedPage.heading_text}
                         difficulty={difficulty}
                       >
-                        <div style={{ filter: 'invert(1)' }}>
-                          <img 
-                            src={displayUrl}
-                            alt="Coloring page preview"
-                            className="w-full rounded-lg"
-                            style={{ imageRendering: 'crisp-edges' }}
-                          />
-                        </div>
+                        <img 
+                          src={displayUrl}
+                          alt="Coloring page preview"
+                          className="w-full rounded-lg"
+                          style={{ 
+                            imageRendering: 'crisp-edges',
+                            filter: 'invert(1)' // FAL returns white lines on black, invert to black lines on white
+                          }}
+                        />
                       </BorderWrapper>
                     );
                   })()}
@@ -375,8 +341,8 @@ const Review = () => {
                                 const displayUrl = getDisplayUrlForPage(page, difficulty);
                                 if (!displayUrl) {
                                   return (
-                                    <div className="w-16 h-16 bg-destructive/10 rounded flex items-center justify-center border-2 border-destructive/50">
-                                      <span className="text-xs text-destructive font-bold">!</span>
+                                    <div className="w-16 h-16 bg-muted rounded flex items-center justify-center border-2 border-border">
+                                      <span className="text-xs text-muted-foreground font-bold">?</span>
                                     </div>
                                   );
                                 }
@@ -385,7 +351,10 @@ const Review = () => {
                                     src={displayUrl}
                                     alt={`Page ${index + 1}`}
                                     className="w-16 h-16 object-cover rounded"
-                                    style={{ filter: 'invert(1)' }}
+                                    style={{ 
+                                      imageRendering: 'crisp-edges',
+                                      filter: 'invert(1)' // FAL returns white lines on black, invert to black lines on white
+                                    }}
                                   />
                                 );
                               })()}

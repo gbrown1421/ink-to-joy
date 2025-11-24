@@ -48,13 +48,13 @@ serve(async (req) => {
 
     console.log('Page status:', page.status);
     
-    if (page.status === 'ready' && page.intermediate_image_url) {
-      console.log('Page already ready with lineart image');
+    if (page.status === 'ready' && page.coloring_image_url) {
+      console.log('Page ready with master coloring image');
       return new Response(
         JSON.stringify({ 
           status: 'ready', 
           success: true,
-          intermediateImageUrl: page.intermediate_image_url 
+          coloringImageUrl: page.coloring_image_url 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );

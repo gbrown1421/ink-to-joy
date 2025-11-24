@@ -138,93 +138,35 @@ const Upload = () => {
         console.log('Status check response:', data);
 
         if (data.status === "ready") {
-          if (!data.success || !data.intermediateImageUrl) {
-            const errorMsg = data.error || 'No master image returned';
+          if (!data.success || !data.coloringImageUrl) {
+            const errorMsg = data.error || 'No coloring image returned';
             console.error('Processing failed:', errorMsg);
             toast.error(`Image processing failed: ${errorMsg}`);
             setPages(prev => prev.map(p => 
               p.id === tempId 
-                ? { ...p, status: "failed", error: errorMsg } 
+                ? { ...p, status: "failed", error: 'Image processing failed – click to retry upload' } 
                 : p
             ));
             return;
           }
 
-          console.log('Master image ready:', data.intermediateImageUrl);
+          console.log('Master coloring image ready:', data.coloringImageUrl);
+
+          // Apply difficulty variants CLIENT-SIDE ONLY for display
+          let displayUrl = data.coloringImageUrl;
+          const masterUrl = data.coloringImageUrl;
 
           try {
-            let finalImageUrl = data.intermediateImageUrl;
-
-            if (bookDifficulty === 'beginner' || bookDifficulty === 'quick') {
-              setPages(prev =>
-                prev.map(p =>
-                  p.id === tempId ? { ...p, status: "processing" } : p
-                )
-              );
-
-              const { makeBeginnerVariant, makeQuickVariant } = await import('@/lib/difficultyVariants');
-
-              if (bookDifficulty === 'beginner') {
-                console.log('Generating BEGINNER variant (light simplification)...');
-                const beginnerBlob = await makeBeginnerVariant(data.intermediateImageUrl);
-                
-                // Upload to Supabase Storage
-                const fileName = `${pageId}-beginner.png`;
-                const filePath = `books/${bookId}/pages/${fileName}`;
-                
-                const { error: uploadError } = await supabase.storage
-                  .from('book-images')
-                  .upload(filePath, beginnerBlob, { 
-                    contentType: 'image/png',
-                    upsert: true 
-                  });
-
-                if (uploadError) throw uploadError;
-
-                const { data: { publicUrl } } = supabase.storage
-                  .from('book-images')
-                  .getPublicUrl(filePath);
-
-                // Update pages table
-                const { error: updateError } = await supabase
-                  .from('pages')
-                  .update({ beginner_image_url: publicUrl })
-                  .eq('id', pageId);
-
-                if (updateError) throw updateError;
-
-                finalImageUrl = publicUrl;
-              } else if (bookDifficulty === 'quick') {
-                console.log('Generating QUICK variant (heavy simplification)...');
-                const quickBlob = await makeQuickVariant(data.intermediateImageUrl);
-                
-                // Upload to Supabase Storage
-                const fileName = `${pageId}-quick.png`;
-                const filePath = `books/${bookId}/pages/${fileName}`;
-                
-                const { error: uploadError } = await supabase.storage
-                  .from('book-images')
-                  .upload(filePath, quickBlob, { 
-                    contentType: 'image/png',
-                    upsert: true 
-                  });
-
-                if (uploadError) throw uploadError;
-
-                const { data: { publicUrl } } = supabase.storage
-                  .from('book-images')
-                  .getPublicUrl(filePath);
-
-                // Update pages table
-                const { error: updateError } = await supabase
-                  .from('pages')
-                  .update({ easy_image_url: publicUrl })
-                  .eq('id', pageId);
-
-                if (updateError) throw updateError;
-
-                finalImageUrl = publicUrl;
-              }
+            if (bookDifficulty === 'quick' || bookDifficulty === 'quick-easy') {
+              console.log('Generating QUICK variant (heavy simplification) for display...');
+              const { makeQuickVariant } = await import('@/lib/difficultyVariants');
+              const blob = await makeQuickVariant(masterUrl);
+              displayUrl = URL.createObjectURL(blob);
+            } else if (bookDifficulty === 'beginner') {
+              console.log('Generating BEGINNER variant (light simplification) for display...');
+              const { makeBeginnerVariant } = await import('@/lib/difficultyVariants');
+              const blob = await makeBeginnerVariant(masterUrl);
+              displayUrl = URL.createObjectURL(blob);
             } else {
               console.log('Using master image for INTERMEDIATE difficulty.');
             }
@@ -233,23 +175,28 @@ const Upload = () => {
             setPages(prev =>
               prev.map(p =>
                 p.id === tempId
-                  ? { ...p, status: "ready", coloringImageUrl: finalImageUrl }
+                  ? { 
+                      ...p, 
+                      status: "ready", 
+                      coloringImageUrl: displayUrl,
+                      masterImageUrl: masterUrl 
+                    }
                   : p
               )
             );
           } catch (variantError) {
-            console.error('Variant processing failed, falling back to master image:', variantError);
+            console.error('Variant generation failed, falling back to master:', variantError);
+            toast.warning("Couldn't simplify image. Using standard version instead.");
 
-            // IMPORTANT: do NOT mark as failed; just fall back to Mimi output
-            toast.warning('Couldn\'t simplify image. Using standard version instead.');
-
+            // Fallback to master, still mark as ready
             setPages(prev =>
               prev.map(p =>
                 p.id === tempId
                   ? {
                       ...p,
                       status: "ready",
-                      coloringImageUrl: data.intermediateImageUrl,
+                      coloringImageUrl: masterUrl,
+                      masterImageUrl: masterUrl,
                       error: undefined,
                     }
                   : p
@@ -394,10 +341,13 @@ const Upload = () => {
                         src={page.coloringImageUrl} 
                         alt="Processed coloring page" 
                         className="w-full h-full object-contain"
-                        style={{ imageRendering: 'crisp-edges' }}
+                        style={{ 
+                          imageRendering: 'crisp-edges',
+                          filter: 'invert(1)' // FAL returns white lines on black, invert to black lines on white
+                        }}
                       />
                      ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-2">
+                       <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-2">
                         {page.status === "uploading" || page.status === "processing" ? (
                           <>
                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -423,23 +373,23 @@ const Upload = () => {
                         )}
                       </div>
                      )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground truncate flex-1">
-                      {page.originalFile.name}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={() => removePage(page.id)}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  {page.status === "ready" && (
-                    <CheckCircle2 className="absolute top-4 right-4 w-6 h-6 text-primary" />
-                  )}
+                   </div>
+                   <div className="flex items-center justify-between">
+                     <span className="text-xs text-muted-foreground truncate flex-1">
+                       {page.originalFile.name}
+                     </span>
+                     <Button
+                       variant="ghost"
+                       size="sm"
+                       className="h-6 w-6 p-0"
+                       onClick={() => removePage(page.id)}
+                     >
+                       <X className="w-4 h-4" />
+                     </Button>
+                   </div>
+                   {page.status === "ready" && (
+                     <CheckCircle2 className="absolute top-4 right-4 w-6 h-6 text-primary" />
+                   )}
                 </Card>
               ))}
             </div>
