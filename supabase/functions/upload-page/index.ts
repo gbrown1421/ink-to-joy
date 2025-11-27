@@ -12,41 +12,60 @@ const corsHeaders = {
  */
 
 function buildColoringPrompt(difficulty: string): string {
-  const base =
-    "Turn this photo into a children's coloring book page. Keep the same people and pose. " +
-    "Draw only clean black line-art outlines on a pure white background, no color, no grey shading, " +
-    "no pencil texture. Make sure all four children are shown full body, including feet and shoes, " +
-    "with a bit of blank margin around the edges so nothing is cropped. " +
-    "Style: simple, friendly cartoon outlines for kids to color.";
+  const basePrompt = `
+High-resolution line-art coloring page based on the uploaded photo.
 
-  switch (difficulty) {
-    case "quick":
-      return (
-        base +
-        " Quick & Easy difficulty: ultra-simple coloring page for 3–4-year-old children. " +
-        "• Show only the four kids full-body with feet and shoes, on a very simple floor line. " +
-        "• REMOVE the classroom background completely – no furniture, no toys, no posters, no shelves, no extra objects. The background should be almost entirely blank white. " +
-        "• Simplify clothes into big smooth shapes with no tiny details: no stripes, no flower patterns, no textures. " +
-        "• Use thick, bold outlines and keep faces very simple: basic eyes, nose, and a smile, no small wrinkles or shading. " +
-        "• Leave large open areas of white space so toddlers have big zones to color. " +
-        "• Absolutely no shading, hatching, or grey tones – just clean black outlines on pure white."
-      );
-    case "beginner":
-      return (
-        base +
-        " Beginner difficulty: keep the kids and a lightly simplified background – " +
-        "a few big classroom props (star, one poster, a shelf), but avoid clutter. " +
-        "Use medium line thickness. Still no tiny detailed textures, no shading."
-      );
-    case "intermediate":
-    default:
-      return (
-        base +
-        " Intermediate difficulty: keep most classroom background objects but as clean line art. " +
-        "More detail than Beginner, but still no shading, hatching, or grey tones – " +
-        "just clear black outlines on white."
-      );
+Four preschool children (around 3–5 years old) standing together, full body from head to shoes, facing the viewer, smiling.
+Clean black outlines on pure white background, printable for kids.
+No color, no shading, no grey tones – only clear black lines.
+Portrait orientation, like a US letter 8.5x11 coloring book page.
+`;
+
+  const quickSuffix = `
+QUICK & EASY TODDLER VERSION (3–4 years old).
+
+CRITICAL RULES:
+- Show ONLY the four kids, full body, head to shoes.
+- Background must be COMPLETELY BLANK WHITE except for ONE simple horizontal floor line.
+- NO classroom, NO furniture, NO toys, NO shelves, NO posters, NO decorations, NO stars, NO extra objects at all.
+- Clothes should be big simple shapes: no tiny patterns, no stripes, no textures.
+- Use THICK, BOLD outlines and very simple faces (basic eyes, nose, smile).
+- Large open white areas for easy coloring.
+- ABSOLUTELY NO shading, hatching, or grey areas – just bold black outlines on white.
+
+If you are about to draw ANY background objects (walls, windows, pictures, shelves, toys, stars, rugs, etc.), DO NOT draw them. Leave that area blank white instead.
+`;
+
+  const beginnerSuffix = `
+BEGINNER VERSION (4–6 years old).
+
+- Keep the four kids full-body and clearly outlined.
+- Simple, minimal background: only a few big objects (for example: one large star and one big picture frame) with very little detail.
+- Line weight medium-thick, clear outlines, no tiny textures.
+- Faces still fairly simple, no fine wrinkles or shading.
+- No grey shading or hatching – just black outlines on white.
+`;
+
+  const intermediateSuffix = `
+INTERMEDIATE VERSION (6–8 years old).
+
+- Keep the four kids full-body.
+- Include more of the classroom background, but still as clean line art without cluttered micro-details.
+- You can show furniture and decor, but avoid shading and cross-hatching.
+- Line weight a bit finer to show more detail, still strictly black outlines on white.
+`;
+
+  let difficultySuffix: string;
+
+  if (difficulty === 'quick') {
+    difficultySuffix = quickSuffix;
+  } else if (difficulty === 'beginner') {
+    difficultySuffix = beginnerSuffix;
+  } else {
+    difficultySuffix = intermediateSuffix;
   }
+
+  return `${basePrompt}\n\n${difficultySuffix}`;
 }
 
 serve(async (req) => {
@@ -154,6 +173,11 @@ serve(async (req) => {
         const difficulty = book.difficulty || "intermediate";
         const prompt = buildColoringPrompt(difficulty);
 
+        console.log('InkToJoy image request', {
+          difficulty: book.difficulty,
+          size: '1024x1536',
+          source: 'generate-coloring-page',
+        });
         console.log('Calling OpenAI gpt-image-1 with difficulty:', difficulty);
 
         // Fetch original image to send to OpenAI
