@@ -93,7 +93,7 @@ const Upload = () => {
 
         setPages(prev => prev.map(p => 
           p.id === page.id 
-            ? { ...p, status: "processing", mimiKey: data.mimiKey } 
+            ? { ...p, status: "processing" } 
             : p
         ));
 
@@ -138,162 +138,24 @@ const Upload = () => {
         console.log('Status check response:', data);
 
         if (data.status === "ready") {
-          if (!data.success || !data.coloringImageUrl) {
+          if (!data.coloringImageUrl) {
             const errorMsg = data.error || 'No coloring image returned';
             console.error('Processing failed:', errorMsg);
-            toast.error(`Image processing failed: ${errorMsg}`);
+            toast.error(errorMsg);
             setPages(prev => prev.map(p => 
               p.id === tempId 
-                ? { ...p, status: "failed", error: 'Image processing failed – click to retry upload' } 
+                ? { ...p, status: "failed", error: errorMsg } 
                 : p
             ));
             return;
           }
 
-          console.log('Master coloring image ready:', data.coloringImageUrl);
-
-          const masterUrl = data.coloringImageUrl;
-          let finalImageUrl = masterUrl;
-          
-          try {
-            // Step 1: Normalize FAL output (white-on-black → black-on-white)
-            const { normalizeMasterToBlackOnWhite } = await import('@/lib/difficultyVariants');
-            const normalizedUrl = await normalizeMasterToBlackOnWhite(masterUrl);
-            console.log('Normalized master to black-on-white');
-            
-            // Step 2: Generate difficulty-specific variants from normalized master
-            if (bookDifficulty === 'quick' || bookDifficulty === 'quick-easy') {
-              console.log('Generating QUICK variant (heavy simplification)...');
-              const { makeQuickVariant } = await import('@/lib/difficultyVariants');
-              const variantBlob = await makeQuickVariant(normalizedUrl);
-              
-              // Upload to storage
-              const variantPath = `books/${bookId}/pages/${pageId}-quick.png`;
-              const { error: uploadError } = await supabase.storage
-                .from('book-images')
-                .upload(variantPath, variantBlob, {
-                  contentType: 'image/png',
-                  upsert: true,
-                });
-              
-              if (uploadError) throw uploadError;
-              
-              // Get public URL
-              const { data: urlData } = supabase.storage
-                .from('book-images')
-                .getPublicUrl(variantPath);
-              
-              finalImageUrl = urlData.publicUrl;
-              
-              // Update page record with easy_image_url
-              const { error: updateError } = await supabase
-                .from('pages')
-                .update({ easy_image_url: finalImageUrl })
-                .eq('id', pageId);
-              
-              if (updateError) throw updateError;
-              
-              console.log('Quick variant uploaded:', finalImageUrl);
-              
-            } else if (bookDifficulty === 'beginner') {
-              console.log('Generating BEGINNER variant (light simplification)...');
-              const { makeBeginnerVariant } = await import('@/lib/difficultyVariants');
-              const variantBlob = await makeBeginnerVariant(normalizedUrl);
-              
-              // Upload to storage
-              const variantPath = `books/${bookId}/pages/${pageId}-beginner.png`;
-              const { error: uploadError } = await supabase.storage
-                .from('book-images')
-                .upload(variantPath, variantBlob, {
-                  contentType: 'image/png',
-                  upsert: true,
-                });
-              
-              if (uploadError) throw uploadError;
-              
-              // Get public URL
-              const { data: urlData } = supabase.storage
-                .from('book-images')
-                .getPublicUrl(variantPath);
-              
-              finalImageUrl = urlData.publicUrl;
-              
-              // Update page record with beginner_image_url
-              const { error: updateError } = await supabase
-                .from('pages')
-                .update({ beginner_image_url: finalImageUrl })
-                .eq('id', pageId);
-              
-              if (updateError) throw updateError;
-              
-              console.log('Beginner variant uploaded:', finalImageUrl);
-              
-            } else {
-              // Intermediate uses normalized master (black-on-white)
-              console.log('Using normalized master for INTERMEDIATE difficulty.');
-              
-              // Upload normalized version to storage for consistency
-              const normalizedBlob = await fetch(normalizedUrl).then(r => r.blob());
-              const intermediatePath = `books/${bookId}/pages/${pageId}-intermediate.png`;
-              const { error: uploadError } = await supabase.storage
-                .from('book-images')
-                .upload(intermediatePath, normalizedBlob, {
-                  contentType: 'image/png',
-                  upsert: true,
-                });
-              
-              if (uploadError) throw uploadError;
-              
-              const { data: urlData } = supabase.storage
-                .from('book-images')
-                .getPublicUrl(intermediatePath);
-              
-              finalImageUrl = urlData.publicUrl;
-              
-              // Update page with intermediate_image_url
-              const { error: updateError } = await supabase
-                .from('pages')
-                .update({ intermediate_image_url: finalImageUrl })
-                .eq('id', pageId);
-              
-              if (updateError) console.error('Failed to update intermediate URL:', updateError);
-            }
-
-            console.log('Final display URL:', finalImageUrl);
-
-            toast.success('Page processed successfully!');
-            setPages(prev =>
-              prev.map(p =>
-                p.id === tempId
-                  ? { 
-                      ...p, 
-                      status: "ready", 
-                      coloringImageUrl: finalImageUrl,
-                    }
-                  : p
-              )
-            );
-          } catch (variantError) {
-            // Non-fatal: log error, fall back to raw FAL master, mark as ready (not failed)
-            console.error('Variant generation/upload failed:', variantError);
-            toast('Used standard outline – variant simplification failed', { 
-              description: 'Showing original FAL output instead'
-            });
-
-            // Fallback to raw FAL master URL, still mark as ready (NOT failed)
-            setPages(prev =>
-              prev.map(p =>
-                p.id === tempId
-                  ? {
-                      ...p,
-                      status: "ready",
-                      coloringImageUrl: masterUrl,
-                      error: undefined,
-                    }
-                  : p
-              )
-            );
-          }
+          setPages(prev => prev.map(p =>
+            p.id === tempId
+              ? { ...p, status: "ready", coloringImageUrl: data.coloringImageUrl }
+              : p
+          ));
+          toast.success("Page processed successfully!");
           return;
         } else if (data.status === "failed") {
           const errorMsg = data.error || 'Processing failed';
@@ -312,8 +174,7 @@ const Upload = () => {
         if (attempts < maxAttempts) {
           setTimeout(checkStatus, 5000);
         } else {
-          const timeoutMsg = 'Processing timeout';
-          toast.error('Image processing failed – click to retry upload');
+          toast.error('Image processing timed out – please try again');
           setPages(prev => prev.map(p => 
             p.id === tempId 
               ? { ...p, status: "failed", error: 'Image processing failed – click to retry upload' } 

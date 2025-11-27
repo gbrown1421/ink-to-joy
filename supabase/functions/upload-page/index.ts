@@ -6,57 +6,59 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// fal.ai Lineart Configuration
-const FAL_AI_API_URL = 'https://fal.run/fal-ai/image-preprocessors/lineart';
-
-// Use single optimal setting for clean, high-contrast line art
-// Client-side variants will handle difficulty-based simplification
-const LINEART_COARSENESS = 0.3; // Clean, detailed master for all difficulties
+/**
+ * Upload page handler
+ * Accepts a photo upload, stores it, and creates a page record for processing
+ */
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
+  try {
     const formData = await req.formData();
     const bookId = formData.get('bookId') as string;
     const imageFile = formData.get('image') as File;
 
     if (!bookId || !imageFile) {
       return new Response(
-        JSON.stringify({ error: 'Book ID and image are required' }),
+        JSON.stringify({ error: 'bookId and image are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get book to determine difficulty and project type
-    const { data: book, error: bookError } = await supabase
-      .from('books')
-      .select('difficulty, project_type')
-      .eq('id', bookId)
-      .single();
+    console.log('Processing upload for book:', bookId);
 
-    if (bookError || !book) {
-      return new Response(
-        JSON.stringify({ error: 'Book not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // Get next page order
+    const { data: existingPages } = await supabase
+      .from('pages')
+      .select('page_order')
+      .eq('book_id', bookId)
+      .order('page_order', { ascending: false })
+      .limit(1);
 
-    // Upload original image to Supabase Storage
-    const fileName = `${bookId}/${crypto.randomUUID()}-${imageFile.name}`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const nextOrder = existingPages && existingPages.length > 0 
+      ? existingPages[0].page_order + 1 
+      : 1;
+
+    // Upload original image to storage
+    const fileName = `${crypto.randomUUID()}.${imageFile.name.split('.').pop()}`;
+    const storagePath = `books/${bookId}/pages/${fileName}`;
+    
+    const { error: uploadError } = await supabase.storage
       .from('book-images')
-      .upload(fileName, imageFile);
+      .upload(storagePath, imageFile, {
+        contentType: imageFile.type,
+        upsert: false,
+      });
 
     if (uploadError) {
-      console.error('Error uploading image:', uploadError);
+      console.error('Storage upload error:', uploadError);
       return new Response(
         JSON.stringify({ error: 'Failed to upload image' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -65,185 +67,32 @@ serve(async (req) => {
 
     const { data: { publicUrl } } = supabase.storage
       .from('book-images')
-      .getPublicUrl(fileName);
+      .getPublicUrl(storagePath);
 
-    // Get next order index
-    const { count } = await supabase
-      .from('pages')
-      .select('*', { count: 'exact', head: true })
-      .eq('book_id', bookId);
+    console.log('Original uploaded to:', publicUrl);
 
-    const orderIndex = (count ?? 0) + 1;
-
-    // Route based on project type
-    if (book.project_type === 'toon') {
-      // For toon projects, delegate to generate-toon-image function
-      const toonFormData = new FormData();
-      toonFormData.append('bookId', bookId);
-      toonFormData.append('image', imageFile);
-
-      const toonResponse = await fetch(
-        `${Deno.env.get('SUPABASE_URL')}/functions/v1/generate-toon-image`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-          },
-          body: toonFormData,
-        }
-      );
-
-      if (!toonResponse.ok) {
-        const errorText = await toonResponse.text();
-        console.error('Toon generation error:', errorText);
-        return new Response(
-          JSON.stringify({ 
-            error: 'Failed to generate toon image',
-            details: errorText
-          }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      const toonData = await toonResponse.json();
-      return new Response(
-        JSON.stringify({ pageId: toonData.pageId }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Submit to fal.ai API for coloring book projects
-    const apiKey = Deno.env.get('FAL_AI_API_KEY');
-    
-    console.log('=== FAL.AI API REQUEST ===');
-    console.log('API Key configured:', !!apiKey);
-    console.log('API URL:', FAL_AI_API_URL);
-    console.log('Book difficulty:', book.difficulty);
-    console.log('Coarseness:', LINEART_COARSENESS);
-    console.log('Image name:', imageFile.name);
-    console.log('Image size:', imageFile.size, 'bytes');
-    console.log('Image type:', imageFile.type);
-    
-    if (!apiKey) {
-      console.error('FAL_AI_API_KEY is not set');
-      return new Response(
-        JSON.stringify({ error: 'API key not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Sending request to fal.ai...');
-    const falResponse = await fetch(FAL_AI_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Key ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        image_url: publicUrl,
-        coarseness: LINEART_COARSENESS,
-        detect_resolution: 2048,  // High resolution for clean lines
-        image_resolution: 2048     // High resolution output
-      }),
-    });
-
-    console.log('=== FAL.AI API RESPONSE ===');
-    console.log('Status:', falResponse.status);
-    console.log('Status Text:', falResponse.statusText);
-    console.log('Content-Type:', falResponse.headers.get('content-type'));
-    
-    if (!falResponse.ok) {
-      const errorText = await falResponse.text();
-      console.error('fal.ai API error:', errorText);
-      return new Response(
-        JSON.stringify({ 
-          error: 'Failed to create lineart',
-          details: errorText,
-          status: falResponse.status
-        }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const falData = await falResponse.json();
-    console.log('fal.ai response:', JSON.stringify(falData, null, 2));
-    
-    const lineartUrl = falData.image?.url;
-    
-    if (!lineartUrl) {
-      throw new Error('No image URL returned from fal.ai');
-    }
-
-    console.log('Lineart URL:', lineartUrl);
-
-    // Download lineart and normalize colors (FAL returns inverted: white lines on black)
-    console.log('Downloading lineart from FAL...');
-    const lineartResponse = await fetch(lineartUrl);
-    if (!lineartResponse.ok) {
-      throw new Error(`Failed to download lineart: ${lineartResponse.statusText}`);
-    }
-
-    const lineartBlob = await lineartResponse.blob();
-    
-    // Note: FAL returns inverted colors (white lines on black)
-    // We'll handle the inversion client-side with CSS for simplicity and performance
-    const normalizedBlob = lineartBlob;
-
-    // Upload to storage
-    const lineartFilename = `${crypto.randomUUID()}-master.png`;
-    const lineartPath = `books/${bookId}/pages/${lineartFilename}`;
-
-    console.log('Uploading normalized lineart to storage:', lineartPath);
-    const { error: lineartUploadError } = await supabase.storage
-      .from('book-images')
-      .upload(lineartPath, normalizedBlob, {
-        contentType: 'image/png',
-        upsert: true,
-      });
-
-    if (lineartUploadError) {
-      console.error('Failed to upload lineart:', lineartUploadError);
-      throw lineartUploadError;
-    }
-
-    // Get public URL
-    const { data: lineartUrlData } = supabase.storage
-      .from('book-images')
-      .getPublicUrl(lineartPath);
-
-    const coloringImageUrl = lineartUrlData.publicUrl;
-    console.log('Master coloring image uploaded:', coloringImageUrl);
-
-    // Create page record with status=ready (fal.ai is synchronous)
-    // Store normalized master in coloring_image_url
-    // Client will handle difficulty variants for display only
-    const { data: page, error: pageError } = await supabase
+    // Create page record with status "processing"
+    const { data: newPage, error: pageError } = await supabase
       .from('pages')
       .insert({
         book_id: bookId,
         original_image_url: publicUrl,
-        coloring_image_url: coloringImageUrl,
-        status: 'ready',
-        page_order: orderIndex,
+        page_order: nextOrder,
+        status: 'processing',
       })
       .select()
       .single();
 
     if (pageError) {
-      console.error('Error creating page:', pageError);
-      return new Response(
-        JSON.stringify({ error: pageError.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      console.error('Page creation error:', pageError);
+      throw new Error('Failed to create page record');
     }
 
-    console.log('✓ Page created and ready:', page.id);
+    console.log('Page created:', newPage.id);
 
     return new Response(
-      JSON.stringify({ 
-        pageId: page.id, 
-        status: 'ready',
-        coloringImageUrl: coloringImageUrl 
+      JSON.stringify({
+        pageId: newPage.id,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
