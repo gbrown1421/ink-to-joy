@@ -145,7 +145,6 @@ serve(async (req) => {
       fd.append("prompt", prompt);
       fd.append("image", new File([originalBlob], "source.png", { type: "image/png" }));
       fd.append("size", "1024x1024");
-      fd.append("response_format", "b64_json");
 
       console.log('Calling OpenAI Images API');
 
@@ -173,15 +172,19 @@ serve(async (req) => {
       }
 
       const json = await aiRes.json();
-      const b64 = json?.data?.[0]?.b64_json;
-      if (!b64) {
+      const imageUrl = json?.data?.[0]?.url;
+      if (!imageUrl) {
         throw new Error("No image returned from OpenAI");
       }
 
-      console.log('OpenAI returned image, uploading to storage');
+      console.log('OpenAI returned image URL, downloading:', imageUrl);
 
-      const binary = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-      const resultBlob = new Blob([binary], { type: "image/png" });
+      // Fetch the image from OpenAI's URL
+      const imageRes = await fetch(imageUrl);
+      if (!imageRes.ok) {
+        throw new Error("Failed to download image from OpenAI");
+      }
+      const resultBlob = await imageRes.blob();
 
       // Upload to Supabase Storage
       const filename = `${pageId}-${difficulty}.png`;
