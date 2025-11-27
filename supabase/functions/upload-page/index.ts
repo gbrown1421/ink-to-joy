@@ -180,22 +180,17 @@ serve(async (req) => {
         }
 
         const json = await aiRes.json();
-        console.log('OpenAI response:', JSON.stringify(json));
-        
-        const imageUrl = json?.data?.[0]?.url;
-        if (!imageUrl) {
-          console.error('No URL in response. Full response:', JSON.stringify(json, null, 2));
+        const b64Json = json?.data?.[0]?.b64_json;
+        if (!b64Json) {
+          console.error('No b64_json in response. Full response:', JSON.stringify(json, null, 2));
           throw new Error("No image returned from OpenAI");
         }
 
-        console.log('OpenAI returned image URL, fetching image:', imageUrl);
+        console.log('OpenAI returned base64 image, decoding');
 
-        // Fetch the image from OpenAI's URL
-        const imageRes = await fetch(imageUrl);
-        if (!imageRes.ok) {
-          throw new Error("Failed to fetch generated image from OpenAI");
-        }
-        const resultBlob = await imageRes.blob();
+        // Decode base64 to binary
+        const binary = Uint8Array.from(atob(b64Json), c => c.charCodeAt(0));
+        const resultBlob = new Blob([binary], { type: "image/png" });
 
         // Upload to Supabase Storage
         const resultFilename = `${newPage.id}-${difficulty}.png`;
