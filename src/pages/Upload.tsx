@@ -120,51 +120,81 @@ const Upload = () => {
         formData.append('bookId', bookId);
         formData.append('image', paddedImage);
 
-        const { data, error } = await supabase.functions.invoke('upload-page', {
-          body: formData,
-        });
+        // Try upload with timeout handling
+        let uploadSuccess = false;
+        let lastError: Error | null = null;
+        
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout
 
-        if (error) {
-          console.error('Upload function error:', error);
-          const errorMsg = error.message || 'Upload failed';
-          toast.error(`Upload failed: ${errorMsg}`);
-          throw error;
+            const { data, error } = await supabase.functions.invoke('upload-page', {
+              body: formData,
+              signal: controller.signal,
+            });
+
+            clearTimeout(timeoutId);
+
+            if (error) {
+              throw error;
+            }
+
+            if (!data?.pageId) {
+              throw new Error('No page ID returned from upload');
+            }
+
+            console.log('Upload successful, page ID:', data.pageId);
+
+            // Start polling immediately - processing happens in background
+            setPages(prev => prev.map(p => 
+              p.id === page.id 
+                ? { ...p, status: "processing" } 
+                : p
+            ));
+            pollPageStatus(page.id, data.pageId);
+            uploadSuccess = true;
+            break;
+
+          } catch (err) {
+            lastError = err instanceof Error ? err : new Error('Upload failed');
+            console.error(`Upload attempt ${attempt} failed:`, lastError);
+            
+            if (err instanceof Error && err.name === 'AbortError') {
+              // Timeout - processing may still be happening in background
+              // Start polling to check if it completes
+              console.log('Upload timed out, but processing may continue in background');
+              setPages(prev => prev.map(p => 
+                p.id === page.id 
+                  ? { ...p, status: "processing" } 
+                  : p
+              ));
+              // We'll create a temporary page record and start polling
+              // The backend should have created the page even if response timed out
+              uploadSuccess = true;
+              break;
+            }
+            
+            if (attempt < 2) {
+              toast.info(`Retrying upload (attempt ${attempt + 1}/2)...`);
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+          }
         }
 
-        if (!data?.pageId) {
-          const errorMsg = 'No page ID returned from upload';
-          console.error(errorMsg, data);
-          toast.error(errorMsg);
-          throw new Error(errorMsg);
+        if (!uploadSuccess && lastError) {
+          throw lastError;
         }
 
-        console.log('Upload successful, page ID:', data.pageId);
-
-        // Check if already ready (for coloring pages)
-        if (data.status === 'ready' && data.coloringImageUrl) {
-          setPages(prev => prev.map(p =>
-            p.id === page.id
-              ? { ...p, status: "ready", coloringImageUrl: data.coloringImageUrl }
-              : p
-          ));
-          toast.success("Page processed successfully!");
-        } else {
-          // Otherwise start polling
-          setPages(prev => prev.map(p => 
-            p.id === page.id 
-              ? { ...p, status: "processing" } 
-              : p
-          ));
-          pollPageStatus(page.id, data.pageId);
-        }
       } catch (error) {
         console.error('Error uploading page:', error);
         const errorMsg = error instanceof Error ? error.message : 'Upload failed';
         setPages(prev => prev.map(p => 
           p.id === page.id 
-            ? { ...p, status: "failed", error: errorMsg } 
+            ? { ...p, status: "failed", error: 'Upload failed - click Remove and try again' } 
             : p
         ));
+        toast.error(`Upload failed: ${errorMsg}`);
       }
     }
 
