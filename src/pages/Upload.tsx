@@ -52,6 +52,53 @@ const Upload = () => {
     }
   };
 
+  // Helper to add white padding around image to reduce cropping
+  const addPaddingToImage = async (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+
+        // Add 10% padding on all sides
+        const padding = Math.max(img.width, img.height) * 0.1;
+        canvas.width = img.width + (padding * 2);
+        canvas.height = img.height + (padding * 2);
+
+        // Fill with white
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw image centered
+        ctx.drawImage(img, padding, padding);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const paddedFile = new File([blob], file.name, { type: file.type });
+            resolve(paddedFile);
+          } else {
+            reject(new Error('Failed to create padded image'));
+          }
+        }, file.type);
+
+        URL.revokeObjectURL(url);
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load image'));
+      };
+
+      img.src = url;
+    });
+  };
+
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (!bookId) return;
 
@@ -66,9 +113,12 @@ const Upload = () => {
 
     for (const page of newPages) {
       try {
+        // Add padding to reduce cropping
+        const paddedImage = await addPaddingToImage(page.originalFile);
+
         const formData = new FormData();
         formData.append('bookId', bookId);
-        formData.append('image', page.originalFile);
+        formData.append('image', paddedImage);
 
         const { data, error } = await supabase.functions.invoke('upload-page', {
           body: formData,

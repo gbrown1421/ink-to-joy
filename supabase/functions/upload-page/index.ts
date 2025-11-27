@@ -13,33 +13,35 @@ const corsHeaders = {
 
 function buildColoringPrompt(difficulty: string): string {
   const base =
-    "Convert this photo into a black-and-white coloring page. " +
-    "Redraw it as clean line art with a plain white background, no shading, no grayscale, " +
-    "no colors, and no filled areas—just clear black outlines that are easy for kids to color.";
+    "Turn this photo into a children's coloring book page. Keep the same people and pose. " +
+    "Draw only clean black line-art outlines on a pure white background, no color, no grey shading, " +
+    "no pencil texture. Make sure all four children are shown full body, including feet and shoes, " +
+    "with a bit of blank margin around the edges so nothing is cropped. " +
+    "Style: simple, friendly cartoon outlines for kids to color.";
 
   switch (difficulty) {
     case "quick":
       return (
         base +
-        " VERY SIMPLE toddler coloring page for 3–4 year olds. Large shapes, thick lines, " +
-        "minimal face detail, minimal background. Remove tiny background objects, clutter, shadows " +
-        "and textures. Keep the kids recognizable but with cartoon-simple faces and clothing. " +
-        "No hatching, no gray shading, just bold outlines and big areas to color."
+        " Quick & Easy difficulty: ultra-simple page for toddlers. Use thick lines. " +
+        "Remove almost all of the background, just keep a few big simple shapes if needed. " +
+        "Simplify faces to basic eyes, nose, and smile without tiny details. " +
+        "Leave large open areas to color."
       );
     case "beginner":
       return (
         base +
-        " Simple kids coloring page for early elementary kids. Medium line thickness, " +
-        "basic facial features, simplified background with a few key props. Remove small clutter " +
-        "in the background but keep the overall scene. No shading, no textures, just outlines."
+        " Beginner difficulty: keep the kids and a lightly simplified background – " +
+        "a few big classroom props (star, one poster, a shelf), but avoid clutter. " +
+        "Use medium line thickness. Still no tiny detailed textures, no shading."
       );
     case "intermediate":
     default:
       return (
         base +
-        " More detailed kids coloring page. Clean line art with more interior detail in hair, " +
-        "clothing, and important background items, but still no shading, hatching, or grayscale. " +
-        "White background with only outlines."
+        " Intermediate difficulty: keep most classroom background objects but as clean line art. " +
+        "More detail than Beginner, but still no shading, hatching, or grey tones – " +
+        "just clear black outlines on white."
       );
   }
 }
@@ -158,12 +160,13 @@ serve(async (req) => {
         }
         const originalBlob = await originalRes.blob();
 
-        // Build FormData for OpenAI
+        // Build FormData for OpenAI - request portrait orientation
         const fd = new FormData();
         fd.append("model", "gpt-image-1");
         fd.append("prompt", prompt);
         fd.append("image", new File([originalBlob], "source.png", { type: "image/png" }));
-        fd.append("size", "1024x1024");
+        fd.append("size", "1024x1536"); // Portrait orientation to reduce cropping
+        fd.append("response_format", "b64_json");
 
         const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
           method: "POST",
