@@ -180,12 +180,15 @@ serve(async (req) => {
         }
 
         const json = await aiRes.json();
+        console.log('OpenAI response:', JSON.stringify(json));
+        
         const imageUrl = json?.data?.[0]?.url;
         if (!imageUrl) {
+          console.error('No URL in response. Full response:', JSON.stringify(json, null, 2));
           throw new Error("No image returned from OpenAI");
         }
 
-        console.log('OpenAI returned image URL, fetching image');
+        console.log('OpenAI returned image URL, fetching image:', imageUrl);
 
         // Fetch the image from OpenAI's URL
         const imageRes = await fetch(imageUrl);
