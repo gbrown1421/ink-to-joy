@@ -12,7 +12,6 @@ interface UploadedPage {
   id: string;
   originalFile: File;
   status: "uploading" | "processing" | "ready" | "failed";
-  mimiKey?: string;
   coloringImageUrl?: string;
   error?: string;
 }
@@ -91,14 +90,23 @@ const Upload = () => {
 
         console.log('Upload successful, page ID:', data.pageId);
 
-        setPages(prev => prev.map(p => 
-          p.id === page.id 
-            ? { ...p, status: "processing" } 
-            : p
-        ));
-
-        // Start polling for status
-        pollPageStatus(page.id, data.pageId);
+        // Check if already ready (for coloring pages)
+        if (data.status === 'ready' && data.coloringImageUrl) {
+          setPages(prev => prev.map(p =>
+            p.id === page.id
+              ? { ...p, status: "ready", coloringImageUrl: data.coloringImageUrl }
+              : p
+          ));
+          toast.success("Page processed successfully!");
+        } else {
+          // Otherwise start polling
+          setPages(prev => prev.map(p => 
+            p.id === page.id 
+              ? { ...p, status: "processing" } 
+              : p
+          ));
+          pollPageStatus(page.id, data.pageId);
+        }
       } catch (error) {
         console.error('Error uploading page:', error);
         const errorMsg = error instanceof Error ? error.message : 'Upload failed';

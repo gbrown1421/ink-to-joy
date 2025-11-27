@@ -7,37 +7,9 @@ const corsHeaders = {
 };
 
 /**
- * Check page status and generate coloring image via OpenAI if needed
+ * Check page status - simplified to just return current status
+ * No external API calls - all processing happens in upload-page
  */
-
-function buildColoringPrompt(difficulty: string): string {
-  const base =
-    "Convert this photo into a black-and-white coloring page. " +
-    "Keep the same people, poses, and composition. Use clean black outlines only " +
-    "with a pure white background. No gray shading, no color, no filled black areas.";
-
-  switch (difficulty) {
-    case "quick":
-      return (
-        base +
-        " Make it ULTRA SIMPLE for toddlers (ages 2–4): very thick outlines, large shapes, " +
-        "minimal facial detail, very few background details. No tiny lines."
-      );
-    case "beginner":
-      return (
-        base +
-        " Make it simple for young kids (ages 4–6): clear outlines, simplified faces and clothes, " +
-        "and only a few key background elements. Avoid tiny details and dense patterns."
-      );
-    case "intermediate":
-    default:
-      return (
-        base +
-        " Make it more detailed but still kid-friendly: preserve facial features, clothing details, " +
-        "and more of the background, but keep everything as clean line art without any shading."
-      );
-  }
-}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -60,10 +32,10 @@ serve(async (req) => {
       );
     }
 
-    // Get page record with book info
+    // Get page record
     const { data: page, error: pageError } = await supabase
       .from('pages')
-      .select('*, books(*)')
+      .select('status, coloring_image_url')
       .eq('id', pageId)
       .single();
 
@@ -75,186 +47,18 @@ serve(async (req) => {
     }
 
     console.log('Page status:', page.status);
-    
-    // If already ready
-    if (page.status === 'ready' && page.coloring_image_url) {
-      console.log('Page ready with coloring image');
-      return new Response(
-        JSON.stringify({ 
-          status: 'ready', 
-          success: true,
-          coloringImageUrl: page.coloring_image_url 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
-    // If failed
-    if (page.status === 'failed') {
-      console.log('Page marked as failed');
-      return new Response(
-        JSON.stringify({ status: 'failed', success: false, error: 'Processing failed' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      );
-    }
-
-    // If processing and not yet generated
-    if (page.status === 'processing') {
-      // Check if somehow already has URL (race condition)
-      if (page.coloring_image_url) {
-        await supabase
-          .from('pages')
-          .update({ status: 'ready' })
-          .eq('id', pageId);
-
-        return new Response(
-          JSON.stringify({ 
-            status: 'ready', 
-            success: true,
-            coloringImageUrl: page.coloring_image_url 
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // Generate via OpenAI
-      console.log('Generating coloring image via OpenAI');
-
-      const openaiKey = Deno.env.get("OPENAI_API_KEY");
-      if (!openaiKey) {
-        throw new Error("OPENAI_API_KEY not set");
-      }
-
-      const book = page.books;
-      const difficulty = book?.difficulty || "intermediate";
-      const prompt = buildColoringPrompt(difficulty);
-
-      console.log('Using difficulty:', difficulty);
-      console.log('Prompt:', prompt);
-
-      // Fetch original image
-      const originalRes = await fetch(page.original_image_url);
-      if (!originalRes.ok) {
-        throw new Error("Failed to fetch original image");
-      }
-      const originalBlob = await originalRes.blob();
-
-      // Build FormData for OpenAI - using dall-e-2 (no verification required)
-      const fd = new FormData();
-      fd.append("model", "dall-e-2");
-      fd.append("prompt", prompt);
-      fd.append("image", new File([originalBlob], "source.png", { type: "image/png" }));
-      fd.append("size", "1024x1024");
-
-      console.log('Calling OpenAI Images API (dall-e-2)');
-
-      const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${openaiKey}`,
-        },
-        body: fd,
-      });
-
-      if (!aiRes.ok) {
-        const errorText = await aiRes.text();
-        console.error('OpenAI API error:', aiRes.status, errorText);
-        
-        await supabase
-          .from('pages')
-          .update({ status: 'failed' })
-          .eq('id', pageId);
-
-        return new Response(
-          JSON.stringify({ status: 'failed', error: 'Coloring conversion failed' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      const json = await aiRes.json();
-      const imageUrl = json?.data?.[0]?.url;
-      if (!imageUrl) {
-        throw new Error("No image returned from OpenAI");
-      }
-
-      console.log('OpenAI returned image URL, downloading:', imageUrl);
-
-      // Fetch the image from OpenAI's URL
-      const imageRes = await fetch(imageUrl);
-      if (!imageRes.ok) {
-        throw new Error("Failed to download image from OpenAI");
-      }
-      const resultBlob = await imageRes.blob();
-
-      // Upload to Supabase Storage
-      const filename = `${pageId}-${difficulty}.png`;
-      const storagePath = `books/${page.book_id}/pages/${filename}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("book-images")
-        .upload(storagePath, resultBlob, {
-          contentType: "image/png",
-          upsert: true,
-        });
-
-      if (uploadError) {
-        console.error('Storage upload error:', uploadError);
-        throw uploadError;
-      }
-
-      const { data: urlData } = supabase.storage
-        .from("book-images")
-        .getPublicUrl(storagePath);
-
-      const coloringImageUrl = urlData.publicUrl;
-
-      console.log('Coloring image uploaded to:', coloringImageUrl);
-
-      // Update page record
-      await supabase
-        .from("pages")
-        .update({
-          coloring_image_url: coloringImageUrl,
-          status: "ready",
-        })
-        .eq("id", pageId);
-
-      return new Response(
-        JSON.stringify({
-          status: "ready",
-          success: true,
-          coloringImageUrl,
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Unknown status
-    console.log('Unknown page status:', page.status);
+    // Return current status
     return new Response(
-      JSON.stringify({ status: 'processing' }),
+      JSON.stringify({
+        status: page.status,
+        coloringImageUrl: page.coloring_image_url || null,
+        error: page.status === 'failed' ? 'Image processing failed' : null,
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error checking status:', error);
-    
-    // Try to mark page as failed
-    try {
-      const body = await req.clone().json();
-      if (body.pageId) {
-        const supabase = createClient(
-          Deno.env.get('SUPABASE_URL') ?? '',
-          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-        );
-        await supabase
-          .from('pages')
-          .update({ status: 'failed' })
-          .eq('id', body.pageId);
-      }
-    } catch (e) {
-      console.error('Failed to mark page as failed:', e);
-    }
-
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
