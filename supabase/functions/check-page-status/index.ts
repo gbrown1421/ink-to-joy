@@ -117,12 +117,12 @@ serve(async (req) => {
         );
       }
 
-      // Generate via OpenAI
-      console.log('Generating coloring image via OpenAI');
+      // Generate via Lovable AI (Nano banana)
+      console.log('Generating coloring image via Lovable AI');
 
-      const openaiKey = Deno.env.get("OPENAI_API_KEY");
-      if (!openaiKey) {
-        throw new Error("OPENAI_API_KEY not set");
+      const lovableKey = Deno.env.get("LOVABLE_API_KEY");
+      if (!lovableKey) {
+        throw new Error("LOVABLE_API_KEY not set");
       }
 
       const book = page.books;
@@ -132,33 +132,50 @@ serve(async (req) => {
       console.log('Using difficulty:', difficulty);
       console.log('Prompt:', prompt);
 
-      // Fetch original image
+      // Fetch original image and convert to base64
       const originalRes = await fetch(page.original_image_url);
       if (!originalRes.ok) {
         throw new Error("Failed to fetch original image");
       }
       const originalBlob = await originalRes.blob();
+      const arrayBuffer = await originalBlob.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      const imageDataUrl = `data:image/png;base64,${base64}`;
 
-      // Build FormData for OpenAI
-      const fd = new FormData();
-      fd.append("model", "gpt-image-1");
-      fd.append("prompt", prompt);
-      fd.append("image", new File([originalBlob], "source.png", { type: "image/png" }));
-      fd.append("size", "1024x1024");
+      console.log('Calling Lovable AI (Nano banana)');
 
-      console.log('Calling OpenAI Images API');
-
-      const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
+      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${openaiKey}`,
+          "Authorization": `Bearer ${lovableKey}`,
+          "Content-Type": "application/json",
         },
-        body: fd,
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image-preview",
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: prompt
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: imageDataUrl
+                  }
+                }
+              ]
+            }
+          ],
+          modalities: ["image", "text"]
+        })
       });
 
       if (!aiRes.ok) {
         const errorText = await aiRes.text();
-        console.error('OpenAI API error:', aiRes.status, errorText);
+        console.error('Lovable AI API error:', aiRes.status, errorText);
         
         await supabase
           .from('pages')
@@ -172,19 +189,17 @@ serve(async (req) => {
       }
 
       const json = await aiRes.json();
-      const imageUrl = json?.data?.[0]?.url;
-      if (!imageUrl) {
-        throw new Error("No image returned from OpenAI");
+      const generatedImageUrl = json?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (!generatedImageUrl) {
+        throw new Error("No image returned from Lovable AI");
       }
 
-      console.log('OpenAI returned image URL, downloading:', imageUrl);
+      console.log('Lovable AI returned image, decoding base64');
 
-      // Fetch the image from OpenAI's URL
-      const imageRes = await fetch(imageUrl);
-      if (!imageRes.ok) {
-        throw new Error("Failed to download image from OpenAI");
-      }
-      const resultBlob = await imageRes.blob();
+      // Decode base64 data URL
+      const base64Data = generatedImageUrl.split(',')[1];
+      const binary = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      const resultBlob = new Blob([binary], { type: "image/png" });
 
       // Upload to Supabase Storage
       const filename = `${pageId}-${difficulty}.png`;
