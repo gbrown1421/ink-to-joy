@@ -166,7 +166,6 @@ serve(async (req) => {
         fd.append("prompt", prompt);
         fd.append("image", new File([originalBlob], "source.png", { type: "image/png" }));
         fd.append("size", "1024x1536"); // Portrait orientation to reduce cropping
-        fd.append("response_format", "b64_json");
 
         const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
           method: "POST",
