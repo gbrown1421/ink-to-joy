@@ -162,123 +162,124 @@ serve(async (req) => {
 
     console.log('Page created:', newPage.id);
 
-    // Only process coloring pages with OpenAI
+    // Only process coloring pages with OpenAI - do it in background to avoid timeout
     if (book.project_type === 'coloring') {
-      try {
-        const openaiKey = Deno.env.get("OPENAI_API_KEY");
-        if (!openaiKey) {
-          throw new Error("OPENAI_API_KEY is not set");
-        }
+      // Start background processing - don't await
+      const processImage = async () => {
+        try {
+          const openaiKey = Deno.env.get("OPENAI_API_KEY");
+          if (!openaiKey) {
+            throw new Error("OPENAI_API_KEY is not set");
+          }
 
-        const difficulty = book.difficulty || "intermediate";
-        const prompt = buildColoringPrompt(difficulty);
+          const difficulty = book.difficulty || "intermediate";
+          const prompt = buildColoringPrompt(difficulty);
 
-        console.log('InkToJoy image request', {
-          difficulty: book.difficulty,
-          size: '1024x1536',
-          source: 'generate-coloring-page',
-        });
-        console.log('Calling OpenAI gpt-image-1 with difficulty:', difficulty);
+          console.log('InkToJoy image request', {
+            difficulty: book.difficulty,
+            size: '1024x1536',
+            source: 'generate-coloring-page',
+          });
+          console.log('Calling OpenAI gpt-image-1 with difficulty:', difficulty);
 
-        // Fetch original image to send to OpenAI
-        const originalRes = await fetch(originalUrl);
-        if (!originalRes.ok) {
-          throw new Error("Failed to fetch original image");
-        }
-        const originalBlob = await originalRes.blob();
+          // Fetch original image to send to OpenAI
+          const originalRes = await fetch(originalUrl);
+          if (!originalRes.ok) {
+            throw new Error("Failed to fetch original image");
+          }
+          const originalBlob = await originalRes.blob();
 
-        // Build FormData for OpenAI - request portrait orientation
-        const fd = new FormData();
-        fd.append("model", "gpt-image-1");
-        fd.append("prompt", prompt);
-        fd.append("image", new File([originalBlob], "source.png", { type: "image/png" }));
-        fd.append("size", "1024x1536"); // Portrait orientation to reduce cropping
+          // Build FormData for OpenAI - request portrait orientation
+          const fd = new FormData();
+          fd.append("model", "gpt-image-1");
+          fd.append("prompt", prompt);
+          fd.append("image", new File([originalBlob], "source.png", { type: "image/png" }));
+          fd.append("size", "1024x1536"); // Portrait orientation to reduce cropping
 
-        const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${openaiKey}`,
-          },
-          body: fd,
-        });
-
-        if (!aiRes.ok) {
-          const errorText = await aiRes.text();
-          console.error('OpenAI API error:', aiRes.status, errorText);
-          throw new Error(`OpenAI API error: ${aiRes.status}`);
-        }
-
-        const json = await aiRes.json();
-        const b64Json = json?.data?.[0]?.b64_json;
-        if (!b64Json) {
-          console.error('No b64_json in response. Full response:', JSON.stringify(json, null, 2));
-          throw new Error("No image returned from OpenAI");
-        }
-
-        console.log('OpenAI returned base64 image, decoding');
-
-        // Decode base64 to binary
-        const binary = Uint8Array.from(atob(b64Json), c => c.charCodeAt(0));
-        const resultBlob = new Blob([binary], { type: "image/png" });
-
-        // Upload to Supabase Storage
-        const resultFilename = `${newPage.id}-${difficulty}.png`;
-        const resultPath = `books/${bookId}/pages/${resultFilename}`;
-
-        const { error: resultUploadError } = await supabase.storage
-          .from("book-images")
-          .upload(resultPath, resultBlob, {
-            contentType: "image/png",
-            upsert: true,
+          const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${openaiKey}`,
+            },
+            body: fd,
           });
 
-        if (resultUploadError) {
-          console.error('Result storage upload error:', resultUploadError);
-          throw resultUploadError;
+          if (!aiRes.ok) {
+            const errorText = await aiRes.text();
+            console.error('OpenAI API error:', aiRes.status, errorText);
+            throw new Error(`OpenAI API error: ${aiRes.status}`);
+          }
+
+          const json = await aiRes.json();
+          const b64Json = json?.data?.[0]?.b64_json;
+          if (!b64Json) {
+            console.error('No b64_json in response. Full response:', JSON.stringify(json, null, 2));
+            throw new Error("No image returned from OpenAI");
+          }
+
+          console.log('OpenAI returned base64 image, decoding');
+
+          // Decode base64 to binary
+          const binary = Uint8Array.from(atob(b64Json), c => c.charCodeAt(0));
+          const resultBlob = new Blob([binary], { type: "image/png" });
+
+          // Upload to Supabase Storage
+          const resultFilename = `${newPage.id}-${difficulty}.png`;
+          const resultPath = `books/${bookId}/pages/${resultFilename}`;
+
+          const { error: resultUploadError } = await supabase.storage
+            .from("book-images")
+            .upload(resultPath, resultBlob, {
+              contentType: "image/png",
+              upsert: true,
+            });
+
+          if (resultUploadError) {
+            console.error('Result storage upload error:', resultUploadError);
+            throw resultUploadError;
+          }
+
+          const { data: { publicUrl: coloringImageUrl } } = supabase.storage
+            .from("book-images")
+            .getPublicUrl(resultPath);
+
+          console.log('Coloring image uploaded to:', coloringImageUrl);
+
+          // Update page record to ready
+          await supabase
+            .from("pages")
+            .update({
+              coloring_image_url: coloringImageUrl,
+              status: "ready",
+            })
+            .eq("id", newPage.id);
+
+          console.log('Background processing completed for page:', newPage.id);
+        } catch (error) {
+          console.error('Error processing with OpenAI:', error);
+          
+          // Mark page as failed
+          await supabase
+            .from('pages')
+            .update({ 
+              status: 'failed',
+            })
+            .eq('id', newPage.id);
         }
+      };
 
-        const { data: { publicUrl: coloringImageUrl } } = supabase.storage
-          .from("book-images")
-          .getPublicUrl(resultPath);
-
-        console.log('Coloring image uploaded to:', coloringImageUrl);
-
-        // Update page record to ready
-        await supabase
-          .from("pages")
-          .update({
-            coloring_image_url: coloringImageUrl,
-            status: "ready",
-          })
-          .eq("id", newPage.id);
-
-        return new Response(
-          JSON.stringify({
-            pageId: newPage.id,
-            status: "ready",
-            coloringImageUrl,
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      } catch (error) {
-        console.error('Error processing with OpenAI:', error);
-        
-        // Mark page as failed
-        await supabase
-          .from('pages')
-          .update({ 
-            status: 'failed',
-          })
-          .eq('id', newPage.id);
-
-        return new Response(
-          JSON.stringify({ error: 'Image processing failed' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      // Start processing in background using EdgeRuntime.waitUntil
+      // @ts-ignore - EdgeRuntime is available in Deno Deploy
+      if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
+        // @ts-ignore
+        EdgeRuntime.waitUntil(processImage());
+      } else {
+        // Fallback for local development - just start the promise
+        processImage();
       }
     }
 
-    // For toon or other project types, return processing status
+    // Return immediately - processing happens in background
     return new Response(
       JSON.stringify({
         pageId: newPage.id,
