@@ -13,24 +13,25 @@ const corsHeaders = {
 
 function buildColoringPrompt(difficulty: string): string {
   const basePrompt = `
-High-resolution line-art coloring page based on the uploaded photo.
+High-resolution line-art coloring page based on the uploaded reference photo.
 
-Four preschool children (around 3–5 years old) standing together, full body from head to shoes, facing the viewer, smiling.
-Clean black outlines on pure white background, printable for kids.
+Four preschool children (around 3–6 years old) standing together, full body from head to shoes, facing the viewer, smiling.
+Clean black outlines on a pure white page, printable for kids.
 No color, no shading, no grey tones – only clear black lines.
-Portrait orientation, like a US letter 8.5x11 coloring book page.
+Portrait orientation like an 8.5x11 inch coloring book page.
+Camera distance: far enough to clearly show all four kids head-to-toe in frame, without cutting off any feet.
 `;
 
   const quickSuffix = `
 QUICK & EASY TODDLER VERSION (3–4 years old).
 
-CRITICAL RULES:
+Rules:
 - Show ONLY the four kids, full body, head to shoes.
-- Background must be COMPLETELY BLANK WHITE except for ONE simple horizontal floor line.
-- NO classroom, NO furniture, NO toys, NO shelves, NO posters, NO decorations, NO stars, NO extra objects at all.
+- Background must be COMPLETELY BLANK WHITE except for ONE simple horizontal floor line under their feet.
+- NO classroom, NO furniture, NO toys, NO shelves, NO posters, NO stars, NO decorations, NO extra objects of any kind.
 - Clothes should be big simple shapes: no tiny patterns, no stripes, no textures.
-- Use THICK, BOLD outlines and very simple faces (basic eyes, nose, smile).
-- Large open white areas for easy coloring.
+- Faces very simple (basic eyes, small nose, friendly smile).
+- Use THICK, BOLD outlines and large open white areas for easy coloring.
 - ABSOLUTELY NO shading, hatching, or grey areas – just bold black outlines on white.
 
 If you are about to draw ANY background objects (walls, windows, pictures, shelves, toys, stars, rugs, etc.), DO NOT draw them. Leave that area blank white instead.
@@ -40,9 +41,9 @@ If you are about to draw ANY background objects (walls, windows, pictures, shelv
 BEGINNER VERSION (4–6 years old).
 
 - Keep the four kids full-body and clearly outlined.
-- Simple, minimal background: only a few big objects (for example: one large star and one big picture frame) with very little detail.
-- Line weight medium-thick, clear outlines, no tiny textures.
-- Faces still fairly simple, no fine wrinkles or shading.
+- Simple, minimal background: at most 2–3 BIG shapes, like one large star, one picture frame, or one simple toy shelf, with very little detail.
+- No cluttered small objects.
+- Line weight medium-thick, clear outlines, no tiny textures or micro-details.
 - No grey shading or hatching – just black outlines on white.
 `;
 
@@ -50,9 +51,9 @@ BEGINNER VERSION (4–6 years old).
 INTERMEDIATE VERSION (6–8 years old).
 
 - Keep the four kids full-body.
-- Include more of the classroom background, but still as clean line art without cluttered micro-details.
-- You can show furniture and decor, but avoid shading and cross-hatching.
-- Line weight a bit finer to show more detail, still strictly black outlines on white.
+- Include more of the classroom background with furniture and decor, but still as clean line art without tiny micro-details.
+- You can show desks, chairs, shelves, and wall decorations but avoid shading and cross-hatching.
+- Line weight finer than Beginner to allow more detail, still strictly black outlines on white.
 `;
 
   let difficultySuffix: string;
@@ -175,12 +176,12 @@ serve(async (req) => {
           const difficulty = book.difficulty || "intermediate";
           const prompt = buildColoringPrompt(difficulty);
 
-          console.log('InkToJoy image request', {
+          console.log('InkToJoy: generating coloring page', {
+            bookId,
             difficulty: book.difficulty,
-            size: '1024x1536',
             source: 'generate-coloring-page',
           });
-          console.log('Calling OpenAI gpt-image-1 with difficulty:', difficulty);
+          console.log('InkToJoy: using difficulty suffix', { difficulty: book.difficulty });
 
           // Fetch original image to send to OpenAI
           const originalRes = await fetch(originalUrl);
