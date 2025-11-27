@@ -23,10 +23,13 @@ function buildColoringPrompt(difficulty: string): string {
     case "quick":
       return (
         base +
-        " Quick & Easy difficulty: ultra-simple page for toddlers. Use thick lines. " +
-        "Remove almost all of the background, just keep a few big simple shapes if needed. " +
-        "Simplify faces to basic eyes, nose, and smile without tiny details. " +
-        "Leave large open areas to color."
+        " Quick & Easy difficulty: ultra-simple coloring page for 3–4-year-old children. " +
+        "• Show only the four kids full-body with feet and shoes, on a very simple floor line. " +
+        "• REMOVE the classroom background completely – no furniture, no toys, no posters, no shelves, no extra objects. The background should be almost entirely blank white. " +
+        "• Simplify clothes into big smooth shapes with no tiny details: no stripes, no flower patterns, no textures. " +
+        "• Use thick, bold outlines and keep faces very simple: basic eyes, nose, and a smile, no small wrinkles or shading. " +
+        "• Leave large open areas of white space so toddlers have big zones to color. " +
+        "• Absolutely no shading, hatching, or grey tones – just clean black outlines on pure white."
       );
     case "beginner":
       return (
