@@ -168,7 +168,6 @@ serve(async (req) => {
     openAIFormData.append('model', 'gpt-image-1');
     openAIFormData.append('n', '1');
     openAIFormData.append('size', '1024x1024');
-    openAIFormData.append('response_format', 'b64_json');
     
     // Use OpenAI image edit endpoint to convert photo to line art
     const aiResponse = await fetch('https://api.openai.com/v1/images/edits', {
@@ -193,9 +192,9 @@ serve(async (req) => {
     }
 
     const aiData = await aiResponse.json();
-    const generatedBase64 = aiData.data?.[0]?.b64_json;
+    const generatedImageUrl = aiData.data?.[0]?.url;
 
-    if (!generatedBase64) {
+    if (!generatedImageUrl) {
       console.error('No image generated from OpenAI');
       return new Response(
         JSON.stringify({ error: 'No image generated from OpenAI' }),
@@ -203,8 +202,17 @@ serve(async (req) => {
       );
     }
 
-    // Upload the generated toon image to storage
-    const toonImageBuffer = Uint8Array.from(atob(generatedBase64), c => c.charCodeAt(0));
+    // Download the generated image from OpenAI URL
+    const imageDownloadResponse = await fetch(generatedImageUrl);
+    if (!imageDownloadResponse.ok) {
+      console.error('Failed to download generated image');
+      return new Response(
+        JSON.stringify({ error: 'Failed to download generated image' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const toonImageBuffer = await imageDownloadResponse.arrayBuffer();
     const toonFileName = `${bookId}/toon-${crypto.randomUUID()}.png`;
     
     const { error: toonUploadError } = await supabase.storage
