@@ -159,29 +159,24 @@ serve(async (req) => {
       );
     }
 
-    // Convert image to base64
-    const imageBuffer = await imageFile.arrayBuffer();
-    const base64Image = arrayBufferToBase64(imageBuffer);
-    const imageDataUrl = `data:${imageFile.type};base64,${base64Image}`;
-
     console.log('Generating toon coloring page with OpenAI gpt-image-1...');
+    
+    // Create FormData for OpenAI image edit endpoint
+    const openAIFormData = new FormData();
+    openAIFormData.append('image', imageFile);
+    openAIFormData.append('prompt', prompt);
+    openAIFormData.append('model', 'gpt-image-1');
+    openAIFormData.append('n', '1');
+    openAIFormData.append('size', '1024x1024');
+    openAIFormData.append('response_format', 'b64_json');
     
     // Use OpenAI image edit endpoint to convert photo to line art
     const aiResponse = await fetch('https://api.openai.com/v1/images/edits', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'gpt-image-1',
-        image: imageDataUrl,
-        prompt: prompt,
-        n: 1,
-        size: '1024x1024',
-        output_format: 'png',
-        response_format: 'b64_json'
-      })
+      body: openAIFormData
     });
 
     if (!aiResponse.ok) {
