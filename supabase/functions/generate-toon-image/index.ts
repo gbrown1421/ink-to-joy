@@ -192,12 +192,13 @@ serve(async (req) => {
     }
 
     const aiData = await aiResponse.json();
+    console.log('OpenAI response:', JSON.stringify(aiData));
     const generatedImageUrl = aiData.data?.[0]?.url;
 
     if (!generatedImageUrl) {
-      console.error('No image generated from OpenAI');
+      console.error('No image URL in response. Full response:', JSON.stringify(aiData));
       return new Response(
-        JSON.stringify({ error: 'No image generated from OpenAI' }),
+        JSON.stringify({ error: 'No image generated from OpenAI', response: aiData }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
