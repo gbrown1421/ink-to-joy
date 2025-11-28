@@ -267,7 +267,11 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ pageId: page.id }),
+      JSON.stringify({ 
+        pageId: page.id,
+        status: 'ready',
+        coloringImageUrl: toonPublicUrl
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
