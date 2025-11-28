@@ -71,8 +71,9 @@ const Upload = () => {
         formData.append('bookId', bookId);
         formData.append('image', page.originalFile);
 
-        // Call the edge function synchronously
-        const { data, error } = await supabase.functions.invoke('upload-page', {
+        // Call the correct edge function based on project type
+        const functionName = projectType === "toon" ? "generate-toon-image" : "upload-page";
+        const { data, error } = await supabase.functions.invoke(functionName, {
           body: formData,
         });
 
@@ -131,7 +132,7 @@ const Upload = () => {
     }
 
     setIsUploading(false);
-  }, [bookId]);
+  }, [bookId, projectType]);
 
   const removePage = (id: string) => {
     setPages(prev => prev.filter(p => p.id !== id));
