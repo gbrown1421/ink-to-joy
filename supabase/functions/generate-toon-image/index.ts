@@ -20,67 +20,71 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
+const TOON_QUICK_PROMPT = `
+Create a black-and-white coloring page in a cute 2D cartoon style
+based on the uploaded children's photo.
+
+STYLE (this overrides the photo):
+- Very simple preschool cartoon look.
+- Extra-large round heads (about one-third of total height).
+- Big round eyes with large pupils, tiny nose, simple smiling mouth.
+- Simple hair made of a few big curved shapes, not realistic strands.
+- Bodies short and chunky with simple tube arms and legs.
+- Hands drawn as mittens or with only a few visible fingers.
+
+COMPOSITION:
+- Exactly four children, full body, standing side by side, facing the viewer.
+- All heads and feet must be fully inside the frame (no cropping).
+
+LINE WORK:
+- Ultra-thick, bold, clean black outlines.
+- No shading, hatching, grey tones, or textures at all.
+- Large open white areas for easy coloring.
+
+BACKGROUND (VERY SIMPLE):
+- Pure white background with ONE straight horizontal floor line under their feet.
+- Do NOT draw any furniture, toys, classroom objects, windows, rugs, or decorations.
+
+This must look like a very simple, toddler-friendly cartoon coloring page,
+not a realistic drawing of the photo.
+`;
+
+const TOON_ADV_BEGINNER_PROMPT = `
+Create a black-and-white coloring page in a cute 2D cartoon style
+based on the uploaded children's photo.
+
+STYLE (overrides the photo):
+- Preschool 2D cartoon look.
+- Large round heads, big expressive eyes, tiny nose and mouth.
+- Simplified hair as clean shapes, no fine strands.
+- Proportions slightly chibi: shorter bodies, bigger heads, soft rounded features.
+
+COMPOSITION:
+- Exactly four children, full body, standing together and facing the viewer.
+- All heads and feet fully visible inside the frame.
+
+LINE WORK:
+- Medium-thick clean outlines, still very clear and bold.
+- No grey shading or cross-hatching – only black outlines on white.
+- Add a few simple folds in clothes and a bit more detail than Quick & Easy,
+  but keep everything easy to color.
+
+BACKGROUND (MODERATE, BUT NOT BUSY):
+- Simple classroom suggestion: at most 3–4 large, clear shapes
+  such as a shelf, a window, a star on the wall, or a rug.
+- No clutter of tiny objects, papers, or small toys.
+- Background lines must be lighter and less dense than the characters so the kids remain the focus.
+
+This should feel like a clean cartoon scene for early elementary kids to color,
+NOT a realistic pencil drawing of the original photo.
+`;
+
 function buildCartoonPrompt(difficulty: ToonDifficulty): string {
-  const base = `
-You are creating a BLACK-AND-WHITE CARTOON COLORING PAGE from a classroom reference photo.
-
-GLOBAL STYLE (ALWAYS):
-- 2D cartoon style, like a kids' TV show or picture-book illustration (think Cocomelon / Nick Jr style).
-- Children are simplified cartoons, NOT realistic portraits.
-- Proportions:
-  - Big heads (about one third of total body height).
-  - Big round eyes, simple eyebrows, tiny nose, big friendly smile.
-  - Hands are simple shapes, not detailed fingers.
-- Clean, solid BLACK outlines on pure WHITE background.
-- NO color, NO gray shading, NO gradients, NO pencil texture, NO hatching.
-- Use the photo ONLY for rough poses and positions, not for background detail or realism.
-- Do NOT trace the photo; redraw everything in a clean cartoon style.
-`;
-
-  const quick = `
-QUICK AND EASY CARTOON (for 3–6 year olds).
-
-HARD RULES – IF YOU BREAK THESE, THE IMAGE IS WRONG:
-- Four kids, full body, head-to-toe, clearly visible.
-- EXAGGERATED cartoon:
-  - Heads clearly oversized (20–30% bigger than normal).
-  - Very big eyes, simple mouths, minimal face lines.
-  - Clothing drawn with BIG, simple shapes and almost no inner details.
-- BACKGROUND MUST BE ALMOST COMPLETELY BLANK:
-  - A single straight floor line under their feet is allowed.
-  - AT MOST ONE simple background shape (for example: ONE star OR ONE picture frame). 
-  - NO shelves, NO toys, NO tables, NO chairs, NO rugs, NO stacks of objects, NO busy classroom.
-- LINES:
-  - Outer contour lines should be VERY THICK and bold.
-  - Inside lines (for facial features and clothing) should be simple and chunky, not tiny.
-- Large open white areas so a young child using a thick marker can color without hitting tiny gaps.
-- ABSOLUTELY NO shading, cross-hatching, textures, or grey areas.
-
-If you are about to draw ANY extra background object (like shelves, toys, classroom clutter, detailed windows, patterned rugs, many small wall shapes), DO NOT DRAW IT. Replace it with blank white space instead.
-`;
-
-  const advBeginner = `
-ADVANCED BEGINNER CARTOON (between Beginner and Intermediate).
-
-- Four kids, full body, head-to-toe, in the same cartoon style:
-  - Big heads, big eyes, simplified hair and clothing.
-- Simple but recognizable classroom background:
-  - Only a FEW big shapes: for example, one rug, one shelf, one window, and 2–3 large posters or stars.
-  - NO tiny toys everywhere, NO piles of small shapes, NO detailed patterns.
-- Line weight:
-  - Outer contours medium-thick.
-  - Interior detail lines slightly finer but still bold and easy to color.
-- Clothing:
-  - Can include a few simple patterns (stripes, flowers), but keep them large and clear.
-- Still NO grey shading, gradients, or texture – only clean black outlines on white.
-`;
-
   if (difficulty === 'quick') {
-    return `${base}\n\n${quick}`;
+    return TOON_QUICK_PROMPT;
   }
-
-  // Default to advanced beginner cartoon if anything else is passed
-  return `${base}\n\n${advBeginner}`;
+  // For Beginner and Intermediate, use Advanced Beginner toon
+  return TOON_ADV_BEGINNER_PROMPT;
 }
 
 serve(async (req) => {
