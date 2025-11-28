@@ -24,56 +24,62 @@ function buildCartoonPrompt(difficulty: ToonDifficulty): string {
   const base = `
 You are creating a BLACK-AND-WHITE CARTOON COLORING PAGE from a classroom reference photo.
 
-Global style rules (apply to ALL difficulties):
-- 2D cartoon style, like a kids' TV show or picture-book illustration.
-- Kids are completely REDRAWN as cartoon characters, not realistic portraits.
-- Heads larger than real life (about 20–30% bigger), big expressive eyes, simple noses, friendly smiles.
+GLOBAL STYLE (ALWAYS):
+- 2D cartoon style, like a kids' TV show or picture-book illustration (think Cocomelon / Nick Jr style).
+- Children are simplified cartoons, NOT realistic portraits.
+- Proportions:
+  - Big heads (about one third of total body height).
+  - Big round eyes, simple eyebrows, tiny nose, big friendly smile.
+  - Hands are simple shapes, not detailed fingers.
 - Clean, solid BLACK outlines on pure WHITE background.
-- NO color, NO gray shading, NO gradients, NO pencil texture.
-- Use the photo ONLY for pose, relative positions, and basic clothing – ignore its lighting, textures, and background clutter.
-- Do NOT trace the original photo. Simplify shapes heavily.
+- NO color, NO gray shading, NO gradients, NO pencil texture, NO hatching.
+- Use the photo ONLY for rough poses and positions, not for background detail or realism.
+- Do NOT trace the photo; redraw everything in a clean cartoon style.
 `;
 
   const quick = `
 QUICK AND EASY CARTOON (for 3–6 year olds).
 
-Hard rules – these override everything else:
-- Four kids, full body, head-to-toe, all clearly visible.
-- EXAGGERATED cartoon look:
-  - Big round heads, big eyes, simple eyebrows, tiny nose, clear smile.
-  - Limbs drawn with simple tube shapes, very few folds or inner lines.
-- Clothing made of BIG, SIMPLE SHAPES:
-  - Almost no inner detail: NO small folds, NO tiny seams, NO texture.
-  - If there is a pattern, keep it extremely simple (e.g. a few large shapes).
-- Background must be almost completely blank:
-  - One straight horizontal floor line under their feet.
-  - At MOST one extremely simple background hint (e.g. a plain rectangle for a window OR one big star). 
-  - NO shelves, NO toys, NO tables, NO detailed classroom objects, NO rugs, NO tiny decorations.
-- Use VERY THICK, BOLD outlines around the kids and main shapes.
-- Large open white areas so a toddler with a fat marker can color without hitting lots of tiny gaps.
-- Under NO circumstance add hatching, shading, stippling, or grey areas.
+HARD RULES – IF YOU BREAK THESE, THE IMAGE IS WRONG:
+- Four kids, full body, head-to-toe, clearly visible.
+- EXAGGERATED cartoon:
+  - Heads clearly oversized (20–30% bigger than normal).
+  - Very big eyes, simple mouths, minimal face lines.
+  - Clothing drawn with BIG, simple shapes and almost no inner details.
+- BACKGROUND MUST BE ALMOST COMPLETELY BLANK:
+  - A single straight floor line under their feet is allowed.
+  - AT MOST ONE simple background shape (for example: ONE star OR ONE picture frame). 
+  - NO shelves, NO toys, NO tables, NO chairs, NO rugs, NO stacks of objects, NO busy classroom.
+- LINES:
+  - Outer contour lines should be VERY THICK and bold.
+  - Inside lines (for facial features and clothing) should be simple and chunky, not tiny.
+- Large open white areas so a young child using a thick marker can color without hitting tiny gaps.
+- ABSOLUTELY NO shading, cross-hatching, textures, or grey areas.
 
-If you are about to draw ANY extra background object (like shelves, toys, chairs, complex rugs, many shapes on the wall), DO NOT DRAW IT. Leave that area pure white instead.
+If you are about to draw ANY extra background object (like shelves, toys, classroom clutter, detailed windows, patterned rugs, many small wall shapes), DO NOT DRAW IT. Replace it with blank white space instead.
 `;
 
   const advBeginner = `
 ADVANCED BEGINNER CARTOON (between Beginner and Intermediate).
 
-- Four kids, full body, head-to-toe, with clear cartoon proportions:
-  - Large heads, big eyes, simplified hair and clothing.
+- Four kids, full body, head-to-toe, in the same cartoon style:
+  - Big heads, big eyes, simplified hair and clothing.
 - Simple but recognizable classroom background:
-  - A few BIG objects only (e.g. rug, one shelf, one window, 2–3 toy or poster shapes).
-  - Avoid clutter: NO small scattered toys, NO piles of tiny items, NO complex patterns.
-- Line weight: medium (thinner than Quick and Easy, thicker than a detailed intermediate page).
-- Clothing can have a few simple patterns (e.g. stripes, flowers), but keep edges clear and bold.
-- Still NO shading or grey tones. Everything is clean black outlines on white.
+  - Only a FEW big shapes: for example, one rug, one shelf, one window, and 2–3 large posters or stars.
+  - NO tiny toys everywhere, NO piles of small shapes, NO detailed patterns.
+- Line weight:
+  - Outer contours medium-thick.
+  - Interior detail lines slightly finer but still bold and easy to color.
+- Clothing:
+  - Can include a few simple patterns (stripes, flowers), but keep them large and clear.
+- Still NO grey shading, gradients, or texture – only clean black outlines on white.
 `;
 
   if (difficulty === 'quick') {
     return `${base}\n\n${quick}`;
   }
 
-  // Default to adv-beginner cartoon if anything else is passed
+  // Default to advanced beginner cartoon if anything else is passed
   return `${base}\n\n${advBeginner}`;
 }
 
@@ -145,6 +151,10 @@ serve(async (req) => {
       rawDifficulty === 'quick' ? 'quick' : 'adv-beginner';
 
     const prompt = buildCartoonPrompt(toonDifficulty);
+
+    // Debug logging
+    console.log('InkToJoy toon prompt difficulty:', toonDifficulty);
+    console.log('InkToJoy toon prompt (first 200 chars):', prompt.slice(0, 200));
 
     // Get OpenAI API key
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
