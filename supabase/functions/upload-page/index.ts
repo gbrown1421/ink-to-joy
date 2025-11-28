@@ -7,77 +7,73 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
+
 /**
- * Build a generic prompt for gpt-image-1.
- * NO hard-coded "four kids", NO classroom description.
- * Difficulty only controls how simple / detailed the output is.
+ * Build the exact prompt we send to gpt-image-1.
+ * Only three allowed values:
+ *   - "Quick and Easy"
+ *   - "Beginner"
+ *   - "Intermediate"
  */
-function buildColoringPrompt(
-  rawDifficulty: string | null | undefined,
-): string {
-  const difficulty = (rawDifficulty || "intermediate").toLowerCase().trim();
-
-  const basePrompt = `
-Create a black-and-white line-art coloring page from the uploaded reference image.
-
-Global rules:
-- Keep the same main subjects and general composition from the photo.
-- Use ONLY solid black outlines on a pure white background.
-- NO grey shading, gradients, pencil texture, or color.
-- Clean, kid-safe line art that prints well on an 8.5×11 portrait page.
-- Do NOT crop off important parts of the main subjects. If needed, zoom out slightly so they fit comfortably in frame.
-`.trim();
-
-  const quickPrompt = `
-Difficulty: QUICK & EASY (toddler level, ~3–4 years old).
+function buildColoringPrompt(difficulty: Difficulty): string {
+  switch (difficulty) {
+    case "Quick and Easy":
+      // TODDLER / QUICK VERSION – NO BACKGROUND
+      return `
+Convert the uploaded photo into a super-simple "Quick and Easy" coloring page for young children.
 
 Rules:
-- Aggressively simplify everything.
-- Keep only the main subjects as big, simple shapes.
-- Background should be almost completely blank white:
-  - At most a simple ground/floor line and maybe ONE large, simple background shape.
-- Remove small objects, clutter, and tiny details from the scene.
-- Clothing and hair should be large, simple areas with minimal internal lines.
-- Use THICK, BOLD outlines and very few interior lines.
-- Large open white spaces so toddlers can color easily.
+- Keep ONLY the main people from the photo as full-body characters, head to toes, facing the viewer.
+- REMOVE the entire background (walls, windows, rugs, furniture, toys, posters, stars, etc.).
+- Replace the background with PURE WHITE.
+- You may draw ONE straight horizontal floor line under their feet. No other background lines or objects.
+- Use VERY THICK, BOLD black outlines.
+- Keep interior detail to a minimum: big simple shapes for clothes, hair, and faces.
+- Faces should be very simple and friendly: basic eyes, small nose, small smile — no fine wrinkles or textures.
+- Absolutely NO shading, hatching, cross-hatching, gradients, or gray tones. Only solid black lines on white.
+- Layout should fit nicely on a vertical 8.5x11 page and must NOT crop off any heads or feet.
 `.trim();
 
-  const beginnerPrompt = `
-Difficulty: BEGINNER (younger kids, ~4–6 years old).
+    case "Beginner":
+      // BEGINNER – SMALL, SIMPLE BACKGROUND
+      return `
+Convert the uploaded photo into a "Beginner" coloring page.
 
 Rules:
-- Keep the main subjects clearly outlined, full-body if possible.
-- Background should be simple and uncluttered:
-  - A few large, recognizable shapes (e.g. wall, window, shelf, rug) but NOT lots of tiny objects.
-- Moderate detail on faces, hair, and clothing, but avoid micro-details.
-- Line weight medium-thick and very clean.
-- NO shading or hatching — only clear black outlines on white.
+- Keep the same main people as in the photo, ideally full body if possible, clearly separated from the background.
+- Draw a SIMPLE, UNCLUTTERED background:
+  - At most 2–3 LARGE, simple elements (e.g. a big window, one toy shelf, a simple rug, a large star or picture frame).
+  - Do NOT draw lots of small objects, scattered toys, detailed patterns, or visual clutter.
+- Use MEDIUM-THICK, clean black outlines.
+- Add some interior detail (hair strands, clothing folds, a few simple objects) but avoid tiny micro-details.
+- Absolutely NO shading, hatching, cross-hatching, gradients, or gray tones. Only black line art on white.
+- Keep everything clear and easy to color for kids in the Beginner range.
+- Vertical 8.5x11 layout, do not crop off heads or feet if you can avoid it.
 `.trim();
 
-  const intermediatePrompt = `
-Difficulty: INTERMEDIATE (older kids, ~6–8 years old).
+    case "Intermediate":
+      // INTERMEDIATE – FULLER CLASSROOM BACKGROUND
+      return `
+Convert the uploaded photo into an "Intermediate" coloring page.
 
 Rules:
-- Keep the main subjects full and well-defined.
-- Include more of the real background from the photo (furniture, decor, etc.), but still as clean line art.
-- More interior detail allowed (folds in clothing, simple textures, more objects), but not noisy tiny scribbles.
-- Use finer lines than Beginner, still only black outlines on white.
-- No grayscale shading or cross-hatching; everything remains simple line art for coloring.
+- Keep the same main people from the photo, full body if possible.
+- Include a recognizable background based on the real scene (furniture, shelves, windows, wall decorations, etc.),
+  but draw everything as clean line art with no grayscale.
+- You may include more objects and detail than in the Beginner version, but avoid noisy scribbles or unreadable clutter.
+- Use FINER line work than Beginner but still clear black outlines suitable for kids to color.
+- Absolutely NO shading, hatching, cross-hatching, gradients, or gray tones. Only black outlines on white.
+- Layout should fit a vertical 8.5x11 page without cutting off heads or feet.
 `.trim();
 
-  if (
-    difficulty === "quick" || difficulty === "easy" || difficulty === "quick & easy" ||
-    difficulty === "quick_easy"
-  ) {
-    return `${basePrompt}\n\n${quickPrompt}`;
+    default: {
+      // Should never happen if we keep the DB/UI clean.
+      // Throw so we see it immediately instead of silently generating the wrong thing.
+      const never: never = difficulty;
+      throw new Error(`Unsupported difficulty: ${never}`);
+    }
   }
-
-  if (difficulty === "beginner" || difficulty === "beginners") {
-    return `${basePrompt}\n\n${beginnerPrompt}`;
-  }
-
-  // Default: intermediate
-  return `${basePrompt}\n\n${intermediatePrompt}`;
 }
 
 serve(async (req) => {
@@ -225,7 +221,13 @@ serve(async (req) => {
 
     // --- CALL OPENAI SYNCHRONOUSLY (no background nonsense) ---
     try {
-      const prompt = buildColoringPrompt(book.difficulty);
+      const difficulty = book.difficulty as Difficulty;
+
+      if (!difficulty || !["Quick and Easy", "Beginner", "Intermediate"].includes(difficulty)) {
+        throw new Error(`Invalid book difficulty: "${book.difficulty}"`);
+      }
+
+      const prompt = buildColoringPrompt(difficulty);
 
       console.log("Calling OpenAI gpt-image-1 for page", page.id, {
         difficulty: book.difficulty,

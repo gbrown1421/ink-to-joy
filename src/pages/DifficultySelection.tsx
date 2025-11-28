@@ -8,7 +8,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-export type DifficultyLevel = "quick-easy" | "beginner" | "intermediate" | "advanced";
+export type DifficultyLevel = "Quick and Easy" | "Beginner" | "Intermediate";
 
 interface DifficultyOption {
   id: DifficultyLevel;
@@ -21,41 +21,33 @@ interface DifficultyOption {
 
 const difficulties: DifficultyOption[] = [
   {
-    id: "quick-easy",
+    id: "Quick and Easy",
     name: "Quick and Easy",
-    description: "Ultra thick bold outlines, removes most background detail",
+    description: "Ultra thick bold outlines, removes entire background",
     ageRange: "3-6 years",
     detailLevel: "3-6 sections",
     sampleImage: "/images/difficulty-samples/difficulty-quick-sample.jpg"
   },
   {
-    id: "beginner",
+    id: "Beginner",
     name: "Beginner",
-    description: "Medium lines with simple backgrounds, basic room outlines",
+    description: "Medium lines with simple backgrounds, 2-3 large elements",
     ageRange: "7-10 years",
     detailLevel: "7-12 sections",
     sampleImage: "/images/difficulty-samples/difficulty-beginner-sample.jpg"
   },
   {
-    id: "intermediate",
+    id: "Intermediate",
     name: "Intermediate",
-    description: "More clothing folds and several background objects",
+    description: "Fuller scene with recognizable background details",
     ageRange: "11-15 years",
     detailLevel: "13-20 sections",
     sampleImage: "/images/difficulty-samples/difficulty-intermediate-sample.jpg"
-  },
-  {
-    id: "advanced",
-    name: "Advanced",
-    description: "Detailed scene with lots of thin lines and intricate patterns",
-    ageRange: "16+ years",
-    detailLevel: "20+ sections",
-    sampleImage: "/images/difficulty-samples/difficulty-advanced-sample.jpg"
   }
 ];
 
 const DifficultySelection = () => {
-  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>("beginner");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>("Beginner");
   const [bookName, setBookName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
