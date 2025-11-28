@@ -8,62 +8,65 @@ const corsHeaders = {
 };
 
 type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
-type ToonDifficulty = "quick-and-easy" | "advanced-beginner";
+type ToonDifficulty = "quick_and_easy_toon" | "adv_beginner_toon";
 
-/**
- * Build cartoon coloring page prompt for toon projects.
- * Works with any photo, not hard-coded to specific subjects.
- */
-function buildCartoonPrompt(difficulty: ToonDifficulty): string {
-  const base = `
-Turn the uploaded photo into a BLACK-AND-WHITE CARTOON STYLE COLORING PAGE.
+const TOON_QUICK_AND_EASY_PROMPT = `
+CARTOON / CARICATURE COLORING PAGE – QUICK AND EASY (ages 3–6)
 
-- Redraw the subjects from the photo as cute 2D cartoon characters.
-- Keep the same number of people/animals and the same basic pose and layout.
-- Use big heads, large expressive eyes, simplified noses and mouths, rounded hands and feet.
-- No realistic rendering: NO grayscale, NO shading, NO gradients, NO pencil texture.
-- Only clean black outlines on a pure white page.
-- Portrait orientation similar to an 8.5x11" coloring book page.
-- Do not crop off heads or feet: keep each main subject fully in frame, head-to-toe when visible in the photo.
+GENERAL:
+- Black-and-white line-art coloring page.
+- Only solid black outlines on pure white; no gray, no shading, no gradients, no cross-hatching.
+
+STYLE:
+- Chibi / caricature look.
+- Heads are clearly oversized: about 1/3 to 1/2 of total body height.
+- Big round eyes, tiny nose and mouth, simple happy expressions.
+- Short, simplified bodies and limbs; no realistic anatomy or muscles.
+- Very few clothing folds; large, simple shapes.
+
+LINES & COMPLEXITY:
+- VERY THICK bold outlines, especially around the main characters.
+- Minimal interior detail; avoid small textures and micro-details.
+- Keep everything extremely simple and easy to color.
+
+BACKGROUND:
+- Background must be almost empty.
+- At most 1–2 large, simple shapes (for example a star or one big window).
+- No clutter, no tiny objects, no detailed furniture or classroom items.
 `;
 
-  const quick = `
-CARTOON – QUICK AND EASY (for ages ~3–6).
+const TOON_ADV_BEGINNER_PROMPT = `
+CARTOON / CARICATURE COLORING PAGE – ADVANCED BEGINNER (between Beginner and Intermediate)
 
-Style rules:
-- Characters are very simple, cute, and chunky.
-- Extra-large heads and eyes, very simple hair shapes.
-- Clothing: big smooth areas, almost no folds or tiny details.
-- Background: EXTREMELY SIMPLE.
-  - Either completely blank white with a single floor line,
-    OR at most 1–2 big shapes (e.g. a simple window or star) with NO small items.
-- Use THICK, BOLD outlines and big open white spaces to color.
-- Limit total color regions: aim for about 10–20 large regions.
-- Absolutely NO hatching, texture, or tiny patterns.
+GENERAL:
+- Black-and-white line-art coloring page.
+- Only solid black outlines on pure white; no gray, no shading, no gradients, no cross-hatching.
 
-If you start to add small objects, cluttered toys, text, or complex patterns: STOP and erase them. Keep it ultra-simple for toddlers.
+STYLE:
+- Polished cartoon / caricature look.
+- Heads still oversized and stylized (noticeably larger than realistic), roughly 1/3 of body height.
+- Big expressive eyes, simplified nose and mouth, friendly smiles.
+- Bodies more detailed than Quick and Easy, but still clearly cartoonish and simplified.
+
+LINES & COMPLEXITY:
+- Medium-thick outlines.
+- More interior detail than Quick and Easy (some clothing folds, hair strands, simple textures) but still clean and readable.
+- Avoid tiny fussy textures or super-dense line work.
+
+BACKGROUND:
+- Simple cartoon scene with a few medium-sized background elements (e.g. shelves, rug, a couple of wall decorations).
+- Scene should feel like a location, but not cluttered.
+- No wall of tiny toys or ultra-busy decor; keep shapes bold and easy to color.
 `;
 
-  const advancedBeginner = `
-CARTOON – ADVANCED BEGINNER (a step between Beginner and Intermediate).
-
-Style rules:
-- Same cute cartoon style: larger heads and eyes, rounded features.
-- Slightly more detail than Quick and Easy, but still clearly a kids' coloring page.
-- Clothing: a few folds or simple patterns are OK, but avoid tiny textures.
-- Background: SIMPLE but recognizable environment.
-  - 3–5 big shapes only (e.g. one bookshelf, one window, a rug, a couple of wall decorations).
-  - No busy clutter; group small items into large simplified shapes.
-- Line weight: medium-thick, still bold and clean.
-- No grayscale, shading, or cross-hatching – only outlines.
-
-The result should look like a classic cartoon coloring-book page, not a realistic photo trace.
-`;
-
-  if (difficulty === "quick-and-easy") {
-    return `${base}\n\n${quick}`;
-  } else {
-    return `${base}\n\n${advancedBeginner}`;
+function buildToonPrompt(difficulty: ToonDifficulty): string {
+  switch (difficulty) {
+    case "quick_and_easy_toon":
+      return TOON_QUICK_AND_EASY_PROMPT.trim();
+    case "adv_beginner_toon":
+      return TOON_ADV_BEGINNER_PROMPT.trim();
+    default:
+      return TOON_ADV_BEGINNER_PROMPT.trim();
   }
 }
 
@@ -286,10 +289,10 @@ serve(async (req) => {
         const rawDifficulty = (book.difficulty || "Quick and Easy") as string;
         const toonDifficulty: ToonDifficulty =
           rawDifficulty === "Quick and Easy"
-            ? "quick-and-easy"
-            : "advanced-beginner";
+            ? "quick_and_easy_toon"
+            : "adv_beginner_toon";
 
-        prompt = buildCartoonPrompt(toonDifficulty);
+        prompt = buildToonPrompt(toonDifficulty);
 
         console.log("InkToJoy toon prompt difficulty:", toonDifficulty);
         console.log("InkToJoy toon prompt (first 200 chars):", prompt.slice(0, 200));
