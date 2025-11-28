@@ -22,40 +22,51 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 
 function buildCartoonPrompt(difficulty: ToonDifficulty): string {
   const base = `
-You are transforming a classroom photo into a BLACK-AND-WHITE CARTOON COLORING PAGE.
+You are creating a BLACK-AND-WHITE CARTOON COLORING PAGE from a classroom reference photo.
 
 Global style rules (apply to ALL difficulties):
-- 2D cartoon style, similar to kids' TV or picture-book characters.
-- Heads noticeably larger than real life (about 20–30% larger), big expressive eyes, simple noses, friendly smiles.
+- 2D cartoon style, like a kids' TV show or picture-book illustration.
+- Kids are completely REDRAWN as cartoon characters, not realistic portraits.
+- Heads larger than real life (about 20–30% bigger), big expressive eyes, simple noses, friendly smiles.
 - Clean, solid BLACK outlines on pure WHITE background.
-- Absolutely NO color, NO grey shading, NO gradients, NO pencil texture.
-- Keep four preschool children based on the pose of the photo, but REDRAW them as cartoon characters, not realistic portraits.
-- Clothing and hair should be simplified into clear shapes with minimal folds and textures.
+- NO color, NO gray shading, NO gradients, NO pencil texture.
+- Use the photo ONLY for pose, relative positions, and basic clothing – ignore its lighting, textures, and background clutter.
+- Do NOT trace the original photo. Simplify shapes heavily.
 `;
 
   const quick = `
-QUICK AND EASY CARTOON (for 3–6 year olds):
+QUICK AND EASY CARTOON (for 3–6 year olds).
 
+Hard rules – these override everything else:
 - Four kids, full body, head-to-toe, all clearly visible.
-- Very simple, uncluttered background:
+- EXAGGERATED cartoon look:
+  - Big round heads, big eyes, simple eyebrows, tiny nose, clear smile.
+  - Limbs drawn with simple tube shapes, very few folds or inner lines.
+- Clothing made of BIG, SIMPLE SHAPES:
+  - Almost no inner detail: NO small folds, NO tiny seams, NO texture.
+  - If there is a pattern, keep it extremely simple (e.g. a few large shapes).
+- Background must be almost completely blank:
   - One straight horizontal floor line under their feet.
-  - At most 1–2 large, simple background shapes (e.g. a plain window outline or a single star), NO detailed classroom furniture.
-- Use THICK, BOLD outlines.
-- Very simple faces: big round eyes, small nose, clear smile, no tiny facial details.
-- Clothing must be made of BIG shapes with almost no inner detail (no tiny patterns, no stripes).
-- Large open white areas for easy coloring.
+  - At MOST one extremely simple background hint (e.g. a plain rectangle for a window OR one big star). 
+  - NO shelves, NO toys, NO tables, NO detailed classroom objects, NO rugs, NO tiny decorations.
+- Use VERY THICK, BOLD outlines around the kids and main shapes.
+- Large open white areas so a toddler with a fat marker can color without hitting lots of tiny gaps.
+- Under NO circumstance add hatching, shading, stippling, or grey areas.
+
+If you are about to draw ANY extra background object (like shelves, toys, chairs, complex rugs, many shapes on the wall), DO NOT DRAW IT. Leave that area pure white instead.
 `;
 
   const advBeginner = `
-ADVANCED BEGINNER CARTOON (between Beginner and Intermediate):
+ADVANCED BEGINNER CARTOON (between Beginner and Intermediate).
 
-- Four kids, full body, head-to-toe, cartoon proportions (large heads, big eyes).
+- Four kids, full body, head-to-toe, with clear cartoon proportions:
+  - Large heads, big eyes, simplified hair and clothing.
 - Simple but recognizable classroom background:
-  - A few big objects only (e.g. rug, shelf, window, 2–3 big toys or posters).
-  - DO NOT draw many small items or busy textures.
-- Line weight: medium (thinner than Quick and Easy, thicker than Intermediate).
-- Clothing can have a few simple patterns (stripes, flowers) but keep shapes clear and bold.
-- Still NO shading or grey tones – only black outlines on white.
+  - A few BIG objects only (e.g. rug, one shelf, one window, 2–3 toy or poster shapes).
+  - Avoid clutter: NO small scattered toys, NO piles of tiny items, NO complex patterns.
+- Line weight: medium (thinner than Quick and Easy, thicker than a detailed intermediate page).
+- Clothing can have a few simple patterns (e.g. stripes, flowers), but keep edges clear and bold.
+- Still NO shading or grey tones. Everything is clean black outlines on white.
 `;
 
   if (difficulty === 'quick') {
