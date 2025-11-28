@@ -12,8 +12,5 @@ verify_jwt = false
 [functions.export-pdf]
 verify_jwt = false
 
-[functions.generate-toon-image]
-verify_jwt = false
-
 [functions.cleanup-expired-pdfs]
 verify_jwt = false
