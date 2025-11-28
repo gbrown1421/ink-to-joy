@@ -2,66 +2,70 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-/**
- * Check page status - simplified to just return current status
- * No external API calls - all processing happens in upload-page
- */
-
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  );
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+  const supabase = createClient(supabaseUrl, serviceRoleKey);
 
   try {
     const body = await req.json();
-    const pageId = body.pageId;
+    const pageId = body.pageId as string | undefined;
 
     if (!pageId) {
       return new Response(
-        JSON.stringify({ error: 'Page ID is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "pageId is required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
-    // Get page record
-    const { data: page, error: pageError } = await supabase
-      .from('pages')
-      .select('status, coloring_image_url')
-      .eq('id', pageId)
+    const { data: page, error } = await supabase
+      .from("pages")
+      .select("status, coloring_image_url")
+      .eq("id", pageId)
       .single();
 
-    if (pageError || !page) {
+    if (error || !page) {
       return new Response(
-        JSON.stringify({ error: 'Page not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Page not found" }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
-    console.log('Page status:', page.status);
-
-    // Return current status
     return new Response(
       JSON.stringify({
         status: page.status,
-        coloringImageUrl: page.coloring_image_url || null,
-        error: page.status === 'failed' ? 'Image processing failed' : null,
+        coloringImageUrl: page.coloring_image_url,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
-  } catch (error) {
-    console.error('Error checking status:', error);
+  } catch (err) {
+    console.error("check-page-status error:", err);
+    const message = err instanceof Error ? err.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: message }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });

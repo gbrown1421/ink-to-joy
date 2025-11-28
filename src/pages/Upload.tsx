@@ -52,52 +52,6 @@ const Upload = () => {
     }
   };
 
-  // Helper to add white padding around image to reduce cropping
-  const addPaddingToImage = async (file: File): Promise<File> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Could not get canvas context'));
-          return;
-        }
-
-        // Add 10% padding on all sides
-        const padding = Math.max(img.width, img.height) * 0.1;
-        canvas.width = img.width + (padding * 2);
-        canvas.height = img.height + (padding * 2);
-
-        // Fill with white
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Draw image centered
-        ctx.drawImage(img, padding, padding);
-
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const paddedFile = new File([blob], file.name, { type: file.type });
-            resolve(paddedFile);
-          } else {
-            reject(new Error('Failed to create padded image'));
-          }
-        }, file.type);
-
-        URL.revokeObjectURL(url);
-      };
-
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error('Failed to load image'));
-      };
-
-      img.src = url;
-    });
-  };
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (!bookId) return;
@@ -113,177 +67,71 @@ const Upload = () => {
 
     for (const page of newPages) {
       try {
-        // Add padding to reduce cropping
-        const paddedImage = await addPaddingToImage(page.originalFile);
-
         const formData = new FormData();
         formData.append('bookId', bookId);
-        formData.append('image', paddedImage);
+        formData.append('image', page.originalFile);
 
-        // Try upload with timeout handling
-        let uploadSuccess = false;
-        let lastError: Error | null = null;
-        
-        for (let attempt = 1; attempt <= 2; attempt++) {
-          try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout
+        // Call the edge function synchronously
+        const { data, error } = await supabase.functions.invoke('upload-page', {
+          body: formData,
+        });
 
-            const { data, error } = await supabase.functions.invoke('upload-page', {
-              body: formData,
-              signal: controller.signal,
-            });
-
-            clearTimeout(timeoutId);
-
-            if (error) {
-              throw error;
-            }
-
-            if (!data?.pageId) {
-              throw new Error('No page ID returned from upload');
-            }
-
-            console.log('Upload successful, page ID:', data.pageId);
-
-            // Start polling immediately - processing happens in background
-            setPages(prev => prev.map(p => 
-              p.id === page.id 
-                ? { ...p, status: "processing" } 
-                : p
-            ));
-            pollPageStatus(page.id, data.pageId);
-            uploadSuccess = true;
-            break;
-
-          } catch (err) {
-            lastError = err instanceof Error ? err : new Error('Upload failed');
-            console.error(`Upload attempt ${attempt} failed:`, lastError);
-            
-            if (err instanceof Error && err.name === 'AbortError') {
-              // Timeout - processing may still be happening in background
-              // Start polling to check if it completes
-              console.log('Upload timed out, but processing may continue in background');
-              setPages(prev => prev.map(p => 
-                p.id === page.id 
-                  ? { ...p, status: "processing" } 
-                  : p
-              ));
-              // We'll create a temporary page record and start polling
-              // The backend should have created the page even if response timed out
-              uploadSuccess = true;
-              break;
-            }
-            
-            if (attempt < 2) {
-              toast.info(`Retrying upload (attempt ${attempt + 1}/2)...`);
-              await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-          }
+        if (error) {
+          const msg = error.message || 'Upload / processing failed';
+          console.error('upload-page error:', msg);
+          toast.error(msg);
+          setPages(prev => prev.map(p => 
+            p.id === page.id 
+              ? { ...p, status: "failed", error: msg } 
+              : p
+          ));
+          continue;
         }
 
-        if (!uploadSuccess && lastError) {
-          throw lastError;
+        if (!data || !data.pageId) {
+          const msg = 'No pageId returned from upload-page';
+          console.error(msg, data);
+          toast.error(msg);
+          setPages(prev => prev.map(p => 
+            p.id === page.id 
+              ? { ...p, status: "failed", error: msg } 
+              : p
+          ));
+          continue;
         }
 
-      } catch (error) {
-        console.error('Error uploading page:', error);
-        const errorMsg = error instanceof Error ? error.message : 'Upload failed';
+        if (data.status === 'ready' && data.coloringImageUrl) {
+          setPages(prev => prev.map(p => 
+            p.id === page.id 
+              ? { ...p, status: "ready", coloringImageUrl: data.coloringImageUrl as string } 
+              : p
+          ));
+          toast.success("Page processed successfully!");
+        } else {
+          // Shouldn't really happen with the new backend; treat as failed if it does
+          const msg = 'Image processing did not complete';
+          console.warn(msg, data);
+          toast.error(msg);
+          setPages(prev => prev.map(p => 
+            p.id === page.id 
+              ? { ...p, status: "failed", error: msg } 
+              : p
+          ));
+        }
+      } catch (err) {
+        console.error('Error uploading/processing page:', err);
+        const msg = err instanceof Error ? err.message : 'Upload failed';
+        toast.error(msg);
         setPages(prev => prev.map(p => 
           p.id === page.id 
-            ? { ...p, status: "failed", error: 'Upload failed - click Remove and try again' } 
+            ? { ...p, status: "failed", error: msg } 
             : p
         ));
-        toast.error(`Upload failed: ${errorMsg}`);
       }
     }
 
     setIsUploading(false);
   }, [bookId]);
-
-  const pollPageStatus = async (tempId: string, pageId: string) => {
-    const maxAttempts = 60; // 5 minutes with 5-second intervals
-    let attempts = 0;
-
-    const checkStatus = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('check-page-status', {
-          body: { pageId },
-        });
-
-        if (error) {
-          console.error('Status check error:', error);
-          const errorMsg = error.message || 'Status check failed';
-          toast.error(`Processing error: ${errorMsg}`);
-          setPages(prev => prev.map(p => 
-            p.id === tempId 
-              ? { ...p, status: "failed", error: errorMsg } 
-              : p
-          ));
-          return;
-        }
-
-        console.log('Status check response:', data);
-
-        if (data.status === "ready") {
-          if (!data.coloringImageUrl) {
-            const errorMsg = data.error || 'No coloring image returned';
-            console.error('Processing failed:', errorMsg);
-            toast.error(errorMsg);
-            setPages(prev => prev.map(p => 
-              p.id === tempId 
-                ? { ...p, status: "failed", error: errorMsg } 
-                : p
-            ));
-            return;
-          }
-
-          setPages(prev => prev.map(p =>
-            p.id === tempId
-              ? { ...p, status: "ready", coloringImageUrl: data.coloringImageUrl }
-              : p
-          ));
-          toast.success("Page processed successfully!");
-          return;
-        } else if (data.status === "failed") {
-          const errorMsg = data.error || 'Processing failed';
-          console.error('Processing failed:', errorMsg);
-          toast.error(`Processing failed: ${errorMsg}`);
-          setPages(prev => prev.map(p => 
-            p.id === tempId 
-              ? { ...p, status: "failed", error: errorMsg } 
-              : p
-          ));
-          return;
-        }
-
-        // Continue polling
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(checkStatus, 5000);
-        } else {
-          toast.error('Image processing timed out – please try again');
-          setPages(prev => prev.map(p => 
-            p.id === tempId 
-              ? { ...p, status: "failed", error: 'Image processing failed – click to retry upload' } 
-              : p
-          ));
-        }
-      } catch (error) {
-        console.error('Error checking page status:', error);
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-        setPages(prev => prev.map(p => 
-          p.id === tempId 
-            ? { ...p, status: "failed", error: errorMsg } 
-            : p
-        ));
-        toast.error(`Processing error: ${errorMsg}`);
-      }
-    };
-
-    checkStatus();
-  };
-
 
   const removePage = (id: string) => {
     setPages(prev => prev.filter(p => p.id !== id));
