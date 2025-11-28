@@ -71,9 +71,8 @@ const Upload = () => {
         formData.append('bookId', bookId);
         formData.append('image', page.originalFile);
 
-        // Call the correct edge function based on project type
-        const functionName = projectType === "toon" ? "generate-toon-image" : "upload-page";
-        const { data, error } = await supabase.functions.invoke(functionName, {
+        // All uploads (both coloring and toon) now go through upload-page
+        const { data, error } = await supabase.functions.invoke("upload-page", {
           body: formData,
         });
 

@@ -8,9 +8,67 @@ const corsHeaders = {
 };
 
 type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
+type ToonDifficulty = "quick-and-easy" | "advanced-beginner";
 
 /**
- * Build the exact prompt we send to gpt-image-1.
+ * Build cartoon coloring page prompt for toon projects.
+ * Works with any photo, not hard-coded to specific subjects.
+ */
+function buildCartoonPrompt(difficulty: ToonDifficulty): string {
+  const base = `
+Turn the uploaded photo into a BLACK-AND-WHITE CARTOON STYLE COLORING PAGE.
+
+- Redraw the subjects from the photo as cute 2D cartoon characters.
+- Keep the same number of people/animals and the same basic pose and layout.
+- Use big heads, large expressive eyes, simplified noses and mouths, rounded hands and feet.
+- No realistic rendering: NO grayscale, NO shading, NO gradients, NO pencil texture.
+- Only clean black outlines on a pure white page.
+- Portrait orientation similar to an 8.5x11" coloring book page.
+- Do not crop off heads or feet: keep each main subject fully in frame, head-to-toe when visible in the photo.
+`;
+
+  const quick = `
+CARTOON – QUICK AND EASY (for ages ~3–6).
+
+Style rules:
+- Characters are very simple, cute, and chunky.
+- Extra-large heads and eyes, very simple hair shapes.
+- Clothing: big smooth areas, almost no folds or tiny details.
+- Background: EXTREMELY SIMPLE.
+  - Either completely blank white with a single floor line,
+    OR at most 1–2 big shapes (e.g. a simple window or star) with NO small items.
+- Use THICK, BOLD outlines and big open white spaces to color.
+- Limit total color regions: aim for about 10–20 large regions.
+- Absolutely NO hatching, texture, or tiny patterns.
+
+If you start to add small objects, cluttered toys, text, or complex patterns: STOP and erase them. Keep it ultra-simple for toddlers.
+`;
+
+  const advancedBeginner = `
+CARTOON – ADVANCED BEGINNER (a step between Beginner and Intermediate).
+
+Style rules:
+- Same cute cartoon style: larger heads and eyes, rounded features.
+- Slightly more detail than Quick and Easy, but still clearly a kids' coloring page.
+- Clothing: a few folds or simple patterns are OK, but avoid tiny textures.
+- Background: SIMPLE but recognizable environment.
+  - 3–5 big shapes only (e.g. one bookshelf, one window, a rug, a couple of wall decorations).
+  - No busy clutter; group small items into large simplified shapes.
+- Line weight: medium-thick, still bold and clean.
+- No grayscale, shading, or cross-hatching – only outlines.
+
+The result should look like a classic cartoon coloring-book page, not a realistic photo trace.
+`;
+
+  if (difficulty === "quick-and-easy") {
+    return `${base}\n\n${quick}`;
+  } else {
+    return `${base}\n\n${advancedBeginner}`;
+  }
+}
+
+/**
+ * Build the exact prompt we send to gpt-image-1 for regular coloring pages.
  * Only three allowed values:
  *   - "Quick and Easy"
  *   - "Beginner"
@@ -144,9 +202,9 @@ serve(async (req) => {
       );
     }
 
-    if (book.project_type !== "coloring") {
+    if (book.project_type !== "coloring" && book.project_type !== "toon") {
       return new Response(
-        JSON.stringify({ error: "Only coloring projects are supported" }),
+        JSON.stringify({ error: "Only coloring and toon projects are supported" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -221,15 +279,33 @@ serve(async (req) => {
 
     // --- CALL OPENAI SYNCHRONOUSLY (no background nonsense) ---
     try {
-      const difficulty = book.difficulty as Difficulty;
+      let prompt: string;
 
-      if (!difficulty || !["Quick and Easy", "Beginner", "Intermediate"].includes(difficulty)) {
-        throw new Error(`Invalid book difficulty: "${book.difficulty}"`);
+      if (book.project_type === "toon") {
+        // Cartoon mode: map difficulty to toon difficulty
+        const rawDifficulty = (book.difficulty || "Quick and Easy") as string;
+        const toonDifficulty: ToonDifficulty =
+          rawDifficulty === "Quick and Easy"
+            ? "quick-and-easy"
+            : "advanced-beginner";
+
+        prompt = buildCartoonPrompt(toonDifficulty);
+
+        console.log("InkToJoy toon prompt difficulty:", toonDifficulty);
+        console.log("InkToJoy toon prompt (first 200 chars):", prompt.slice(0, 200));
+      } else {
+        // Regular coloring mode
+        const difficulty = book.difficulty as Difficulty;
+
+        if (!difficulty || !["Quick and Easy", "Beginner", "Intermediate"].includes(difficulty)) {
+          throw new Error(`Invalid book difficulty: "${book.difficulty}"`);
+        }
+
+        prompt = buildColoringPrompt(difficulty);
       }
 
-      const prompt = buildColoringPrompt(difficulty);
-
       console.log("Calling OpenAI gpt-image-1 for page", page.id, {
+        projectType: book.project_type,
         difficulty: book.difficulty,
       });
 
