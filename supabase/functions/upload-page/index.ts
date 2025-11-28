@@ -243,9 +243,16 @@ serve(async (req) => {
       );
     }
 
-    // Convert image to base64 for AI processing
+    // Convert image to base64 for AI processing (chunked to avoid stack overflow)
     const imageBuffer = await imageFile.arrayBuffer();
-    const base64Image = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
+    const uint8Array = new Uint8Array(imageBuffer);
+    let binaryString = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.slice(i, i + chunkSize);
+      binaryString += String.fromCharCode(...chunk);
+    }
+    const base64Image = btoa(binaryString);
     const imageDataUrl = `data:${imageFile.type};base64,${base64Image}`;
 
     // Start background processing (fire and forget)
