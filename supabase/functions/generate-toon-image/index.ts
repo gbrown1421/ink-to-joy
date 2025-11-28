@@ -6,6 +6,66 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+type ToonDifficulty = "Quick and Easy" | "Adv Beginner";
+
+function buildCartoonPrompt(difficulty: ToonDifficulty): string {
+  if (difficulty === "Quick and Easy") {
+    return `
+Turn the uploaded reference photo into a kid friendly, full color 2D cartoon illustration.
+
+Rules:
+- Keep the same people, poses, outfits, and general layout as the photo.
+- Style must be clean 2D cartoon or storybook illustration, not 3D, not photorealistic.
+- Faces must be friendly and expressive with kid safe proportions and no uncanny look.
+- Use bright, cheerful colors with clear separation between shapes.
+- Do not include any text, logos, or brand marks.
+
+Complexity for Quick and Easy:
+- Characters:
+  - Slightly larger heads and simplified facial features.
+  - Clothing simplified into big, flat color areas with very few folds and no tiny patterns.
+- Background:
+  - Very simple and uncluttered.
+  - Keep only a few large shapes to hint at the environment, such as one wall shape, a simple floor, one big window, or one large furniture shape.
+  - Remove small objects, scattered toys, loose papers, and any busy detail.
+- Lines and color:
+  - Thick, bold outlines around characters and main shapes.
+  - Mostly flat colors with at most very soft minimal shading on large areas.
+  - Large open areas of single color so the scene is easy to read at a glance.
+- Overall:
+  - The image should look calm, clean, and simple, suitable for very young kids.
+`.trim();
+  }
+
+  // Adv Beginner
+  return `
+Turn the uploaded reference photo into a kid friendly, full color 2D cartoon illustration.
+
+Rules:
+- Keep the same people, poses, outfits, and general layout as the photo.
+- Style must be clean 2D cartoon or storybook illustration, not 3D, not photorealistic.
+- Faces must be friendly and expressive with kid safe proportions and no uncanny look.
+- Use bright, cheerful colors with clear separation between shapes.
+- Do not include any text, logos, or brand marks.
+
+Complexity for Adv Beginner:
+- Characters:
+  - Standard cartoon proportions, not chibi and not hyper realistic.
+  - Clear facial features and hair details without tiny noisy lines.
+  - Clothing can include simple patterns such as stripes or small shapes and a few folds and overlaps.
+- Background:
+  - Show a recognizable scene based on the photo such as a classroom or playroom.
+  - Include key furniture and a limited number of background objects, but avoid extreme clutter.
+  - Use larger shapes and clear silhouettes and keep tiny background items to a minimum.
+- Lines and color:
+  - Medium weight outlines, cleaner and a bit finer than Quick and Easy.
+  - Simple soft shading is allowed, with light shadows and highlights to give gentle depth.
+  - Colors remain bright, fun, and kid friendly rather than dark or edgy.
+- Overall:
+  - The image should look richer and more detailed than Quick and Easy, but still clean and easy to read for early elementary age kids.
+`.trim();
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -84,26 +144,18 @@ serve(async (req) => {
     const base64Image = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
     const imageDataUrl = `data:${imageFile.type};base64,${base64Image}`;
 
-    // Determine style based on difficulty
-    const stylePrompts = {
-      "quick-easy": "very simple, bold cartoon with minimal details",
-      "beginner": "cartoon style with clean, simple lines",
-      "intermediate": "detailed cartoon caricature with expressive features",
-      "advanced": "highly detailed cartoon caricature with intricate linework"
-    };
+    // Build cartoon prompt based on difficulty
+    const toonDifficulty = book.difficulty as ToonDifficulty;
+    
+    if (toonDifficulty !== "Quick and Easy" && toonDifficulty !== "Adv Beginner") {
+      console.error(`Invalid toon difficulty: ${book.difficulty}`);
+      return new Response(
+        JSON.stringify({ error: `Invalid toon difficulty: ${book.difficulty}` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    const styleDescription = stylePrompts[book.difficulty as keyof typeof stylePrompts] || stylePrompts.beginner;
-
-    const prompt = `Create a black and white line-art cartoon caricature of the person(s), pet(s), or subject(s) in this photo. 
-Style: ${styleDescription}
-Requirements:
-- Keep the same pose, clothing, and setting from the original photo
-- Use clean, bold black outlines with no shading or gradients
-- Make features slightly exaggerated and expressive (larger eyes, friendly expression)
-- Kid-friendly and appropriate for a coloring book page
-- White background only
-- No text, labels, or watermarks
-- High contrast black lines on white background perfect for coloring`;
+    const prompt = buildCartoonPrompt(toonDifficulty);
 
     console.log('Generating toon image with Lovable AI...');
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

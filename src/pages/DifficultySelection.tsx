@@ -9,9 +9,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export type DifficultyLevel = "Quick and Easy" | "Beginner" | "Intermediate";
+export type ToonDifficultyLevel = "Quick and Easy" | "Adv Beginner";
 
 interface DifficultyOption {
-  id: DifficultyLevel;
+  id: DifficultyLevel | ToonDifficultyLevel;
   name: string;
   description: string;
   ageRange: string;
@@ -19,7 +20,7 @@ interface DifficultyOption {
   sampleImage: string;
 }
 
-const difficulties: DifficultyOption[] = [
+const coloringDifficulties: DifficultyOption[] = [
   {
     id: "Quick and Easy",
     name: "Quick and Easy",
@@ -46,13 +47,36 @@ const difficulties: DifficultyOption[] = [
   }
 ];
 
+const toonDifficulties: DifficultyOption[] = [
+  {
+    id: "Quick and Easy",
+    name: "Quick and Easy",
+    description: "Simple, clean 2D cartoon with flat colors and minimal background",
+    ageRange: "3-6 years",
+    detailLevel: "Very simple",
+    sampleImage: "/images/difficulty-samples/difficulty-quick-sample.jpg"
+  },
+  {
+    id: "Adv Beginner",
+    name: "Adv Beginner",
+    description: "Richer cartoon with recognizable scene and simple shading",
+    ageRange: "7-10 years",
+    detailLevel: "More detailed",
+    sampleImage: "/images/difficulty-samples/difficulty-beginner-sample.jpg"
+  }
+];
+
 const DifficultySelection = () => {
-  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>("Beginner");
-  const [bookName, setBookName] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const projectType = (searchParams.get("type") as "coloring" | "toon") || "coloring";
+  
+  const difficulties = projectType === "toon" ? toonDifficulties : coloringDifficulties;
+  const defaultDifficulty = projectType === "toon" ? "Quick and Easy" : "Beginner";
+  
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>(defaultDifficulty);
+  const [bookName, setBookName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleContinue = async () => {
     if (!bookName.trim()) {
@@ -90,7 +114,9 @@ const DifficultySelection = () => {
                 <Palette className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">Create New Coloring Book</h1>
+                <h1 className="text-2xl font-bold">
+                  Create New {projectType === "toon" ? "Cartoon Book" : "Coloring Book"}
+                </h1>
                 <p className="text-sm text-muted-foreground">Step 1: Choose difficulty and name</p>
               </div>
             </div>
@@ -119,10 +145,12 @@ const DifficultySelection = () => {
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="space-y-8">
           <section className="space-y-4">
-            <Label htmlFor="bookName" className="text-lg font-semibold">Coloring Book Name</Label>
+            <Label htmlFor="bookName" className="text-lg font-semibold">
+              {projectType === "toon" ? "Cartoon Book" : "Coloring Book"} Name
+            </Label>
             <Input
               id="bookName"
-              placeholder="My Amazing Coloring Book"
+              placeholder={projectType === "toon" ? "My Amazing Cartoon Book" : "My Amazing Coloring Book"}
               value={bookName}
               onChange={(e) => setBookName(e.target.value)}
               className="text-lg h-12"
