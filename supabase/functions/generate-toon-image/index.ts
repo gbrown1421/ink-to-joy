@@ -192,28 +192,21 @@ serve(async (req) => {
     }
 
     const aiData = await aiResponse.json();
-    console.log('OpenAI response:', JSON.stringify(aiData));
-    const generatedImageUrl = aiData.data?.[0]?.url;
+    console.log('OpenAI response received with data');
+    
+    // OpenAI returns b64_json when using edits endpoint
+    const generatedBase64 = aiData.data?.[0]?.b64_json;
 
-    if (!generatedImageUrl) {
-      console.error('No image URL in response. Full response:', JSON.stringify(aiData));
+    if (!generatedBase64) {
+      console.error('No b64_json in response. Full response:', JSON.stringify(aiData));
       return new Response(
         JSON.stringify({ error: 'No image generated from OpenAI', response: aiData }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Download the generated image from OpenAI URL
-    const imageDownloadResponse = await fetch(generatedImageUrl);
-    if (!imageDownloadResponse.ok) {
-      console.error('Failed to download generated image');
-      return new Response(
-        JSON.stringify({ error: 'Failed to download generated image' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const toonImageBuffer = await imageDownloadResponse.arrayBuffer();
+    // Convert base64 to buffer for upload
+    const toonImageBuffer = Uint8Array.from(atob(generatedBase64), c => c.charCodeAt(0));
     const toonFileName = `${bookId}/toon-${crypto.randomUUID()}.png`;
     
     const { error: toonUploadError } = await supabase.storage
