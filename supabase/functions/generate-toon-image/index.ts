@@ -8,6 +8,17 @@ const corsHeaders = {
 
 type ToonDifficulty = "Quick and Easy" | "Adv Beginner";
 
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const chunkSize = 0x8000; // Process 32KB at a time to avoid stack overflow
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+    binary += String.fromCharCode(...Array.from(chunk));
+  }
+  return btoa(binary);
+}
+
 function buildCartoonPrompt(difficulty: ToonDifficulty): string {
   if (difficulty === "Quick and Easy") {
     return `
@@ -139,9 +150,9 @@ serve(async (req) => {
       );
     }
 
-    // Convert image to base64 for AI processing
+    // Convert image to base64 for AI processing (chunked to avoid stack overflow)
     const imageBuffer = await imageFile.arrayBuffer();
-    const base64Image = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
+    const base64Image = arrayBufferToBase64(imageBuffer);
     const imageDataUrl = `data:${imageFile.type};base64,${base64Image}`;
 
     // Build cartoon prompt based on difficulty
