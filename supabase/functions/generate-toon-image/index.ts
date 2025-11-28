@@ -6,6 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+type BookDifficulty = "Quick and Easy" | "Beginner" | "Intermediate";
 type ToonDifficulty = "Quick and Easy" | "Adv Beginner";
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
@@ -19,62 +20,63 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
-function buildCartoonPrompt(difficulty: ToonDifficulty): string {
-  if (difficulty === "Quick and Easy") {
-    return `
-Turn the uploaded reference photo into a kid friendly, full color 2D cartoon illustration.
+function buildToonColoringPrompt(difficulty: ToonDifficulty): string {
+  const basePrompt = `
+Convert the uploaded photo into a black-and-white line-art coloring page
+drawn in a cute 2D cartoon style.
 
-Rules:
-- Keep the same people, poses, outfits, and general layout as the photo.
-- Style must be clean 2D cartoon or storybook illustration, not 3D, not photorealistic.
-- Faces must be friendly and expressive with kid safe proportions and no uncanny look.
-- Use bright, cheerful colors with clear separation between shapes.
-- Do not include any text, logos, or brand marks.
+Global rules (ALWAYS obey these):
+- Keep the same main subject(s), pose(s), and overall composition as the photo.
+- Style: simple 2D cartoon / storybook line art, NOT photorealistic, NOT 3D.
+- Output MUST be black outlines on a pure white background.
+- NO color anywhere. NO grey shading, gradients, or pencil texture.
+- Clear, confident outlines, clean shapes, no sketchy noise.
+- Show the full main subject(s) in frame; don't crop important parts off.
+`;
 
-Complexity for Quick and Easy:
-- Characters:
-  - Slightly larger heads and simplified facial features.
-  - Clothing simplified into big, flat color areas with very few folds and no tiny patterns.
+  const quickPrompt = `
+CARTOON COLORING PAGE → QUICK AND EASY
+
+Target: very young kids; maximum simplicity.
+
+- Characters / main subject:
+  - Slightly larger cartoon heads, simplified faces (simple eyes, tiny nose, friendly smile).
+  - Clothing simplified into big flat areas; remove tiny folds, textures, and small accessories.
+- Lines:
+  - THICK, bold outlines around characters and key shapes.
+  - Very few internal details; avoid tiny lines on hair, clothes, or objects.
 - Background:
-  - Very simple and uncluttered.
-  - Keep only a few large shapes to hint at the environment, such as one wall shape, a simple floor, one big window, or one large furniture shape.
-  - Remove small objects, scattered toys, loose papers, and any busy detail.
-- Lines and color:
-  - Thick, bold outlines around characters and main shapes.
-  - Mostly flat colors with at most very soft minimal shading on large areas.
-  - Large open areas of single color so the scene is easy to read at a glance.
-- Overall:
-  - The image should look calm, clean, and simple, suitable for very young kids.
-`.trim();
+  - Extremely minimal.
+  - Keep at most 1–2 large simple shapes to hint at the setting (e.g. a floor line and one big block shape).
+  - Remove small objects, clutter, and fine background detail.
+- Absolutely NO hatching, cross-hatching, or grey tones. Only thick black lines on white.
+`;
+
+  const advBeginnerPrompt = `
+CARTOON COLORING PAGE → ADV BEGINNER
+
+Target: early elementary; more detail, still clean and kid-friendly.
+
+- Characters / main subject:
+  - Standard cartoon proportions (not chibi, not realistic).
+  - Clear features and hair shape; you can include a few simple folds in clothing.
+  - Simple patterns (stripes, flowers, pockets) are OK, but avoid micro-detail.
+- Lines:
+  - Medium-thick outlines for the main forms, with some internal detail lines.
+  - Still NO grey shading or tonal rendering; all information must come from line work.
+- Background:
+  - Show a simplified version of the real environment (room, outdoors, etc.).
+  - Include key large objects (walls, furniture, a few props) but aggressively remove clutter.
+  - Prefer bigger, readable shapes over lots of tiny items.
+- Overall: more to look at and color than Quick and Easy, but still clean, readable line art with no shading.
+`;
+
+  if (difficulty === 'Quick and Easy') {
+    return `${basePrompt}\n\n${quickPrompt}`;
   }
 
   // Adv Beginner
-  return `
-Turn the uploaded reference photo into a kid friendly, full color 2D cartoon illustration.
-
-Rules:
-- Keep the same people, poses, outfits, and general layout as the photo.
-- Style must be clean 2D cartoon or storybook illustration, not 3D, not photorealistic.
-- Faces must be friendly and expressive with kid safe proportions and no uncanny look.
-- Use bright, cheerful colors with clear separation between shapes.
-- Do not include any text, logos, or brand marks.
-
-Complexity for Adv Beginner:
-- Characters:
-  - Standard cartoon proportions, not chibi and not hyper realistic.
-  - Clear facial features and hair details without tiny noisy lines.
-  - Clothing can include simple patterns such as stripes or small shapes and a few folds and overlaps.
-- Background:
-  - Show a recognizable scene based on the photo such as a classroom or playroom.
-  - Include key furniture and a limited number of background objects, but avoid extreme clutter.
-  - Use larger shapes and clear silhouettes and keep tiny background items to a minimum.
-- Lines and color:
-  - Medium weight outlines, cleaner and a bit finer than Quick and Easy.
-  - Simple soft shading is allowed, with light shadows and highlights to give gentle depth.
-  - Colors remain bright, fun, and kid friendly rather than dark or edgy.
-- Overall:
-  - The image should look richer and more detailed than Quick and Easy, but still clean and easy to read for early elementary age kids.
-`.trim();
+  return `${basePrompt}\n\n${advBeginnerPrompt}`;
 }
 
 serve(async (req) => {
@@ -102,7 +104,7 @@ serve(async (req) => {
     // Get book to determine difficulty
     const { data: book, error: bookError } = await supabase
       .from('books')
-      .select('difficulty')
+      .select('difficulty, project_type')
       .eq('id', bookId)
       .single();
 
@@ -139,71 +141,55 @@ serve(async (req) => {
 
     const orderIndex = (count ?? 0) + 1;
 
-    // Generate cartoon/toon image using Lovable AI
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    // Map book difficulty to toon difficulty
+    const bookDifficulty = book.difficulty as BookDifficulty;
+    const toonDifficulty: ToonDifficulty = 
+      bookDifficulty === 'Quick and Easy' ? 'Quick and Easy' : 'Adv Beginner';
+
+    const prompt = buildToonColoringPrompt(toonDifficulty);
+
+    // Get OpenAI API key
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY is not set');
+    if (!OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY is not set');
       return new Response(
-        JSON.stringify({ error: 'AI service not configured' }),
+        JSON.stringify({ error: 'OpenAI API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Convert image to base64 for AI processing (chunked to avoid stack overflow)
+    // Convert image to base64
     const imageBuffer = await imageFile.arrayBuffer();
     const base64Image = arrayBufferToBase64(imageBuffer);
     const imageDataUrl = `data:${imageFile.type};base64,${base64Image}`;
 
-    // Build cartoon prompt based on difficulty
-    const toonDifficulty = book.difficulty as ToonDifficulty;
+    console.log('Generating toon coloring page with OpenAI gpt-image-1...');
     
-    if (toonDifficulty !== "Quick and Easy" && toonDifficulty !== "Adv Beginner") {
-      console.error(`Invalid toon difficulty: ${book.difficulty}`);
-      return new Response(
-        JSON.stringify({ error: `Invalid toon difficulty: ${book.difficulty}` }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const prompt = buildCartoonPrompt(toonDifficulty);
-
-    console.log('Generating toon image with Lovable AI...');
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Use OpenAI image edit endpoint to convert photo to line art
+    const aiResponse = await fetch('https://api.openai.com/v1/images/edits', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: prompt
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: imageDataUrl
-                }
-              }
-            ]
-          }
-        ],
-        modalities: ['image', 'text']
+        model: 'gpt-image-1',
+        image: imageDataUrl,
+        prompt: prompt,
+        n: 1,
+        size: '1024x1024',
+        output_format: 'png',
+        response_format: 'b64_json'
       })
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error('Lovable AI error:', errorText);
+      console.error('OpenAI error:', errorText);
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to generate cartoon image',
+          error: 'Failed to generate toon coloring page',
           details: errorText,
           status: aiResponse.status
         }),
@@ -212,19 +198,18 @@ serve(async (req) => {
     }
 
     const aiData = await aiResponse.json();
-    const generatedImageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const generatedBase64 = aiData.data?.[0]?.b64_json;
 
-    if (!generatedImageUrl) {
-      console.error('No image generated from AI');
+    if (!generatedBase64) {
+      console.error('No image generated from OpenAI');
       return new Response(
-        JSON.stringify({ error: 'No image generated from AI service' }),
+        JSON.stringify({ error: 'No image generated from OpenAI' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Upload the generated toon image to storage
-    const base64Data = generatedImageUrl.split(',')[1];
-    const toonImageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+    const toonImageBuffer = Uint8Array.from(atob(generatedBase64), c => c.charCodeAt(0));
     const toonFileName = `${bookId}/toon-${crypto.randomUUID()}.png`;
     
     const { error: toonUploadError } = await supabase.storage
