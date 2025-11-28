@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 type BookDifficulty = "Quick and Easy" | "Beginner" | "Intermediate";
-type ToonDifficulty = "Quick and Easy" | "Adv Beginner";
+type ToonDifficulty = 'quick' | 'adv-beginner';
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
@@ -20,63 +20,50 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
-function buildToonColoringPrompt(difficulty: ToonDifficulty): string {
-  const basePrompt = `
-Convert the uploaded photo into a black-and-white line-art coloring page
-drawn in a cute 2D cartoon style.
+function buildCartoonPrompt(difficulty: ToonDifficulty): string {
+  const base = `
+You are transforming a classroom photo into a BLACK-AND-WHITE CARTOON COLORING PAGE.
 
-Global rules (ALWAYS obey these):
-- Keep the same main subject(s), pose(s), and overall composition as the photo.
-- Style: simple 2D cartoon / storybook line art, NOT photorealistic, NOT 3D.
-- Output MUST be black outlines on a pure white background.
-- NO color anywhere. NO grey shading, gradients, or pencil texture.
-- Clear, confident outlines, clean shapes, no sketchy noise.
-- Show the full main subject(s) in frame; don't crop important parts off.
+Global style rules (apply to ALL difficulties):
+- 2D cartoon style, similar to kids' TV or picture-book characters.
+- Heads noticeably larger than real life (about 20–30% larger), big expressive eyes, simple noses, friendly smiles.
+- Clean, solid BLACK outlines on pure WHITE background.
+- Absolutely NO color, NO grey shading, NO gradients, NO pencil texture.
+- Keep four preschool children based on the pose of the photo, but REDRAW them as cartoon characters, not realistic portraits.
+- Clothing and hair should be simplified into clear shapes with minimal folds and textures.
 `;
 
-  const quickPrompt = `
-CARTOON COLORING PAGE → QUICK AND EASY
+  const quick = `
+QUICK AND EASY CARTOON (for 3–6 year olds):
 
-Target: very young kids; maximum simplicity.
-
-- Characters / main subject:
-  - Slightly larger cartoon heads, simplified faces (simple eyes, tiny nose, friendly smile).
-  - Clothing simplified into big flat areas; remove tiny folds, textures, and small accessories.
-- Lines:
-  - THICK, bold outlines around characters and key shapes.
-  - Very few internal details; avoid tiny lines on hair, clothes, or objects.
-- Background:
-  - Extremely minimal.
-  - Keep at most 1–2 large simple shapes to hint at the setting (e.g. a floor line and one big block shape).
-  - Remove small objects, clutter, and fine background detail.
-- Absolutely NO hatching, cross-hatching, or grey tones. Only thick black lines on white.
+- Four kids, full body, head-to-toe, all clearly visible.
+- Very simple, uncluttered background:
+  - One straight horizontal floor line under their feet.
+  - At most 1–2 large, simple background shapes (e.g. a plain window outline or a single star), NO detailed classroom furniture.
+- Use THICK, BOLD outlines.
+- Very simple faces: big round eyes, small nose, clear smile, no tiny facial details.
+- Clothing must be made of BIG shapes with almost no inner detail (no tiny patterns, no stripes).
+- Large open white areas for easy coloring.
 `;
 
-  const advBeginnerPrompt = `
-CARTOON COLORING PAGE → ADV BEGINNER
+  const advBeginner = `
+ADVANCED BEGINNER CARTOON (between Beginner and Intermediate):
 
-Target: early elementary; more detail, still clean and kid-friendly.
-
-- Characters / main subject:
-  - Standard cartoon proportions (not chibi, not realistic).
-  - Clear features and hair shape; you can include a few simple folds in clothing.
-  - Simple patterns (stripes, flowers, pockets) are OK, but avoid micro-detail.
-- Lines:
-  - Medium-thick outlines for the main forms, with some internal detail lines.
-  - Still NO grey shading or tonal rendering; all information must come from line work.
-- Background:
-  - Show a simplified version of the real environment (room, outdoors, etc.).
-  - Include key large objects (walls, furniture, a few props) but aggressively remove clutter.
-  - Prefer bigger, readable shapes over lots of tiny items.
-- Overall: more to look at and color than Quick and Easy, but still clean, readable line art with no shading.
+- Four kids, full body, head-to-toe, cartoon proportions (large heads, big eyes).
+- Simple but recognizable classroom background:
+  - A few big objects only (e.g. rug, shelf, window, 2–3 big toys or posters).
+  - DO NOT draw many small items or busy textures.
+- Line weight: medium (thinner than Quick and Easy, thicker than Intermediate).
+- Clothing can have a few simple patterns (stripes, flowers) but keep shapes clear and bold.
+- Still NO shading or grey tones – only black outlines on white.
 `;
 
-  if (difficulty === 'Quick and Easy') {
-    return `${basePrompt}\n\n${quickPrompt}`;
+  if (difficulty === 'quick') {
+    return `${base}\n\n${quick}`;
   }
 
-  // Adv Beginner
-  return `${basePrompt}\n\n${advBeginnerPrompt}`;
+  // Default to adv-beginner cartoon if anything else is passed
+  return `${base}\n\n${advBeginner}`;
 }
 
 serve(async (req) => {
@@ -142,11 +129,11 @@ serve(async (req) => {
     const orderIndex = (count ?? 0) + 1;
 
     // Map book difficulty to toon difficulty
-    const bookDifficulty = book.difficulty as BookDifficulty;
-    const toonDifficulty: ToonDifficulty = 
-      bookDifficulty === 'Quick and Easy' ? 'Quick and Easy' : 'Adv Beginner';
+    const rawDifficulty = (book.difficulty || 'quick') as string;
+    const toonDifficulty: ToonDifficulty =
+      rawDifficulty === 'quick' ? 'quick' : 'adv-beginner';
 
-    const prompt = buildToonColoringPrompt(toonDifficulty);
+    const prompt = buildCartoonPrompt(toonDifficulty);
 
     // Get OpenAI API key
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
