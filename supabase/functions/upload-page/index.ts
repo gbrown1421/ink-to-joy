@@ -335,22 +335,8 @@ serve(async (req) => {
         difficulty: book.difficulty,
       });
 
-      // Convert image to base64 in chunks to avoid stack overflow
-      const imageBytes = await imageFile.arrayBuffer();
-      const uint8Array = new Uint8Array(imageBytes);
-      
-      // Process in chunks to avoid stack overflow
-      let binaryString = '';
-      const chunkSize = 8192;
-      for (let i = 0; i < uint8Array.length; i += chunkSize) {
-        const chunk = uint8Array.subarray(i, i + chunkSize);
-        binaryString += String.fromCharCode.apply(null, Array.from(chunk));
-      }
-      const base64Image = btoa(binaryString);
-      
-      // Normalize mime type for data URL (jpeg instead of jpg)
-      const normalizedType = imageType === 'image/jpg' ? 'image/jpeg' : imageType;
-      const imageDataUrl = `data:${normalizedType};base64,${base64Image}`;
+      // Use the public URL of the original image instead of base64 to avoid encoding issues
+      console.log("Using original image URL:", originalUrl);
 
       // Use chat completions with image generation tool (more reliable than /images/edits)
       const chatPayload = {
@@ -366,7 +352,7 @@ serve(async (req) => {
               {
                 type: "image_url",
                 image_url: {
-                  url: imageDataUrl
+                  url: originalUrl
                 }
               }
             ]
