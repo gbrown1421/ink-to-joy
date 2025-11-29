@@ -226,10 +226,20 @@ serve(async (req) => {
 
     // Call OpenAI /v1/images/edits endpoint
     try {
+      // Fetch the original image from storage to ensure it's in a format OpenAI accepts
+      const originalRes = await fetch(originalUrl);
+      if (!originalRes.ok) {
+        throw new Error("Failed to fetch original from storage");
+      }
+      const originalBlob = await originalRes.blob();
+      
+      // Wrap in a new File object with PNG content type
+      const openAiImageFile = new File([originalBlob], "source.png", { type: "image/png" });
+      
       const aiForm = new FormData();
       aiForm.append("model", "gpt-image-1");
       aiForm.append("prompt", prompt);
-      aiForm.append("image", imageFile);
+      aiForm.append("image", openAiImageFile);
       aiForm.append("size", "1024x1536");
 
       const generateResponse = await fetch("https://api.openai.com/v1/images/edits", {
