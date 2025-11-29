@@ -11,54 +11,36 @@ type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
 type ToonDifficulty = "quick_and_easy_toon" | "adv_beginner_toon";
 
 const TOON_QUICK_AND_EASY_PROMPT = `
-Black-and-white line-art coloring page in a very simple chibi / caricature cartoon style.
-
-STYLE & PROPORTIONS
-- All subjects are redrawn as cute chibi characters.
-- Heads are clearly oversized (around one-third to one-half of total body height).
-- Big round eyes, tiny nose and mouth, simple happy expressions.
+Create a black-and-white line-art cartoon coloring page.
+Style:
+- Exaggerated cartoon / chibi look.
+- Heads clearly oversized: roughly one-third to one-half of total body height.
+- Big round eyes, tiny nose and mouth, very simple happy expressions.
 - Short, simplified bodies and limbs; no realistic anatomy or muscles.
-
-LINES & DIFFICULTY – "Quick and Easy"
-- Very thick, bold outlines for all main shapes.
-- Minimal interior detail: large, simple shapes for hair, clothes and features.
-- No tiny patterns, no thin fiddly lines, no micro-textures.
-- Overall complexity should be suitable for very young children.
-
-BACKGROUND
-- Background is extremely simple or mostly blank.
-- At most a couple of large, simple shapes (for example a star, a window, or a simple rug).
-- No cluttered scenes, no wall of tiny objects or detailed furniture.
-
-COLORING PAGE CONSTRAINTS
-- Use pure black outlines on white only.
-- No gray, no shading, no gradients, no cross-hatching.
-- All outlines must form clean, closed shapes that are easy to color in.
+Lines and complexity:
+- Very thick, bold outlines around the main characters.
+- Minimal interior details; no tiny textures or micro-details.
+- No shading, no gradients, no cross-hatching – only solid black lines on white.
+Background:
+- Almost empty background.
+- At most one or two large, simple shapes (for example a big star or a window frame).
+- No clutter, no detailed furniture, no wall of small objects.
 `.trim();
 
 const TOON_ADV_BEGINNER_PROMPT = `
-Black-and-white line-art coloring page in a polished cartoon / caricature style.
-
-STYLE & PROPORTIONS
-- All subjects are redrawn as stylized cartoon characters.
-- Heads remain noticeably larger than realistic, roughly one-third of body height.
-- Big expressive eyes, simplified nose and mouth, friendly expressions.
-- Bodies are simplified but a bit more detailed than the Quick and Easy version.
-
-LINES & DIFFICULTY – "Advanced Beginner"
-- Medium-thick outlines with clear, readable shapes.
-- More interior detail than the Quick and Easy style: some clothing folds, simple hair strands, and a few clear textures.
-- Avoid tiny fussy textures or dense line work; the page must still be easy to color.
-
-BACKGROUND
-- Simple cartoon environment with a few medium-sized background elements (such as shelves, a rug, or a couple of wall decorations).
-- The scene should feel like a recognizable place without being cluttered.
-- Prefer bold, clean shapes over many small objects.
-
-COLORING PAGE CONSTRAINTS
-- Use pure black outlines on white only.
-- No gray, no shading, no gradients, no cross-hatching.
-- All outlines should be clean and closed so that areas are easy to color.
+Create a black-and-white line-art cartoon coloring page.
+Style:
+- Polished cartoon / caricature look.
+- Heads still oversized and clearly stylized (noticeably larger than realistic), about one-third of body height.
+- Big expressive eyes, simplified nose and mouth, friendly smiles.
+- Bodies have more detail than the quick version but remain clearly cartoonish.
+Lines and complexity:
+- Medium-thick clean outlines.
+- More interior detail than the quick version (some clothing folds, simple hair strands, a few textures) but still easy to read.
+- No shading, no gradients, no cross-hatching – only solid black lines on white.
+Background:
+- Simple cartoon scene with a few medium-sized elements so it feels like a place (for example a shelf, rug, a couple of wall decorations).
+- Not cluttered; avoid lots of tiny objects or super-busy patterns.
 `.trim();
 
 function buildToonPrompt(difficulty: ToonDifficulty): string {
@@ -76,59 +58,31 @@ function buildColoringPrompt(difficulty: Difficulty): string {
   switch (difficulty) {
     case "Quick and Easy":
       return `
-Black-and-white line-art coloring page in a "Quick and Easy" style suitable for very young children.
-
-LINES & DETAIL:
-- VERY THICK, bold black outlines.
-- Very few interior lines; large, simple shapes.
-- No tiny textures, no small patterns, no micro-detail.
-
-BACKGROUND:
-- Background should be completely blank white.
-- Do not draw scenery, furniture, patterns, or any other background elements.
-- The page should look almost empty except for the main subjects outlined in simple bold lines.
-
-GENERAL:
-- No shading, hatching, cross-hatching, gradients, or gray tones of any kind.
-- Only solid black outlines on white.
+Create a very simple black-and-white line-art coloring page.
+- Thick bold outlines.
+- Big simple shapes that are easy for young kids to color.
+- Very few small details.
+- Background should be mostly empty or just a couple of large, simple shapes.
+- No shading, gradients, or cross-hatching – only solid black lines on white.
 `.trim();
 
     case "Beginner":
       return `
-Black-and-white line-art coloring page in a "Beginner" style.
-
-LINES & DETAIL:
-- MEDIUM-THICK, clean black outlines.
-- Some interior detail: basic clothing folds, simple hair lines, a few accessories.
-- Avoid tiny textures, dense patterns, or super-fine micro-detail.
-
-BACKGROUND:
-- Simple, uncluttered background.
-- Only a small number of large, clear shapes (for example a couple of big pieces of furniture or decorations).
-- Leave plenty of white space; the scene should feel open and easy to color.
-
-GENERAL:
-- No shading, hatching, cross-hatching, gradients, or gray tones.
-- Only solid black outlines on a white page.
+Create a black-and-white line-art coloring page for early elementary kids.
+- Medium-thick clean outlines.
+- Moderate detail in clothing and hair.
+- Simple background with a few large and medium-sized elements.
+- Avoid tiny clutter and dense patterns.
+- No shading, gradients, or cross-hatching – only solid black lines on white.
 `.trim();
 
     case "Intermediate":
       return `
-Black-and-white line-art coloring page in an "Intermediate" style.
-
-LINES & DETAIL:
-- Finer black outlines than Beginner, but still clean and easy to color.
-- More interior detail: additional folds, hair strands, accessories, and shapes.
-- Detail should be interesting but still readable – avoid messy scribbles.
-
-BACKGROUND:
-- A fuller scene with multiple background elements.
-- More objects and structure than Beginner, but not so dense that it becomes visual noise.
-- Maintain clear shapes with distinct areas to color.
-
-GENERAL:
-- No grayscale of any kind: no shading, hatching, cross-hatching, or gradients.
-- Only solid black line work on a white page.
+Create a black-and-white line-art coloring page with richer detail.
+- Finer, controlled outlines while still remaining clear.
+- More folds, textures, and elements to color.
+- Fuller background scene, but still readable and not chaotic.
+- No shading, gradients, or cross-hatching – only solid black lines on white.
 `.trim();
 
     default: {
@@ -313,30 +267,18 @@ serve(async (req) => {
       prompt = buildToonPrompt(toonDifficulty);
       console.log("Using toon prompt, difficulty:", toonDifficulty);
     } else {
-      // Coloring project
-      const difficulty = book.difficulty as string;
+      // Coloring project - default to "Beginner" if invalid
+      const rawDifficulty = book.difficulty as string;
+      let difficulty: Difficulty;
 
-      if (!difficulty || !["Quick and Easy", "Beginner", "Intermediate"].includes(difficulty)) {
-        console.error("Invalid difficulty for coloring project:", book.difficulty);
-        
-        await supabase
-          .from("pages")
-          .update({ status: "failed" })
-          .eq("id", page.id);
-
-        return new Response(
-          JSON.stringify({ 
-            pageId: page.id, 
-            error: `Invalid book difficulty: "${book.difficulty}". Expected "Quick and Easy", "Beginner", or "Intermediate"` 
-          }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
+      if (rawDifficulty && ["Quick and Easy", "Beginner", "Intermediate"].includes(rawDifficulty)) {
+        difficulty = rawDifficulty as Difficulty;
+      } else {
+        console.warn("Invalid or missing difficulty for coloring project:", book.difficulty, "- defaulting to Beginner");
+        difficulty = "Beginner";
       }
 
-      prompt = buildColoringPrompt(difficulty as Difficulty);
+      prompt = buildColoringPrompt(difficulty);
       console.log("Using coloring prompt, difficulty:", difficulty);
     }
 
