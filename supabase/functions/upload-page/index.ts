@@ -323,64 +323,26 @@ serve(async (req) => {
         difficulty: book.difficulty,
       });
 
-      // OpenAI /images/edits requires: PNG, alpha channel, SQUARE format, <4MB
-      // We'll use canvas API to create a square PNG with alpha
-      let aiRes;
-      try {
-        const imageBytes = await imageFile.arrayBuffer();
-        
-        // Dynamically import canvas for image processing
-        const { createCanvas, loadImage } = await import(
-          "https://deno.land/x/canvas@v1.4.1/mod.ts"
-        );
-        
-        // Load the original image
-        const img = await loadImage(new Uint8Array(imageBytes));
-        
-        // Determine square size (use the larger dimension)
-        const size = Math.max(img.width(), img.height());
-        
-        // Create square canvas with transparency
-        const canvas = createCanvas(size, size);
-        const ctx = canvas.getContext("2d");
-        
-        // Fill with transparent background
-        ctx.clearRect(0, 0, size, size);
-        
-        // Center the image
-        const x = (size - img.width()) / 2;
-        const y = (size - img.height()) / 2;
-        ctx.drawImage(img, x, y);
-        
-        // Export as PNG (returns Uint8Array)
-        const pngBuffer = canvas.toBuffer("image/png");
-        // @ts-ignore - Deno's File constructor accepts Uint8Array
-        const pngFile = new File([pngBuffer], "image.png", { type: "image/png" });
-        
-        console.log("Converted image to square PNG:", {
-          originalSize: `${img.width()}x${img.height()}`,
-          squareSize: `${size}x${size}`,
-          fileSize: pngBuffer.length
-        });
+      // Send image directly to OpenAI - gpt-image-1 handles format conversion
+      console.log("Image info:", {
+        name: imageFile.name,
+        type: imageFile.type,
+        size: imageFile.size
+      });
 
-        const aiForm = new FormData();
-        aiForm.append("model", "gpt-image-1");
-        aiForm.append("prompt", prompt);
-        aiForm.append("image", pngFile);
-        aiForm.append("size", "1024x1536"); // portrait output
+      const aiForm = new FormData();
+      aiForm.append("model", "gpt-image-1");
+      aiForm.append("prompt", prompt);
+      aiForm.append("image", imageFile);
+      aiForm.append("size", "1024x1536");
 
-        aiRes = await fetch("https://api.openai.com/v1/images/edits", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${openaiKey}`,
-          },
-          body: aiForm,
-        });
-      } catch (conversionError) {
-        console.error("Image conversion failed:", conversionError);
-        const msg = conversionError instanceof Error ? conversionError.message : "Unknown error";
-        throw new Error(`Failed to convert image to required format: ${msg}`);
-      }
+      const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openaiKey}`,
+        },
+        body: aiForm,
+      });
 
       if (!aiRes.ok) {
         const errorText = await aiRes.text();
