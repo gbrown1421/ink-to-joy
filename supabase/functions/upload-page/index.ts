@@ -332,6 +332,32 @@ serve(async (req) => {
 
       console.log("Calling OpenAI gpt-5 vision to analyze image for page", page.id);
 
+      // Fetch the image from Supabase storage to convert to base64
+      console.log("Fetching image from storage:", originalUrl);
+      const imageResponse = await fetch(originalUrl);
+      if (!imageResponse.ok) {
+        throw new Error(`Failed to fetch image from storage: ${imageResponse.status}`);
+      }
+
+      const imageBlob = await imageResponse.blob();
+      const imageBytes = await imageBlob.arrayBuffer();
+      const uint8Array = new Uint8Array(imageBytes);
+      
+      // Convert to base64 in chunks to avoid stack overflow
+      let binaryString = '';
+      const chunkSize = 8192;
+      for (let i = 0; i < uint8Array.length; i += chunkSize) {
+        const chunk = uint8Array.subarray(i, i + chunkSize);
+        binaryString += String.fromCharCode.apply(null, Array.from(chunk));
+      }
+      const base64Image = btoa(binaryString);
+      
+      // Detect format from blob type
+      const mimeType = imageBlob.type || 'image/png';
+      const imageDataUrl = `data:${mimeType};base64,${base64Image}`;
+      
+      console.log("Image converted to base64, mime type:", mimeType);
+
       // Step 1: Use GPT-5 vision to analyze the image
       const visionResponse = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -351,7 +377,7 @@ serve(async (req) => {
                 },
                 {
                   type: "image_url",
-                  image_url: { url: originalUrl }
+                  image_url: { url: imageDataUrl }
                 }
               ]
             }
