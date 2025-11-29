@@ -1,3 +1,6 @@
+// LAST_ERROR: OpenAI API error 400: "Invalid image file or mode for image 1, please check your image file."
+// This occurs when OpenAI's /v1/images/edits endpoint rejects the uploaded image format or mode.
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
@@ -392,10 +395,15 @@ serve(async (req) => {
         ? err.message
         : "Unknown error during image processing";
 
+      // Return 200 with failed status so UI doesn't show 500 error
       return new Response(
-        JSON.stringify({ pageId: page.id, error: message }),
+        JSON.stringify({ 
+          pageId: page.id, 
+          status: "failed",
+          error: message 
+        }),
         {
-          status: 500,
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
