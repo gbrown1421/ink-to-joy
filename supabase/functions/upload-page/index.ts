@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { Image } from "https://deno.land/x/imagescript@1.2.15/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -323,11 +324,16 @@ serve(async (req) => {
         difficulty: book.difficulty,
       });
 
+      // Convert image to PNG with alpha channel (required by OpenAI edits endpoint)
+      const imageBytes = new Uint8Array(await imageFile.arrayBuffer());
+      const decodedImage = await Image.decode(imageBytes);
+      const pngWithAlpha = await decodedImage.encode();
+      const pngBlob = new Blob([new Uint8Array(pngWithAlpha)], { type: "image/png" });
+
       const aiForm = new FormData();
       aiForm.append("model", "gpt-image-1");
       aiForm.append("prompt", prompt);
-      // reuse the same uploaded File object
-      aiForm.append("image", imageFile);
+      aiForm.append("image", pngBlob, "image.png");
       aiForm.append("size", "1024x1536"); // portrait
 
       const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
