@@ -11,75 +11,72 @@ type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
 type ToonDifficulty = "quick_and_easy_toon" | "adv_beginner_toon";
 
 const TOON_QUICK_AND_EASY_PROMPT = `
-Create a black-and-white line-art coloring page in a cute chibi / caricature cartoon style, using the uploaded photo only as a loose reference for who or what is in the scene.
+Black-and-white line-art coloring page in a very simple chibi / caricature cartoon style.
 
 STYLE & PROPORTIONS
-- Redraw all people and animals as chibi characters.
-- Heads are clearly oversized (about one-third to one-half of total height).
-- Big round eyes, tiny nose and mouth, simple smiling expressions.
-- Short, simplified bodies and limbs, no realistic anatomy or muscles.
+- All subjects are redrawn as cute chibi characters.
+- Heads are clearly oversized (around one-third to one-half of total body height).
+- Big round eyes, tiny nose and mouth, simple happy expressions.
+- Short, simplified bodies and limbs; no realistic anatomy or muscles.
 
-LINES & DIFFICULTY – "Quick and Easy" for young kids
-- Use very thick, bold outlines for all main shapes.
-- Keep interior detail to an absolute minimum: large, simple shapes for hair, clothes and features.
-- Avoid small textures, tiny patterns, or thin fiddly lines.
-- The page must be easy to color for ages 3–6.
+LINES & DIFFICULTY – "Quick and Easy"
+- Very thick, bold outlines for all main shapes.
+- Minimal interior detail: large, simple shapes for hair, clothes and features.
+- No tiny patterns, no thin fiddly lines, no micro-textures.
+- Overall complexity should be suitable for very young children.
 
 BACKGROUND
-- Keep the background extremely simple or mostly blank.
-- You may include only a couple of large, simple shapes (for example a single star, a window, or a rug) but no clutter and no wall of tiny objects.
+- Background is extremely simple or mostly blank.
+- At most a couple of large, simple shapes (for example a star, a window, or a simple rug).
+- No cluttered scenes, no wall of tiny objects or detailed furniture.
 
-COLORING-PAGE CONSTRAINTS
-- Output pure black outlines on white only – no gray, no shading, no gradients, no cross-hatching.
-- Make sure all outlines are clean, closed shapes suitable for coloring in.
-`;
+COLORING PAGE CONSTRAINTS
+- Use pure black outlines on white only.
+- No gray, no shading, no gradients, no cross-hatching.
+- All outlines must form clean, closed shapes that are easy to color in.
+`.trim();
 
 const TOON_ADV_BEGINNER_PROMPT = `
-Create a black-and-white line-art coloring page in a polished cartoon / caricature style, using the uploaded photo only as a loose reference for who or what is in the scene.
+Black-and-white line-art coloring page in a polished cartoon / caricature style.
 
 STYLE & PROPORTIONS
-- Redraw all people and animals with oversized cartoon heads (noticeably larger than realistic, about one-third of body height).
+- All subjects are redrawn as stylized cartoon characters.
+- Heads remain noticeably larger than realistic, roughly one-third of body height.
 - Big expressive eyes, simplified nose and mouth, friendly expressions.
-- Bodies are still clearly cartoonish and simplified, not realistic anatomy.
+- Bodies are simplified but a bit more detailed than the Quick and Easy version.
 
 LINES & DIFFICULTY – "Advanced Beginner"
-- Use medium-thick outlines.
-- Include more interior detail than Quick and Easy: some clothing folds, simple hair strands, a few clear textures.
-- Avoid tiny, fussy textures or dense line work – it should still be easy to color for kids who can handle moderate detail.
+- Medium-thick outlines with clear, readable shapes.
+- More interior detail than the Quick and Easy style: some clothing folds, simple hair strands, and a few clear textures.
+- Avoid tiny fussy textures or dense line work; the page must still be easy to color.
 
 BACKGROUND
-- Draw a simple cartoon scene inspired by the original setting (e.g. shelves, rug, a few wall decorations).
-- The background should feel like a real place but not cluttered.
-- Use a handful of medium-sized objects rather than many tiny ones.
+- Simple cartoon environment with a few medium-sized background elements (such as shelves, a rug, or a couple of wall decorations).
+- The scene should feel like a recognizable place without being cluttered.
+- Prefer bold, clean shapes over many small objects.
 
-COLORING-PAGE CONSTRAINTS
-- Output pure black outlines on white only – no gray, no shading, no gradients, no cross-hatching.
-- Keep outlines clean and closed so everything can be easily colored.
-`;
+COLORING PAGE CONSTRAINTS
+- Use pure black outlines on white only.
+- No gray, no shading, no gradients, no cross-hatching.
+- All outlines should be clean and closed so that areas are easy to color.
+`.trim();
 
 function buildToonPrompt(difficulty: ToonDifficulty): string {
   switch (difficulty) {
     case "quick_and_easy_toon":
-      return TOON_QUICK_AND_EASY_PROMPT.trim();
+      return TOON_QUICK_AND_EASY_PROMPT;
     case "adv_beginner_toon":
-      return TOON_ADV_BEGINNER_PROMPT.trim();
+      return TOON_ADV_BEGINNER_PROMPT;
     default:
-      return TOON_ADV_BEGINNER_PROMPT.trim();
+      return TOON_ADV_BEGINNER_PROMPT;
   }
 }
 
-/**
- * Build the exact prompt we send to gpt-image-1 for regular coloring pages.
- * Only three allowed values:
- *   - "Quick and Easy"
- *   - "Beginner"
- *   - "Intermediate"
- */
 function buildColoringPrompt(difficulty: Difficulty): string {
   switch (difficulty) {
     case "Quick and Easy":
       return `
-Create a black-and-white line-art coloring page in a "Quick and Easy" style suitable for very young children.
+Black-and-white line-art coloring page in a "Quick and Easy" style suitable for very young children.
 
 LINES & DETAIL:
 - VERY THICK, bold black outlines.
@@ -98,7 +95,7 @@ GENERAL:
 
     case "Beginner":
       return `
-Create a black-and-white line-art coloring page in a "Beginner" style.
+Black-and-white line-art coloring page in a "Beginner" style.
 
 LINES & DETAIL:
 - MEDIUM-THICK, clean black outlines.
@@ -117,7 +114,7 @@ GENERAL:
 
     case "Intermediate":
       return `
-Create a black-and-white line-art coloring page in an "Intermediate" style.
+Black-and-white line-art coloring page in an "Intermediate" style.
 
 LINES & DETAIL:
 - Finer black outlines than Beginner, but still clean and easy to color.
@@ -135,8 +132,6 @@ GENERAL:
 `.trim();
 
     default: {
-      // Should never happen if we keep the DB/UI clean.
-      // Throw so we see it immediately instead of silently generating the wrong thing.
       const never: never = difficulty;
       throw new Error(`Unsupported difficulty: ${never}`);
     }
@@ -303,90 +298,72 @@ serve(async (req) => {
       );
     }
 
-    // --- CALL OPENAI SYNCHRONOUSLY (no background nonsense) ---
-    try {
-      let prompt: string;
+    // Build style prompt based on project type and difficulty
+    let prompt: string;
 
-      if (book.project_type === "toon") {
-        // Cartoon mode: map difficulty to toon difficulty
-        const rawDifficulty = (book.difficulty || "Quick and Easy") as string;
-        const toonDifficulty: ToonDifficulty =
-          rawDifficulty === "Quick and Easy"
-            ? "quick_and_easy_toon"
-            : "adv_beginner_toon";
+    if (book.project_type === "toon") {
+      const rawDifficulty = (book.difficulty || "Quick and Easy") as string;
+      const toonDifficulty: ToonDifficulty =
+        rawDifficulty === "Quick and Easy"
+          ? "quick_and_easy_toon"
+          : "adv_beginner_toon";
 
-        prompt = buildToonPrompt(toonDifficulty);
+      prompt = buildToonPrompt(toonDifficulty);
+      console.log("InkToJoy toon prompt difficulty:", toonDifficulty);
+    } else {
+      const difficulty = book.difficulty as Difficulty;
 
-        console.log("InkToJoy toon prompt difficulty:", toonDifficulty);
-        console.log("InkToJoy toon prompt (first 200 chars):", prompt.slice(0, 200));
-      } else {
-        // Regular coloring mode
-        const difficulty = book.difficulty as Difficulty;
-
-        if (!difficulty || !["Quick and Easy", "Beginner", "Intermediate"].includes(difficulty)) {
-          throw new Error(`Invalid book difficulty: "${book.difficulty}"`);
-        }
-
-        prompt = buildColoringPrompt(difficulty);
+      if (!difficulty || !["Quick and Easy", "Beginner", "Intermediate"].includes(difficulty)) {
+        throw new Error(`Invalid book difficulty: "${book.difficulty}"`);
       }
 
-      console.log("Generating coloring page with gpt-image-1 for page", page.id);
-      console.log("Using prompt length:", prompt.length);
+      prompt = buildColoringPrompt(difficulty);
+      console.log("InkToJoy coloring prompt difficulty:", difficulty);
+    }
 
-      // Use gpt-image-1 directly - it's designed for image generation
-      // We'll enhance the prompt to mention it should be based on the provided reference image
-      const enhancedPrompt = `${prompt}\n\nIMPORTANT: Use the provided image as a reference for the subjects, poses, and scene. Transform what you see into the specified coloring page style while keeping the core elements recognizable.`;
-      
-      console.log("Sending to gpt-image-1 with image reference");
+    console.log("Generating coloring page with gpt-image-1 for page", page.id);
+    console.log("Using prompt length:", prompt.length);
+
+    // Call OpenAI /v1/images/edits endpoint
+    try {
+      const openaiFormData = new FormData();
+      openaiFormData.append("image", imageFile);
+      openaiFormData.append("prompt", prompt);
+      openaiFormData.append("model", "gpt-image-1");
+      openaiFormData.append("n", "1");
+      openaiFormData.append("size", "1024x1536");
+      openaiFormData.append("response_format", "b64_json");
 
       const generateResponse = await fetch("https://api.openai.com/v1/images/edits", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${openaiKey}`,
         },
-        body: await (async () => {
-          const formData = new FormData();
-          
-          // Fetch the original image
-          const imageResponse = await fetch(originalUrl);
-          if (!imageResponse.ok) {
-            throw new Error(`Failed to fetch image: ${imageResponse.status}`);
-          }
-          const imageBlob = await imageResponse.blob();
-          
-          formData.append("image", imageBlob, "image.png");
-          formData.append("prompt", enhancedPrompt);
-          formData.append("model", "gpt-image-1");
-          formData.append("n", "1");
-          formData.append("size", "1024x1024");
-          formData.append("response_format", "b64_json");
-          
-          return formData;
-        })(),
+        body: openaiFormData,
       });
 
       if (!generateResponse.ok) {
         const errorText = await generateResponse.text();
-        console.error("OpenAI generation error:", generateResponse.status, errorText.slice(0, 500));
-        throw new Error(`OpenAI generation error ${generateResponse.status}: ${errorText}`);
+        console.error("OpenAI API error:", generateResponse.status, errorText.slice(0, 500));
+        throw new Error(`OpenAI API error ${generateResponse.status}: ${errorText}`);
       }
 
       const generateJson = await generateResponse.json();
       const b64 = generateJson.data?.[0]?.b64_json;
 
       if (!b64) {
-        console.error("No image data from generation:", JSON.stringify(generateJson).slice(0, 500));
+        console.error("No image data from OpenAI:", JSON.stringify(generateJson).slice(0, 500));
         throw new Error("No image data returned from OpenAI");
       }
 
+      // Decode base64 to PNG blob
       const binary = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
       const resultBlob = new Blob([binary], { type: "image/png" });
 
       const difficultySuffix = (book.difficulty || "intermediate")
         .toLowerCase()
         .replace(/\s+/g, "-");
-      const resultPath =
-        `books/${bookId}/pages/${page.id}-${difficultySuffix}.png`;
+      const resultPath = `books/${bookId}/pages/${page.id}-${difficultySuffix}.png`;
 
       const { error: resultUploadError } = await supabase.storage
         .from("book-images")
