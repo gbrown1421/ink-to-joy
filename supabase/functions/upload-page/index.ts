@@ -11,52 +11,42 @@ type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
 type ToonDifficulty = "quick_and_easy_toon" | "adv_beginner_toon";
 
 const TOON_QUICK_AND_EASY_PROMPT = `
-CARTOON / CARICATURE COLORING PAGE – QUICK AND EASY (ages 3–6)
+Create a black-and-white line-art coloring page in a chibi / caricature cartoon style.
 
-GENERAL:
-- Black-and-white line-art coloring page.
-- Only solid black outlines on pure white; no gray, no shading, no gradients, no cross-hatching.
-
-STYLE:
-- Chibi / caricature look.
-- Heads are clearly oversized: about 1/3 to 1/2 of total body height.
+OVERALL STYLE:
+- Strong chibi / caricature look.
+- Heads clearly oversized compared to bodies.
 - Big round eyes, tiny nose and mouth, simple happy expressions.
-- Short, simplified bodies and limbs; no realistic anatomy or muscles.
-- Very few clothing folds; large, simple shapes.
+- Short, simplified bodies and limbs; no realistic anatomy or muscle detail.
 
-LINES & COMPLEXITY:
-- VERY THICK bold outlines, especially around the main characters.
+LINES & DETAIL:
+- VERY THICK bold outlines around the main subjects.
 - Minimal interior detail; avoid small textures and micro-details.
-- Keep everything extremely simple and easy to color.
+- Large, simple shapes that are easy for young children to color.
 
 BACKGROUND:
-- Background must be almost empty.
-- At most 1–2 large, simple shapes (for example a star or one big window).
-- No clutter, no tiny objects, no detailed furniture or classroom items.
+- Page background should be completely blank white.
+- Do not draw scenery, furniture, toys, stars, windows, patterns, or any other background objects.
+- The result should look like bold cartoon characters on a plain white page.
 `;
 
 const TOON_ADV_BEGINNER_PROMPT = `
-CARTOON / CARICATURE COLORING PAGE – ADVANCED BEGINNER (between Beginner and Intermediate)
+Create a black-and-white line-art coloring page in a polished cartoon / caricature style.
 
-GENERAL:
-- Black-and-white line-art coloring page.
-- Only solid black outlines on pure white; no gray, no shading, no gradients, no cross-hatching.
+OVERALL STYLE:
+- Clear cartoon look with slightly oversized heads and expressive faces.
+- Big eyes, simplified nose and mouth, friendly expressions.
+- Bodies more detailed than a toddler page but still obviously cartoon, not realistic.
 
-STYLE:
-- Polished cartoon / caricature look.
-- Heads still oversized and stylized (noticeably larger than realistic), roughly 1/3 of body height.
-- Big expressive eyes, simplified nose and mouth, friendly smiles.
-- Bodies more detailed than Quick and Easy, but still clearly cartoonish and simplified.
-
-LINES & COMPLEXITY:
+LINES & DETAIL:
 - Medium-thick outlines.
-- More interior detail than Quick and Easy (some clothing folds, hair strands, simple textures) but still clean and readable.
-- Avoid tiny fussy textures or super-dense line work.
+- Moderate interior detail: some clothing folds, simple hair strands, a few textures.
+- Avoid tiny, fussy textures or ultra-dense line work.
 
 BACKGROUND:
-- Simple cartoon scene with a few medium-sized background elements (e.g. shelves, rug, a couple of wall decorations).
-- Scene should feel like a location, but not cluttered.
-- No wall of tiny toys or ultra-busy decor; keep shapes bold and easy to color.
+- Simple cartoon scene with a few medium-sized background elements.
+- Background should suggest a location, but stay open and easy to color.
+- No cluttered walls of tiny objects; keep shapes bold and readable.
 `;
 
 function buildToonPrompt(difficulty: ToonDifficulty): string {
@@ -80,52 +70,60 @@ function buildToonPrompt(difficulty: ToonDifficulty): string {
 function buildColoringPrompt(difficulty: Difficulty): string {
   switch (difficulty) {
     case "Quick and Easy":
-      // TODDLER / QUICK VERSION – NO BACKGROUND
       return `
-Convert the uploaded photo into a super-simple "Quick and Easy" coloring page for young children.
+Create a black-and-white line-art coloring page in a "Quick and Easy" style suitable for very young children.
 
-Rules:
-- Keep ONLY the main people from the photo as full-body characters, head to toes, facing the viewer.
-- REMOVE the entire background (walls, windows, rugs, furniture, toys, posters, stars, etc.).
-- Replace the background with PURE WHITE.
-- You may draw ONE straight horizontal floor line under their feet. No other background lines or objects.
-- Use VERY THICK, BOLD black outlines.
-- Keep interior detail to a minimum: big simple shapes for clothes, hair, and faces.
-- Faces should be very simple and friendly: basic eyes, small nose, small smile — no fine wrinkles or textures.
-- Absolutely NO shading, hatching, cross-hatching, gradients, or gray tones. Only solid black lines on white.
-- Layout should fit nicely on a vertical 8.5x11 page and must NOT crop off any heads or feet.
+LINES & DETAIL:
+- VERY THICK, bold black outlines.
+- Very few interior lines; large, simple shapes.
+- No tiny textures, no small patterns, no micro-detail.
+
+BACKGROUND:
+- Background should be completely blank white.
+- Do not draw scenery, furniture, patterns, or any other background elements.
+- The page should look almost empty except for the main subjects outlined in simple bold lines.
+
+GENERAL:
+- No shading, hatching, cross-hatching, gradients, or gray tones of any kind.
+- Only solid black outlines on white.
 `.trim();
 
     case "Beginner":
-      // BEGINNER – SMALL, SIMPLE BACKGROUND
       return `
-Convert the uploaded photo into a "Beginner" coloring page.
+Create a black-and-white line-art coloring page in a "Beginner" style.
 
-Rules:
-- Keep the same main people as in the photo, ideally full body if possible, clearly separated from the background.
-- Draw a SIMPLE, UNCLUTTERED background:
-  - At most 2–3 LARGE, simple elements (e.g. a big window, one toy shelf, a simple rug, a large star or picture frame).
-  - Do NOT draw lots of small objects, scattered toys, detailed patterns, or visual clutter.
-- Use MEDIUM-THICK, clean black outlines.
-- Add some interior detail (hair strands, clothing folds, a few simple objects) but avoid tiny micro-details.
-- Absolutely NO shading, hatching, cross-hatching, gradients, or gray tones. Only black line art on white.
-- Keep everything clear and easy to color for kids in the Beginner range.
-- Vertical 8.5x11 layout, do not crop off heads or feet if you can avoid it.
+LINES & DETAIL:
+- MEDIUM-THICK, clean black outlines.
+- Some interior detail: basic clothing folds, simple hair lines, a few accessories.
+- Avoid tiny textures, dense patterns, or super-fine micro-detail.
+
+BACKGROUND:
+- Simple, uncluttered background.
+- Only a small number of large, clear shapes (for example a couple of big pieces of furniture or decorations).
+- Leave plenty of white space; the scene should feel open and easy to color.
+
+GENERAL:
+- No shading, hatching, cross-hatching, gradients, or gray tones.
+- Only solid black outlines on a white page.
 `.trim();
 
     case "Intermediate":
-      // INTERMEDIATE – FULLER CLASSROOM BACKGROUND
       return `
-Convert the uploaded photo into an "Intermediate" coloring page.
+Create a black-and-white line-art coloring page in an "Intermediate" style.
 
-Rules:
-- Keep the same main people from the photo, full body if possible.
-- Include a recognizable background based on the real scene (furniture, shelves, windows, wall decorations, etc.),
-  but draw everything as clean line art with no grayscale.
-- You may include more objects and detail than in the Beginner version, but avoid noisy scribbles or unreadable clutter.
-- Use FINER line work than Beginner but still clear black outlines suitable for kids to color.
-- Absolutely NO shading, hatching, cross-hatching, gradients, or gray tones. Only black outlines on white.
-- Layout should fit a vertical 8.5x11 page without cutting off heads or feet.
+LINES & DETAIL:
+- Finer black outlines than Beginner, but still clean and easy to color.
+- More interior detail: additional folds, hair strands, accessories, and shapes.
+- Detail should be interesting but still readable – avoid messy scribbles.
+
+BACKGROUND:
+- A fuller scene with multiple background elements.
+- More objects and structure than Beginner, but not so dense that it becomes visual noise.
+- Maintain clear shapes with distinct areas to color.
+
+GENERAL:
+- No grayscale of any kind: no shading, hatching, cross-hatching, or gradients.
+- Only solid black line work on a white page.
 `.trim();
 
     default: {
