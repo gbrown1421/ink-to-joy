@@ -11,55 +11,50 @@ type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
 type ToonDifficulty = "quick_and_easy_toon" | "adv_beginner_toon";
 
 const TOON_QUICK_AND_EASY_PROMPT = `
-CARTOON / CARICATURE COLORING PAGE – QUICK AND EASY (ages 3–6)
+Create a black-and-white line-art coloring page in a cute chibi / caricature cartoon style, using the uploaded photo only as a loose reference for who or what is in the scene.
 
-GOAL
-Create a very simple black-and-white coloring page where the main subject(s) are drawn as cute cartoon characters.
+STYLE & PROPORTIONS
+- Redraw all people and animals as chibi characters.
+- Heads are clearly oversized (about one-third to one-half of total height).
+- Big round eyes, tiny nose and mouth, simple smiling expressions.
+- Short, simplified bodies and limbs, no realistic anatomy or muscles.
 
-STYLE
-- Strong cartoon / chibi / caricature look.
-- Heads clearly oversized: roughly one-third to one-half of total body height.
-- Big round eyes, small nose and mouth, friendly expression.
-- Short, simplified bodies and limbs; no realistic anatomy or muscles.
-- Simple hair shapes and clothing, drawn with large, smooth curves.
-
-DIFFICULTY & LINE WORK
-- Designed for very young children.
-- Very thick bold outlines for all main shapes.
-- Minimal interior detail: avoid textures, tiny folds, or micro-details.
-- Only solid black outlines on pure white; absolutely no grey, shading, gradients, or hatching.
+LINES & DIFFICULTY – "Quick and Easy" for young kids
+- Use very thick, bold outlines for all main shapes.
+- Keep interior detail to an absolute minimum: large, simple shapes for hair, clothes and features.
+- Avoid small textures, tiny patterns, or thin fiddly lines.
+- The page must be easy to color for ages 3–6.
 
 BACKGROUND
-- Background must be almost empty.
-- At most one or two large, simple shapes to suggest a setting (for example a single big window, a star, a rug shape, or a very simple piece of furniture).
-- No clutter, no crowd of small objects, no complex patterns.
-- Leave plenty of big open white areas that are easy to color.
+- Keep the background extremely simple or mostly blank.
+- You may include only a couple of large, simple shapes (for example a single star, a window, or a rug) but no clutter and no wall of tiny objects.
+
+COLORING-PAGE CONSTRAINTS
+- Output pure black outlines on white only – no gray, no shading, no gradients, no cross-hatching.
+- Make sure all outlines are clean, closed shapes suitable for coloring in.
 `;
 
 const TOON_ADV_BEGINNER_PROMPT = `
-CARTOON / CARICATURE COLORING PAGE – ADVANCED BEGINNER
+Create a black-and-white line-art coloring page in a polished cartoon / caricature style, using the uploaded photo only as a loose reference for who or what is in the scene.
 
-GOAL
-Create a black-and-white coloring page where the main subject(s) are drawn as polished cartoon characters with a simple but recognizable scene.
+STYLE & PROPORTIONS
+- Redraw all people and animals with oversized cartoon heads (noticeably larger than realistic, about one-third of body height).
+- Big expressive eyes, simplified nose and mouth, friendly expressions.
+- Bodies are still clearly cartoonish and simplified, not realistic anatomy.
 
-STYLE
-- Clear cartoon / caricature look.
-- Heads noticeably oversized compared to the body (larger than realistic proportions).
-- Big expressive eyes, simplified nose and mouth, friendly smiles.
-- Bodies more detailed than the Quick and Easy version, but still stylized and simplified.
-- Simple but expressive hair and clothing shapes.
-
-DIFFICULTY & LINE WORK
-- Medium difficulty for kids who can handle a bit more detail.
-- Medium-thick clean outlines for main shapes.
-- Some interior detail is allowed (a few clothing folds, simple hair strands, large patterns), but avoid tiny or fussy line work.
-- Only solid black outlines on pure white; absolutely no grey, shading, gradients, or hatching.
+LINES & DIFFICULTY – "Advanced Beginner"
+- Use medium-thick outlines.
+- Include more interior detail than Quick and Easy: some clothing folds, simple hair strands, a few clear textures.
+- Avoid tiny, fussy textures or dense line work – it should still be easy to color for kids who can handle moderate detail.
 
 BACKGROUND
-- Simple cartoon scene with a few medium-sized background elements to show a location (for example some furniture, a rug, a window, a couple of wall decorations, or a few large toys).
-- The environment should feel present but not crowded.
-- Avoid walls full of tiny objects or ultra-busy patterns; prefer bold, easy-to-color shapes.
-- Keep the overall image readable and fun to color without overwhelming the page.
+- Draw a simple cartoon scene inspired by the original setting (e.g. shelves, rug, a few wall decorations).
+- The background should feel like a real place but not cluttered.
+- Use a handful of medium-sized objects rather than many tiny ones.
+
+COLORING-PAGE CONSTRAINTS
+- Output pure black outlines on white only – no gray, no shading, no gradients, no cross-hatching.
+- Keep outlines clean and closed so everything can be easily colored.
 `;
 
 function buildToonPrompt(difficulty: ToonDifficulty): string {
