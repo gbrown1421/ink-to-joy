@@ -301,6 +301,8 @@ serve(async (req) => {
     // Build style prompt based on project type and difficulty
     let prompt: string;
 
+    console.log("Book details:", { id: book.id, project_type: book.project_type, difficulty: book.difficulty });
+
     if (book.project_type === "toon") {
       const rawDifficulty = (book.difficulty || "Quick and Easy") as string;
       const toonDifficulty: ToonDifficulty =
@@ -309,16 +311,33 @@ serve(async (req) => {
           : "adv_beginner_toon";
 
       prompt = buildToonPrompt(toonDifficulty);
-      console.log("InkToJoy toon prompt difficulty:", toonDifficulty);
+      console.log("Using toon prompt, difficulty:", toonDifficulty);
     } else {
-      const difficulty = book.difficulty as Difficulty;
+      // Coloring project
+      const difficulty = book.difficulty as string;
 
       if (!difficulty || !["Quick and Easy", "Beginner", "Intermediate"].includes(difficulty)) {
-        throw new Error(`Invalid book difficulty: "${book.difficulty}"`);
+        console.error("Invalid difficulty for coloring project:", book.difficulty);
+        
+        await supabase
+          .from("pages")
+          .update({ status: "failed" })
+          .eq("id", page.id);
+
+        return new Response(
+          JSON.stringify({ 
+            pageId: page.id, 
+            error: `Invalid book difficulty: "${book.difficulty}". Expected "Quick and Easy", "Beginner", or "Intermediate"` 
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
-      prompt = buildColoringPrompt(difficulty);
-      console.log("InkToJoy coloring prompt difficulty:", difficulty);
+      prompt = buildColoringPrompt(difficulty as Difficulty);
+      console.log("Using coloring prompt, difficulty:", difficulty);
     }
 
     console.log("Generating coloring page with gpt-image-1 for page", page.id);
@@ -332,7 +351,7 @@ serve(async (req) => {
       openaiFormData.append("model", "gpt-image-1");
       openaiFormData.append("n", "1");
       openaiFormData.append("size", "1024x1536");
-      openaiFormData.append("response_format", "b64_json");
+      // Note: response_format is NOT supported by /v1/images/edits - it always returns URLs
 
       const generateResponse = await fetch("https://api.openai.com/v1/images/edits", {
         method: "POST",
@@ -344,21 +363,27 @@ serve(async (req) => {
 
       if (!generateResponse.ok) {
         const errorText = await generateResponse.text();
-        console.error("OpenAI API error:", generateResponse.status, errorText.slice(0, 500));
+        console.error("OpenAI API error:", generateResponse.status, errorText);
         throw new Error(`OpenAI API error ${generateResponse.status}: ${errorText}`);
       }
 
       const generateJson = await generateResponse.json();
-      const b64 = generateJson.data?.[0]?.b64_json;
+      const imageUrl = generateJson.data?.[0]?.url;
 
-      if (!b64) {
-        console.error("No image data from OpenAI:", JSON.stringify(generateJson).slice(0, 500));
-        throw new Error("No image data returned from OpenAI");
+      if (!imageUrl) {
+        console.error("No image URL from OpenAI:", JSON.stringify(generateJson));
+        throw new Error("No image URL returned from OpenAI");
       }
 
-      // Decode base64 to PNG blob
-      const binary = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-      const resultBlob = new Blob([binary], { type: "image/png" });
+      console.log("OpenAI generated image URL:", imageUrl);
+
+      // Fetch the image from OpenAI's URL
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+        throw new Error(`Failed to fetch generated image: ${imageResponse.status}`);
+      }
+
+      const resultBlob = await imageResponse.blob();
 
       const difficultySuffix = (book.difficulty || "intermediate")
         .toLowerCase()
