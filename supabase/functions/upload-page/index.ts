@@ -330,96 +330,39 @@ serve(async (req) => {
         prompt = buildColoringPrompt(difficulty);
       }
 
-      console.log("Calling OpenAI gpt-5 vision to analyze image for page", page.id);
+      console.log("Generating coloring page with gpt-image-1 for page", page.id);
+      console.log("Using prompt length:", prompt.length);
 
-      // Fetch the image from Supabase storage to convert to base64
-      console.log("Fetching image from storage:", originalUrl);
-      const imageResponse = await fetch(originalUrl);
-      if (!imageResponse.ok) {
-        throw new Error(`Failed to fetch image from storage: ${imageResponse.status}`);
-      }
+      // Use gpt-image-1 directly - it's designed for image generation
+      // We'll enhance the prompt to mention it should be based on the provided reference image
+      const enhancedPrompt = `${prompt}\n\nIMPORTANT: Use the provided image as a reference for the subjects, poses, and scene. Transform what you see into the specified coloring page style while keeping the core elements recognizable.`;
+      
+      console.log("Sending to gpt-image-1 with image reference");
 
-      const imageBlob = await imageResponse.blob();
-      const imageBytes = await imageBlob.arrayBuffer();
-      const uint8Array = new Uint8Array(imageBytes);
-      
-      // Convert to base64 in chunks to avoid stack overflow
-      let binaryString = '';
-      const chunkSize = 8192;
-      for (let i = 0; i < uint8Array.length; i += chunkSize) {
-        const chunk = uint8Array.subarray(i, i + chunkSize);
-        binaryString += String.fromCharCode.apply(null, Array.from(chunk));
-      }
-      const base64Image = btoa(binaryString);
-      
-      // Detect format from blob type
-      const mimeType = imageBlob.type || 'image/png';
-      const imageDataUrl = `data:${mimeType};base64,${base64Image}`;
-      
-      console.log("Image converted to base64, mime type:", mimeType);
-
-      // Step 1: Use GPT-5 vision to analyze the image
-      const visionResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+      const generateResponse = await fetch("https://api.openai.com/v1/images/edits", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${openaiKey}`,
-          "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          model: "gpt-5",
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: "Describe this image in detail, focusing on the main subjects (people, animals, objects), their poses, expressions, clothing, and the setting. Be specific about what you see."
-                },
-                {
-                  type: "image_url",
-                  image_url: { url: imageDataUrl }
-                }
-              ]
-            }
-          ],
-          max_completion_tokens: 500
-        }),
-      });
-
-      if (!visionResponse.ok) {
-        const errorText = await visionResponse.text();
-        console.error("OpenAI vision error:", visionResponse.status, errorText.slice(0, 500));
-        throw new Error(`OpenAI vision error ${visionResponse.status}: ${errorText}`);
-      }
-
-      const visionJson = await visionResponse.json();
-      const imageDescription = visionJson.choices?.[0]?.message?.content;
-
-      if (!imageDescription) {
-        console.error("No description from vision:", JSON.stringify(visionJson).slice(0, 500));
-        throw new Error("Failed to analyze image");
-      }
-
-      console.log("Image description:", imageDescription.slice(0, 200));
-
-      // Step 2: Generate coloring page based on description
-      console.log("Generating coloring page with gpt-image-1");
-      
-      const generatePayload = {
-        model: "gpt-image-1",
-        prompt: `${prompt}\n\nBased on this image description, create the coloring page:\n${imageDescription}`,
-        n: 1,
-        size: "1024x1024",
-        response_format: "b64_json"
-      };
-
-      const generateResponse = await fetch("https://api.openai.com/v1/images/generations", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openaiKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(generatePayload),
+        body: await (async () => {
+          const formData = new FormData();
+          
+          // Fetch the original image
+          const imageResponse = await fetch(originalUrl);
+          if (!imageResponse.ok) {
+            throw new Error(`Failed to fetch image: ${imageResponse.status}`);
+          }
+          const imageBlob = await imageResponse.blob();
+          
+          formData.append("image", imageBlob, "image.png");
+          formData.append("prompt", enhancedPrompt);
+          formData.append("model", "gpt-image-1");
+          formData.append("n", "1");
+          formData.append("size", "1024x1024");
+          formData.append("response_format", "b64_json");
+          
+          return formData;
+        })(),
       });
 
       if (!generateResponse.ok) {
