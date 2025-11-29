@@ -323,9 +323,18 @@ serve(async (req) => {
         difficulty: book.difficulty,
       });
 
-      // Convert image to base64 for chat API
+      // Convert image to base64 in chunks to avoid stack overflow
       const imageBytes = await imageFile.arrayBuffer();
-      const base64Image = btoa(String.fromCharCode(...new Uint8Array(imageBytes)));
+      const uint8Array = new Uint8Array(imageBytes);
+      
+      // Process in chunks to avoid stack overflow
+      let binaryString = '';
+      const chunkSize = 8192;
+      for (let i = 0; i < uint8Array.length; i += chunkSize) {
+        const chunk = uint8Array.subarray(i, i + chunkSize);
+        binaryString += String.fromCharCode.apply(null, Array.from(chunk));
+      }
+      const base64Image = btoa(binaryString);
       const imageDataUrl = `data:${imageFile.type};base64,${base64Image}`;
 
       // Use chat completions with image generation tool (more reliable than /images/edits)
