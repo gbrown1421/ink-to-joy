@@ -323,47 +323,64 @@ serve(async (req) => {
         difficulty: book.difficulty,
       });
 
-      // Convert image to PNG with alpha using canvas (required by OpenAI edits endpoint)
-      let pngBlob: Blob;
+      // OpenAI /images/edits requires: PNG, alpha channel, SQUARE format, <4MB
+      // We'll use canvas API to create a square PNG with alpha
+      let aiRes;
       try {
         const imageBytes = await imageFile.arrayBuffer();
         
-        // Create image from buffer
-        const img = await fetch(
-          `data:${imageFile.type};base64,${btoa(String.fromCharCode(...new Uint8Array(imageBytes)))}`
+        // Dynamically import canvas for image processing
+        const { createCanvas, loadImage } = await import(
+          "https://deno.land/x/canvas@v1.4.1/mod.ts"
         );
-        const bitmap = await img.blob();
         
-        // For OpenAI edits, we need a PNG. Convert if needed.
-        if (imageFile.type === "image/png") {
-          pngBlob = imageFile;
-        } else {
-          // Use sharp via esm.sh for reliable image conversion
-          const sharp = (await import("https://esm.sh/sharp@0.33.0")).default;
-          const buffer = await sharp(new Uint8Array(imageBytes))
-            .png()
-            .toBuffer();
-          pngBlob = new Blob([buffer], { type: "image/png" });
-        }
+        // Load the original image
+        const img = await loadImage(new Uint8Array(imageBytes));
+        
+        // Determine square size (use the larger dimension)
+        const size = Math.max(img.width(), img.height());
+        
+        // Create square canvas with transparency
+        const canvas = createCanvas(size, size);
+        const ctx = canvas.getContext("2d");
+        
+        // Fill with transparent background
+        ctx.clearRect(0, 0, size, size);
+        
+        // Center the image
+        const x = (size - img.width()) / 2;
+        const y = (size - img.height()) / 2;
+        ctx.drawImage(img, x, y);
+        
+        // Export as PNG (returns Uint8Array)
+        const pngBuffer = canvas.toBuffer("image/png");
+        // @ts-ignore - Deno's File constructor accepts Uint8Array
+        const pngFile = new File([pngBuffer], "image.png", { type: "image/png" });
+        
+        console.log("Converted image to square PNG:", {
+          originalSize: `${img.width()}x${img.height()}`,
+          squareSize: `${size}x${size}`,
+          fileSize: pngBuffer.length
+        });
+
+        const aiForm = new FormData();
+        aiForm.append("model", "gpt-image-1");
+        aiForm.append("prompt", prompt);
+        aiForm.append("image", pngFile);
+        aiForm.append("size", "1024x1536"); // portrait output
+
+        aiRes = await fetch("https://api.openai.com/v1/images/edits", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${openaiKey}`,
+          },
+          body: aiForm,
+        });
       } catch (conversionError) {
-        console.error("Image conversion error:", conversionError);
-        // Fallback: try using the original file
-        pngBlob = imageFile;
+        console.error("Image conversion failed:", conversionError);
+        const msg = conversionError instanceof Error ? conversionError.message : "Unknown error";
+        throw new Error(`Failed to convert image to required format: ${msg}`);
       }
-
-      const aiForm = new FormData();
-      aiForm.append("model", "gpt-image-1");
-      aiForm.append("prompt", prompt);
-      aiForm.append("image", pngBlob, "image.png");
-      aiForm.append("size", "1024x1536"); // portrait
-
-      const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openaiKey}`,
-        },
-        body: aiForm,
-      });
 
       if (!aiRes.ok) {
         const errorText = await aiRes.text();
