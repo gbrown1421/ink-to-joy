@@ -193,6 +193,23 @@ serve(async (req) => {
 
     console.log("InkToJoy upload-page: bookId", bookId, "file", imageFile.name);
 
+    // Validate image format - OpenAI only accepts png, jpeg, gif, webp
+    const supportedFormats = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+    const imageType = imageFile.type.toLowerCase();
+    
+    if (!supportedFormats.includes(imageType)) {
+      console.error("Unsupported image format:", imageType);
+      return new Response(
+        JSON.stringify({ 
+          error: `Unsupported image format: ${imageType}. Please upload PNG, JPEG, GIF, or WEBP images only.` 
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     // Get book to know difficulty / type
     const { data: book, error: bookError } = await supabase
       .from("books")
@@ -330,7 +347,10 @@ serve(async (req) => {
         binaryString += String.fromCharCode.apply(null, Array.from(chunk));
       }
       const base64Image = btoa(binaryString);
-      const imageDataUrl = `data:${imageFile.type};base64,${base64Image}`;
+      
+      // Normalize mime type for data URL (jpeg instead of jpg)
+      const normalizedType = imageType === 'image/jpg' ? 'image/jpeg' : imageType;
+      const imageDataUrl = `data:${normalizedType};base64,${base64Image}`;
 
       // Use chat completions with image generation tool (more reliable than /images/edits)
       const chatPayload = {
