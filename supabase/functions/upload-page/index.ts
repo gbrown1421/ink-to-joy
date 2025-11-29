@@ -330,67 +330,83 @@ serve(async (req) => {
         prompt = buildColoringPrompt(difficulty);
       }
 
-      console.log("Calling OpenAI gpt-image-1 for page", page.id, {
-        projectType: book.project_type,
-        difficulty: book.difficulty,
-      });
+      console.log("Calling OpenAI gpt-5 vision to analyze image for page", page.id);
 
-      // Use the public URL of the original image instead of base64 to avoid encoding issues
-      console.log("Using original image URL:", originalUrl);
-
-      // Use chat completions with image generation tool (more reliable than /images/edits)
-      const chatPayload = {
-        model: "gpt-5",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `Transform this image into a coloring page following these instructions:\n\n${prompt}`
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: originalUrl
-                }
-              }
-            ]
-          }
-        ],
-        tools: [{ type: "image_generation" }],
-        tool_choice: { type: "tool", tool: { type: "image_generation" } }
-      };
-
-      console.log("Sending image to OpenAI for transformation");
-
-      const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      // Step 1: Use GPT-5 vision to analyze the image
+      const visionResponse = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${openaiKey}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(chatPayload),
+        body: JSON.stringify({
+          model: "gpt-5",
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "Describe this image in detail, focusing on the main subjects (people, animals, objects), their poses, expressions, clothing, and the setting. Be specific about what you see."
+                },
+                {
+                  type: "image_url",
+                  image_url: { url: originalUrl }
+                }
+              ]
+            }
+          ],
+          max_completion_tokens: 500
+        }),
       });
 
-      if (!aiRes.ok) {
-        const errorText = await aiRes.text();
-        console.error(
-          "OpenAI API error:",
-          aiRes.status,
-          errorText.slice(0, 500),
-        );
-        throw new Error(`OpenAI API error ${aiRes.status}: ${errorText}`);
+      if (!visionResponse.ok) {
+        const errorText = await visionResponse.text();
+        console.error("OpenAI vision error:", visionResponse.status, errorText.slice(0, 500));
+        throw new Error(`OpenAI vision error ${visionResponse.status}: ${errorText}`);
       }
 
-      const aiJson = await aiRes.json();
+      const visionJson = await visionResponse.json();
+      const imageDescription = visionJson.choices?.[0]?.message?.content;
+
+      if (!imageDescription) {
+        console.error("No description from vision:", JSON.stringify(visionJson).slice(0, 500));
+        throw new Error("Failed to analyze image");
+      }
+
+      console.log("Image description:", imageDescription.slice(0, 200));
+
+      // Step 2: Generate coloring page based on description
+      console.log("Generating coloring page with gpt-image-1");
       
-      // Extract image from tool call response
-      const toolCall = aiJson?.output?.find((o: any) => o.type === "image_generation_call");
-      const b64 = toolCall?.result;
+      const generatePayload = {
+        model: "gpt-image-1",
+        prompt: `${prompt}\n\nBased on this image description, create the coloring page:\n${imageDescription}`,
+        n: 1,
+        size: "1024x1024",
+        response_format: "b64_json"
+      };
+
+      const generateResponse = await fetch("https://api.openai.com/v1/images/generations", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openaiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(generatePayload),
+      });
+
+      if (!generateResponse.ok) {
+        const errorText = await generateResponse.text();
+        console.error("OpenAI generation error:", generateResponse.status, errorText.slice(0, 500));
+        throw new Error(`OpenAI generation error ${generateResponse.status}: ${errorText}`);
+      }
+
+      const generateJson = await generateResponse.json();
+      const b64 = generateJson.data?.[0]?.b64_json;
 
       if (!b64) {
-        console.error("OpenAI response missing image data:", JSON.stringify(aiJson).slice(0, 500));
+        console.error("No image data from generation:", JSON.stringify(generateJson).slice(0, 500));
         throw new Error("No image data returned from OpenAI");
       }
 
