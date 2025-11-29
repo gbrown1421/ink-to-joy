@@ -340,12 +340,14 @@ serve(async (req) => {
             role: "user",
             content: [
               {
-                type: "input_text",
+                type: "text",
                 text: `Transform this image into a coloring page following these instructions:\n\n${prompt}`
               },
               {
-                type: "input_image",
-                image_url: imageDataUrl
+                type: "image_url",
+                image_url: {
+                  url: imageDataUrl
+                }
               }
             ]
           }
