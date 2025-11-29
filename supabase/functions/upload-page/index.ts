@@ -11,42 +11,55 @@ type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
 type ToonDifficulty = "quick_and_easy_toon" | "adv_beginner_toon";
 
 const TOON_QUICK_AND_EASY_PROMPT = `
-Create a black-and-white line-art coloring page in a chibi / caricature cartoon style.
+CARTOON / CARICATURE COLORING PAGE – QUICK AND EASY (ages 3–6)
 
-OVERALL STYLE:
-- Strong chibi / caricature look.
-- Heads clearly oversized compared to bodies.
-- Big round eyes, tiny nose and mouth, simple happy expressions.
-- Short, simplified bodies and limbs; no realistic anatomy or muscle detail.
+GOAL
+Create a very simple black-and-white coloring page where the main subject(s) are drawn as cute cartoon characters.
 
-LINES & DETAIL:
-- VERY THICK bold outlines around the main subjects.
-- Minimal interior detail; avoid small textures and micro-details.
-- Large, simple shapes that are easy for young children to color.
+STYLE
+- Strong cartoon / chibi / caricature look.
+- Heads clearly oversized: roughly one-third to one-half of total body height.
+- Big round eyes, small nose and mouth, friendly expression.
+- Short, simplified bodies and limbs; no realistic anatomy or muscles.
+- Simple hair shapes and clothing, drawn with large, smooth curves.
 
-BACKGROUND:
-- Page background should be completely blank white.
-- Do not draw scenery, furniture, toys, stars, windows, patterns, or any other background objects.
-- The result should look like bold cartoon characters on a plain white page.
+DIFFICULTY & LINE WORK
+- Designed for very young children.
+- Very thick bold outlines for all main shapes.
+- Minimal interior detail: avoid textures, tiny folds, or micro-details.
+- Only solid black outlines on pure white; absolutely no grey, shading, gradients, or hatching.
+
+BACKGROUND
+- Background must be almost empty.
+- At most one or two large, simple shapes to suggest a setting (for example a single big window, a star, a rug shape, or a very simple piece of furniture).
+- No clutter, no crowd of small objects, no complex patterns.
+- Leave plenty of big open white areas that are easy to color.
 `;
 
 const TOON_ADV_BEGINNER_PROMPT = `
-Create a black-and-white line-art coloring page in a polished cartoon / caricature style.
+CARTOON / CARICATURE COLORING PAGE – ADVANCED BEGINNER
 
-OVERALL STYLE:
-- Clear cartoon look with slightly oversized heads and expressive faces.
-- Big eyes, simplified nose and mouth, friendly expressions.
-- Bodies more detailed than a toddler page but still obviously cartoon, not realistic.
+GOAL
+Create a black-and-white coloring page where the main subject(s) are drawn as polished cartoon characters with a simple but recognizable scene.
 
-LINES & DETAIL:
-- Medium-thick outlines.
-- Moderate interior detail: some clothing folds, simple hair strands, a few textures.
-- Avoid tiny, fussy textures or ultra-dense line work.
+STYLE
+- Clear cartoon / caricature look.
+- Heads noticeably oversized compared to the body (larger than realistic proportions).
+- Big expressive eyes, simplified nose and mouth, friendly smiles.
+- Bodies more detailed than the Quick and Easy version, but still stylized and simplified.
+- Simple but expressive hair and clothing shapes.
 
-BACKGROUND:
-- Simple cartoon scene with a few medium-sized background elements.
-- Background should suggest a location, but stay open and easy to color.
-- No cluttered walls of tiny objects; keep shapes bold and readable.
+DIFFICULTY & LINE WORK
+- Medium difficulty for kids who can handle a bit more detail.
+- Medium-thick clean outlines for main shapes.
+- Some interior detail is allowed (a few clothing folds, simple hair strands, large patterns), but avoid tiny or fussy line work.
+- Only solid black outlines on pure white; absolutely no grey, shading, gradients, or hatching.
+
+BACKGROUND
+- Simple cartoon scene with a few medium-sized background elements to show a location (for example some furniture, a rug, a window, a couple of wall decorations, or a few large toys).
+- The environment should feel present but not crowded.
+- Avoid walls full of tiny objects or ultra-busy patterns; prefer bold, easy-to-color shapes.
+- Keep the overall image readable and fun to color without overwhelming the page.
 `;
 
 function buildToonPrompt(difficulty: ToonDifficulty): string {
