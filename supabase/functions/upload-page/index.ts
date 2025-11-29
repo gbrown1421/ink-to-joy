@@ -10,12 +10,9 @@ const corsHeaders = {
 
 // Helper to normalize any uploaded image to a clean RGBA PNG for OpenAI
 async function normalizeToPng(file: File): Promise<File> {
-  const arrayBuffer = await file.arrayBuffer();
-  const bytes = new Uint8Array(arrayBuffer);
-  
-  const img = await Image.decode(bytes);
-  const pngBytes = await img.encode();
-  
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const img = await Image.decode(buf);
+  const pngBytes = await img.encode(); // encode as PNG (default format)
   return new File([new Uint8Array(pngBytes)], "source.png", { type: "image/png" });
 }
 
@@ -24,60 +21,71 @@ type ToonDifficulty = "quick_and_easy_toon" | "adv_beginner_toon";
 
 // Helper to normalize difficulty strings from the database
 function normalizeDifficulty(raw: string | null): Difficulty {
-  if (!raw) {
-    console.warn("Missing difficulty, defaulting to Intermediate");
-    return "Intermediate";
-  }
-  
-  const lower = raw.toLowerCase().trim();
-  
-  if (lower === "quick and easy" || lower === "quick & easy" || lower === "quick") {
+  const value = (raw || "Intermediate").trim().toLowerCase();
+  if (value === "quick and easy" || value === "quick_easy" || value === "quick" || value === "quick & easy") {
     return "Quick and Easy";
   }
-  
-  if (lower === "beginner") {
+  if (value === "beginner") {
     return "Beginner";
   }
-  
-  if (lower === "intermediate") {
-    return "Intermediate";
-  }
-  
-  console.warn(`Unknown difficulty "${raw}", defaulting to Intermediate`);
   return "Intermediate";
 }
 
+function mapToonDifficulty(raw: string | null): ToonDifficulty {
+  const value = (raw || "").toLowerCase();
+  if (value === "quick and easy" || value === "quick" || value === "quick & easy") {
+    return "quick_and_easy_toon";
+  }
+  return "adv_beginner_toon";
+}
+
 const TOON_QUICK_AND_EASY_PROMPT = `
-Create a black-and-white line-art cartoon coloring page.
-Style:
-- Exaggerated cartoon / chibi look.
-- Heads clearly oversized: roughly one-third to one-half of total body height.
+CARTOON / CARICATURE COLORING PAGE – QUICK AND EASY
+
+GOAL:
+- Turn the uploaded photo into a very simple cartoon-style black-and-white line-art coloring page.
+- Only solid black outlines on pure white; no gray, no shading, no gradients, no cross-hatching.
+
+STYLE:
+- Chibi / caricature look.
+- Heads clearly oversized: roughly half of the total body height (big head, small body).
 - Big round eyes, tiny nose and mouth, very simple happy expressions.
 - Short, simplified bodies and limbs; no realistic anatomy or muscles.
-Lines and complexity:
-- Very thick, bold outlines around the main characters.
-- Minimal interior details; no tiny textures or micro-details.
-- No shading, no gradients, no cross-hatching – only solid black lines on white.
-Background:
-- Almost empty background.
-- At most one or two large, simple shapes (for example a big star or a window frame).
-- No clutter, no detailed furniture, no wall of small objects.
+- Very few clothing folds; large, simple shapes.
+
+LINE WORK & COMPLEXITY:
+- Use VERY THICK bold outlines for the main characters.
+- Minimal interior detail; avoid small textures and micro-details.
+- Keep everything extremely simple and easy to color for young kids.
+
+BACKGROUND:
+- Background must be almost empty.
+- At most one or two large, simple background shapes (for example a single window, a simple rug, or one big star).
+- No clutter, no tiny objects, no detailed furniture or busy patterns.
 `.trim();
 
 const TOON_ADV_BEGINNER_PROMPT = `
-Create a black-and-white line-art cartoon coloring page.
-Style:
-- Polished cartoon / caricature look.
-- Heads still oversized and clearly stylized (noticeably larger than realistic), about one-third of body height.
+CARTOON / CARICATURE COLORING PAGE – ADVANCED BEGINNER
+
+GOAL:
+- Turn the uploaded photo into a cartoon-style black-and-white line-art coloring page.
+- Only solid black outlines on pure white; no gray, no shading, no gradients, no cross-hatching.
+
+STYLE:
+- Clean cartoon / caricature look.
+- Heads still noticeably oversized (about one third to half of body height), clearly not realistic proportions.
 - Big expressive eyes, simplified nose and mouth, friendly smiles.
-- Bodies have more detail than the quick version but remain clearly cartoonish.
-Lines and complexity:
-- Medium-thick clean outlines.
-- More interior detail than the quick version (some clothing folds, simple hair strands, a few textures) but still easy to read.
-- No shading, no gradients, no cross-hatching – only solid black lines on white.
-Background:
-- Simple cartoon scene with a few medium-sized elements so it feels like a place (for example a shelf, rug, a couple of wall decorations).
-- Not cluttered; avoid lots of tiny objects or super-busy patterns.
+- Bodies more detailed than Quick and Easy but still obviously cartoonish.
+
+LINE WORK & COMPLEXITY:
+- Medium-thick, clean outlines.
+- More interior detail than Quick and Easy: some clothing folds, simple hair strands, a few textures.
+- Avoid tiny fussy textures or dense line noise; keep shapes readable and easy to color.
+
+BACKGROUND:
+- Simple cartoon scene with a few medium-sized background elements.
+- The scene should feel like a place (for example a room or outdoor area) but must not be cluttered.
+- Use a handful of bold, simple shapes instead of many tiny objects.
 `.trim();
 
 function buildToonPrompt(difficulty: ToonDifficulty): string {
@@ -289,22 +297,19 @@ serve(async (req) => {
 
     console.log("Book details:", { id: book.id, project_type: book.project_type, difficulty: book.difficulty });
 
-    // Normalize difficulty for consistent handling
-    const normalizedDifficulty = normalizeDifficulty(book.difficulty as string | null);
-    
     if (book.project_type === "toon") {
-      const toonDifficulty: ToonDifficulty =
-        normalizedDifficulty === "Quick and Easy"
-          ? "quick_and_easy_toon"
-          : "adv_beginner_toon";
-
+      const toonDifficulty = mapToonDifficulty(book.difficulty as string | null);
       prompt = buildToonPrompt(toonDifficulty);
       console.log("Using toon prompt, difficulty:", toonDifficulty);
     } else {
-      // Coloring project - use normalized difficulty
-      prompt = buildColoringPrompt(normalizedDifficulty);
-      console.log("Using coloring prompt, difficulty:", normalizedDifficulty);
+      const difficulty = normalizeDifficulty(book.difficulty as string | null);
+      prompt = buildColoringPrompt(difficulty);
+      console.log("Using coloring prompt, difficulty:", difficulty);
     }
+    
+    const normalizedDifficulty = book.project_type === "toon" 
+      ? (mapToonDifficulty(book.difficulty as string | null) === "quick_and_easy_toon" ? "Quick and Easy" : "Beginner")
+      : normalizeDifficulty(book.difficulty as string | null);
 
     console.log("Generating coloring page with gpt-image-1 for page", page.id);
     console.log("Using prompt length:", prompt.length);
@@ -314,20 +319,18 @@ serve(async (req) => {
       // Normalize the image to a clean RGBA PNG for OpenAI
       const openAiImageFile = await normalizeToPng(imageFile);
       
-      const openaiFormData = new FormData();
-      openaiFormData.append("image", openAiImageFile);
-      openaiFormData.append("prompt", prompt);
-      openaiFormData.append("model", "gpt-image-1");
-      openaiFormData.append("n", "1");
-      openaiFormData.append("size", "1024x1536");
-      // Note: response_format is NOT supported by /v1/images/edits - it always returns URLs
+      const aiForm = new FormData();
+      aiForm.append("model", "gpt-image-1");
+      aiForm.append("prompt", prompt);
+      aiForm.append("image", openAiImageFile);
+      aiForm.append("size", "1024x1536");
 
       const generateResponse = await fetch("https://api.openai.com/v1/images/edits", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${openaiKey}`,
         },
-        body: openaiFormData,
+        body: aiForm,
       });
 
       if (!generateResponse.ok) {
