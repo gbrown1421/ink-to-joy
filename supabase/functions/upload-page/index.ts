@@ -1,14 +1,23 @@
-// LAST_ERROR: OpenAI API error 400: "Invalid image file or mode for image 1, please check your image file."
-// This occurs when OpenAI's /v1/images/edits endpoint rejects the uploaded image format or mode.
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+// Helper to normalize any uploaded image to a clean RGBA PNG for OpenAI
+async function normalizeToPng(file: File): Promise<File> {
+  const arrayBuffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(arrayBuffer);
+  
+  const img = await Image.decode(bytes);
+  const pngBytes = await img.encode();
+  
+  return new File([new Uint8Array(pngBytes)], "source.png", { type: "image/png" });
+}
 
 type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
 type ToonDifficulty = "quick_and_easy_toon" | "adv_beginner_toon";
@@ -302,8 +311,11 @@ serve(async (req) => {
 
     // Call OpenAI /v1/images/edits endpoint
     try {
+      // Normalize the image to a clean RGBA PNG for OpenAI
+      const openAiImageFile = await normalizeToPng(imageFile);
+      
       const openaiFormData = new FormData();
-      openaiFormData.append("image", imageFile);
+      openaiFormData.append("image", openAiImageFile);
       openaiFormData.append("prompt", prompt);
       openaiFormData.append("model", "gpt-image-1");
       openaiFormData.append("n", "1");
@@ -395,15 +407,13 @@ serve(async (req) => {
         ? err.message
         : "Unknown error during image processing";
 
-      // Return 200 with failed status so UI doesn't show 500 error
       return new Response(
         JSON.stringify({ 
           pageId: page.id, 
-          status: "failed",
           error: message 
         }),
         {
-          status: 200,
+          status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
