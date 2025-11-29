@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { Image } from "https://deno.land/x/imagescript@1.2.15/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -324,11 +323,33 @@ serve(async (req) => {
         difficulty: book.difficulty,
       });
 
-      // Convert image to PNG with alpha channel (required by OpenAI edits endpoint)
-      const imageBytes = new Uint8Array(await imageFile.arrayBuffer());
-      const decodedImage = await Image.decode(imageBytes);
-      const pngWithAlpha = await decodedImage.encode();
-      const pngBlob = new Blob([new Uint8Array(pngWithAlpha)], { type: "image/png" });
+      // Convert image to PNG with alpha using canvas (required by OpenAI edits endpoint)
+      let pngBlob: Blob;
+      try {
+        const imageBytes = await imageFile.arrayBuffer();
+        
+        // Create image from buffer
+        const img = await fetch(
+          `data:${imageFile.type};base64,${btoa(String.fromCharCode(...new Uint8Array(imageBytes)))}`
+        );
+        const bitmap = await img.blob();
+        
+        // For OpenAI edits, we need a PNG. Convert if needed.
+        if (imageFile.type === "image/png") {
+          pngBlob = imageFile;
+        } else {
+          // Use sharp via esm.sh for reliable image conversion
+          const sharp = (await import("https://esm.sh/sharp@0.33.0")).default;
+          const buffer = await sharp(new Uint8Array(imageBytes))
+            .png()
+            .toBuffer();
+          pngBlob = new Blob([buffer], { type: "image/png" });
+        }
+      } catch (conversionError) {
+        console.error("Image conversion error:", conversionError);
+        // Fallback: try using the original file
+        pngBlob = imageFile;
+      }
 
       const aiForm = new FormData();
       aiForm.append("model", "gpt-image-1");
