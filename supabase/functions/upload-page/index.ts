@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,95 +7,18 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper to normalize any uploaded image to a clean RGBA PNG for OpenAI
-async function normalizeToPng(file: File): Promise<File> {
-  const buf = new Uint8Array(await file.arrayBuffer());
-  const img = await Image.decode(buf);
-  const pngBytes = await img.encode(); // encode as PNG (default format)
-  return new File([new Uint8Array(pngBytes)], "source.png", { type: "image/png" });
-}
-
 type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
-type ToonDifficulty = "quick_and_easy_toon" | "adv_beginner_toon";
 
 // Helper to normalize difficulty strings from the database
 function normalizeDifficulty(raw: string | null): Difficulty {
-  const value = (raw || "Intermediate").trim().toLowerCase();
-  if (value === "quick and easy" || value === "quick_easy" || value === "quick" || value === "quick & easy") {
+  const v = (raw || "").toLowerCase();
+  if (v === "quick" || v === "quick and easy" || v === "quick & easy") {
     return "Quick and Easy";
   }
-  if (value === "beginner") {
+  if (v === "beginner") {
     return "Beginner";
   }
   return "Intermediate";
-}
-
-function mapToonDifficulty(raw: string | null): ToonDifficulty {
-  const value = (raw || "").toLowerCase();
-  if (value === "quick and easy" || value === "quick" || value === "quick & easy") {
-    return "quick_and_easy_toon";
-  }
-  return "adv_beginner_toon";
-}
-
-const TOON_QUICK_AND_EASY_PROMPT = `
-CARTOON / CARICATURE COLORING PAGE – QUICK AND EASY
-
-GOAL:
-- Turn the uploaded photo into a very simple cartoon-style black-and-white line-art coloring page.
-- Only solid black outlines on pure white; no gray, no shading, no gradients, no cross-hatching.
-
-STYLE:
-- Chibi / caricature look.
-- Heads clearly oversized: roughly half of the total body height (big head, small body).
-- Big round eyes, tiny nose and mouth, very simple happy expressions.
-- Short, simplified bodies and limbs; no realistic anatomy or muscles.
-- Very few clothing folds; large, simple shapes.
-
-LINE WORK & COMPLEXITY:
-- Use VERY THICK bold outlines for the main characters.
-- Minimal interior detail; avoid small textures and micro-details.
-- Keep everything extremely simple and easy to color for young kids.
-
-BACKGROUND:
-- Background must be almost empty.
-- At most one or two large, simple background shapes (for example a single window, a simple rug, or one big star).
-- No clutter, no tiny objects, no detailed furniture or busy patterns.
-`.trim();
-
-const TOON_ADV_BEGINNER_PROMPT = `
-CARTOON / CARICATURE COLORING PAGE – ADVANCED BEGINNER
-
-GOAL:
-- Turn the uploaded photo into a cartoon-style black-and-white line-art coloring page.
-- Only solid black outlines on pure white; no gray, no shading, no gradients, no cross-hatching.
-
-STYLE:
-- Clean cartoon / caricature look.
-- Heads still noticeably oversized (about one third to half of body height), clearly not realistic proportions.
-- Big expressive eyes, simplified nose and mouth, friendly smiles.
-- Bodies more detailed than Quick and Easy but still obviously cartoonish.
-
-LINE WORK & COMPLEXITY:
-- Medium-thick, clean outlines.
-- More interior detail than Quick and Easy: some clothing folds, simple hair strands, a few textures.
-- Avoid tiny fussy textures or dense line noise; keep shapes readable and easy to color.
-
-BACKGROUND:
-- Simple cartoon scene with a few medium-sized background elements.
-- The scene should feel like a place (for example a room or outdoor area) but must not be cluttered.
-- Use a handful of bold, simple shapes instead of many tiny objects.
-`.trim();
-
-function buildToonPrompt(difficulty: ToonDifficulty): string {
-  switch (difficulty) {
-    case "quick_and_easy_toon":
-      return TOON_QUICK_AND_EASY_PROMPT;
-    case "adv_beginner_toon":
-      return TOON_ADV_BEGINNER_PROMPT;
-    default:
-      return TOON_ADV_BEGINNER_PROMPT;
-  }
 }
 
 function buildColoringPrompt(difficulty: Difficulty): string {
@@ -217,9 +139,9 @@ serve(async (req) => {
       );
     }
 
-    if (book.project_type !== "coloring" && book.project_type !== "toon") {
+    if (book.project_type !== "coloring") {
       return new Response(
-        JSON.stringify({ error: "Only coloring and toon projects are supported" }),
+        JSON.stringify({ error: "Only coloring projects are supported by this function" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -292,37 +214,22 @@ serve(async (req) => {
       );
     }
 
-    // Build style prompt based on project type and difficulty
-    let prompt: string;
+    // Build realistic coloring prompt
+    const difficulty = normalizeDifficulty(book.difficulty as string | null);
+    const prompt = buildColoringPrompt(difficulty);
 
     console.log("Book details:", { id: book.id, project_type: book.project_type, difficulty: book.difficulty });
-
-    if (book.project_type === "toon") {
-      const toonDifficulty = mapToonDifficulty(book.difficulty as string | null);
-      prompt = buildToonPrompt(toonDifficulty);
-      console.log("Using toon prompt, difficulty:", toonDifficulty);
-    } else {
-      const difficulty = normalizeDifficulty(book.difficulty as string | null);
-      prompt = buildColoringPrompt(difficulty);
-      console.log("Using coloring prompt, difficulty:", difficulty);
-    }
-    
-    const normalizedDifficulty = book.project_type === "toon" 
-      ? (mapToonDifficulty(book.difficulty as string | null) === "quick_and_easy_toon" ? "Quick and Easy" : "Beginner")
-      : normalizeDifficulty(book.difficulty as string | null);
+    console.log("Using coloring prompt, difficulty:", difficulty);
 
     console.log("Generating coloring page with gpt-image-1 for page", page.id);
     console.log("Using prompt length:", prompt.length);
 
     // Call OpenAI /v1/images/edits endpoint
     try {
-      // Normalize the image to a clean RGBA PNG for OpenAI
-      const openAiImageFile = await normalizeToPng(imageFile);
-      
       const aiForm = new FormData();
       aiForm.append("model", "gpt-image-1");
       aiForm.append("prompt", prompt);
-      aiForm.append("image", openAiImageFile);
+      aiForm.append("image", imageFile);
       aiForm.append("size", "1024x1536");
 
       const generateResponse = await fetch("https://api.openai.com/v1/images/edits", {
@@ -357,8 +264,8 @@ serve(async (req) => {
 
       const resultBlob = await imageResponse.blob();
 
-      // Use normalized difficulty for file naming
-      const difficultySuffix = normalizedDifficulty.toLowerCase().replace(/\s+/g, "-");
+      // Use difficulty for file naming
+      const difficultySuffix = difficulty.toLowerCase().replace(/\s+/g, "-");
       const resultPath = `books/${bookId}/pages/${page.id}-${difficultySuffix}.png`;
 
       const { error: resultUploadError } = await supabase.storage
@@ -413,10 +320,11 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           pageId: page.id, 
+          status: "failed",
           error: message 
         }),
         {
-          status: 500,
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
