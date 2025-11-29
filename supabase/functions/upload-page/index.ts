@@ -10,6 +10,31 @@ const corsHeaders = {
 type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
 type ToonDifficulty = "quick_and_easy_toon" | "adv_beginner_toon";
 
+// Helper to normalize difficulty strings from the database
+function normalizeDifficulty(raw: string | null): Difficulty {
+  if (!raw) {
+    console.warn("Missing difficulty, defaulting to Intermediate");
+    return "Intermediate";
+  }
+  
+  const lower = raw.toLowerCase().trim();
+  
+  if (lower === "quick and easy" || lower === "quick & easy" || lower === "quick") {
+    return "Quick and Easy";
+  }
+  
+  if (lower === "beginner") {
+    return "Beginner";
+  }
+  
+  if (lower === "intermediate") {
+    return "Intermediate";
+  }
+  
+  console.warn(`Unknown difficulty "${raw}", defaulting to Intermediate`);
+  return "Intermediate";
+}
+
 const TOON_QUICK_AND_EASY_PROMPT = `
 Create a black-and-white line-art cartoon coloring page.
 Style:
@@ -84,11 +109,6 @@ Create a black-and-white line-art coloring page with richer detail.
 - Fuller background scene, but still readable and not chaotic.
 - No shading, gradients, or cross-hatching – only solid black lines on white.
 `.trim();
-
-    default: {
-      const never: never = difficulty;
-      throw new Error(`Unsupported difficulty: ${never}`);
-    }
   }
 }
 
@@ -257,29 +277,21 @@ serve(async (req) => {
 
     console.log("Book details:", { id: book.id, project_type: book.project_type, difficulty: book.difficulty });
 
+    // Normalize difficulty for consistent handling
+    const normalizedDifficulty = normalizeDifficulty(book.difficulty as string | null);
+    
     if (book.project_type === "toon") {
-      const rawDifficulty = (book.difficulty || "Quick and Easy") as string;
       const toonDifficulty: ToonDifficulty =
-        rawDifficulty === "Quick and Easy"
+        normalizedDifficulty === "Quick and Easy"
           ? "quick_and_easy_toon"
           : "adv_beginner_toon";
 
       prompt = buildToonPrompt(toonDifficulty);
       console.log("Using toon prompt, difficulty:", toonDifficulty);
     } else {
-      // Coloring project - default to "Beginner" if invalid
-      const rawDifficulty = book.difficulty as string;
-      let difficulty: Difficulty;
-
-      if (rawDifficulty && ["Quick and Easy", "Beginner", "Intermediate"].includes(rawDifficulty)) {
-        difficulty = rawDifficulty as Difficulty;
-      } else {
-        console.warn("Invalid or missing difficulty for coloring project:", book.difficulty, "- defaulting to Beginner");
-        difficulty = "Beginner";
-      }
-
-      prompt = buildColoringPrompt(difficulty);
-      console.log("Using coloring prompt, difficulty:", difficulty);
+      // Coloring project - use normalized difficulty
+      prompt = buildColoringPrompt(normalizedDifficulty);
+      console.log("Using coloring prompt, difficulty:", normalizedDifficulty);
     }
 
     console.log("Generating coloring page with gpt-image-1 for page", page.id);
@@ -327,9 +339,8 @@ serve(async (req) => {
 
       const resultBlob = await imageResponse.blob();
 
-      const difficultySuffix = (book.difficulty || "intermediate")
-        .toLowerCase()
-        .replace(/\s+/g, "-");
+      // Use normalized difficulty for file naming
+      const difficultySuffix = normalizedDifficulty.toLowerCase().replace(/\s+/g, "-");
       const resultPath = `books/${bookId}/pages/${page.id}-${difficultySuffix}.png`;
 
       const { error: resultUploadError } = await supabase.storage
