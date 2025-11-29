@@ -323,25 +323,42 @@ serve(async (req) => {
         difficulty: book.difficulty,
       });
 
-      // Send image directly to OpenAI - gpt-image-1 handles format conversion
-      console.log("Image info:", {
-        name: imageFile.name,
-        type: imageFile.type,
-        size: imageFile.size
-      });
+      // Convert image to base64 for chat API
+      const imageBytes = await imageFile.arrayBuffer();
+      const base64Image = btoa(String.fromCharCode(...new Uint8Array(imageBytes)));
+      const imageDataUrl = `data:${imageFile.type};base64,${base64Image}`;
 
-      const aiForm = new FormData();
-      aiForm.append("model", "gpt-image-1");
-      aiForm.append("prompt", prompt);
-      aiForm.append("image", imageFile);
-      aiForm.append("size", "1024x1536");
+      // Use chat completions with image generation tool (more reliable than /images/edits)
+      const chatPayload = {
+        model: "gpt-5",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "input_text",
+                text: `Transform this image into a coloring page following these instructions:\n\n${prompt}`
+              },
+              {
+                type: "input_image",
+                image_url: imageDataUrl
+              }
+            ]
+          }
+        ],
+        tools: [{ type: "image_generation" }],
+        tool_choice: { type: "tool", tool: { type: "image_generation" } }
+      };
 
-      const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
+      console.log("Sending image to OpenAI for transformation");
+
+      const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${openaiKey}`,
+          "Content-Type": "application/json"
         },
-        body: aiForm,
+        body: JSON.stringify(chatPayload),
       });
 
       if (!aiRes.ok) {
@@ -355,10 +372,13 @@ serve(async (req) => {
       }
 
       const aiJson = await aiRes.json();
-      const b64 = aiJson?.data?.[0]?.b64_json;
+      
+      // Extract image from tool call response
+      const toolCall = aiJson?.output?.find((o: any) => o.type === "image_generation_call");
+      const b64 = toolCall?.result;
 
       if (!b64) {
-        console.error("OpenAI response missing b64_json:", aiJson);
+        console.error("OpenAI response missing image data:", JSON.stringify(aiJson).slice(0, 500));
         throw new Error("No image data returned from OpenAI");
       }
 
