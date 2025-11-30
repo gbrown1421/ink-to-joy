@@ -224,20 +224,20 @@ serve(async (req) => {
     console.log("Generating coloring page with gpt-image-1 for page", page.id);
     console.log("Using prompt length:", prompt.length);
 
-    // Call OpenAI /v1/images/edits endpoint
+    // Call OpenAI /v1/images/generations endpoint (no image file needed)
     try {
-      const aiForm = new FormData();
-      aiForm.append("model", "gpt-image-1");
-      aiForm.append("prompt", prompt);
-      aiForm.append("image", imageFile);
-      aiForm.append("size", "1024x1536");
-
-      const generateResponse = await fetch("https://api.openai.com/v1/images/edits", {
+      const generateResponse = await fetch("https://api.openai.com/v1/images/generations", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${openaiKey}`,
+          "Content-Type": "application/json",
         },
-        body: aiForm,
+        body: JSON.stringify({
+          model: "gpt-image-1",
+          prompt,
+          size: "1024x1536",
+          response_format: "url",
+        }),
       });
 
       if (!generateResponse.ok) {
