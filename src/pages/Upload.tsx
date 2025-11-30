@@ -11,9 +11,46 @@ import { ProjectTypeBadge } from "@/components/ProjectTypeBadge";
 interface UploadedPage {
   id: string;
   originalFile: File;
-  status: "uploading" | "processing" | "ready" | "failed";
+  status: "accepted" | "normalizing" | "prep-complete" | "processing" | "ready" | "failed";
   coloringImageUrl?: string;
   error?: string;
+}
+
+// Normalize any uploaded image to a safe PNG for OpenAI
+async function normalizeImageToPng(file: File): Promise<File> {
+  // Read file as data URL
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error || new Error("FileReader error"));
+    reader.readAsDataURL(file);
+  });
+
+  // Load into an Image element
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Image load error"));
+    image.src = dataUrl;
+  });
+
+  // Draw to canvas and export as PNG
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not get 2D canvas context");
+  ctx.drawImage(img, 0, 0);
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((b) => {
+      if (b) resolve(b);
+      else reject(new Error("canvas.toBlob returned null"));
+    }, "image/png");
+  });
+
+  const baseName = file.name.replace(/\.[^.]+$/, "");
+  return new File([blob], `${baseName}.png`, { type: "image/png" });
 }
 
 const Upload = () => {
@@ -59,7 +96,7 @@ const Upload = () => {
     const newPages: UploadedPage[] = acceptedFiles.map(file => ({
       id: crypto.randomUUID(),
       originalFile: file,
-      status: "uploading" as const,
+      status: "accepted" as const,
     }));
 
     setPages(prev => [...prev, ...newPages]);
@@ -67,65 +104,66 @@ const Upload = () => {
 
     for (const page of newPages) {
       try {
-        const formData = new FormData();
-        formData.append('bookId', bookId);
-        formData.append('image', page.originalFile);
+        // Mark as accepted
+        setPages(prev => prev.map(p =>
+          p.id === page.id ? { ...p, status: "accepted", error: undefined } : p
+        ));
 
-        // All uploads (both coloring and toon) now go through upload-page
+        // Phase 1: normalize to PNG
+        setPages(prev => prev.map(p =>
+          p.id === page.id ? { ...p, status: "normalizing" } : p
+        ));
+
+        const normalizedFile = await normalizeImageToPng(page.originalFile);
+
+        setPages(prev => prev.map(p =>
+          p.id === page.id ? { ...p, status: "prep-complete" } : p
+        ));
+
+        // Phase 2: call upload-page with normalized PNG
+        setPages(prev => prev.map(p =>
+          p.id === page.id ? { ...p, status: "processing" } : p
+        ));
+
+        const formData = new FormData();
+        formData.append("bookId", bookId);
+        formData.append("image", normalizedFile);
+
         const { data, error } = await supabase.functions.invoke("upload-page", {
           body: formData,
         });
 
         if (error) {
-          const msg = error.message || 'Upload / processing failed';
-          console.error('upload-page error:', msg);
+          const msg = error.message || "Upload / processing failed";
+          console.error("upload-page error:", msg);
           toast.error(msg);
-          setPages(prev => prev.map(p => 
-            p.id === page.id 
-              ? { ...p, status: "failed", error: msg } 
-              : p
+          setPages(prev => prev.map(p =>
+            p.id === page.id ? { ...p, status: "failed", error: msg } : p
           ));
           continue;
         }
 
-        if (!data || !data.pageId) {
-          const msg = 'No pageId returned from upload-page';
-          console.error(msg, data);
-          toast.error(msg);
-          setPages(prev => prev.map(p => 
-            p.id === page.id 
-              ? { ...p, status: "failed", error: msg } 
-              : p
-          ));
-          continue;
-        }
-
-        if (data.status === 'ready' && data.coloringImageUrl) {
-          setPages(prev => prev.map(p => 
-            p.id === page.id 
-              ? { ...p, status: "ready", coloringImageUrl: data.coloringImageUrl as string } 
+        if (data?.status === "ready" && data.coloringImageUrl) {
+          setPages(prev => prev.map(p =>
+            p.id === page.id
+              ? { ...p, status: "ready", coloringImageUrl: data.coloringImageUrl as string }
               : p
           ));
           toast.success("Page processed successfully!");
         } else {
-          // Shouldn't really happen with the new backend; treat as failed if it does
-          const msg = 'Image processing did not complete';
+          const msg = data?.error || "Image processing did not complete";
           console.warn(msg, data);
           toast.error(msg);
-          setPages(prev => prev.map(p => 
-            p.id === page.id 
-              ? { ...p, status: "failed", error: msg } 
-              : p
+          setPages(prev => prev.map(p =>
+            p.id === page.id ? { ...p, status: "failed", error: msg } : p
           ));
         }
       } catch (err) {
-        console.error('Error uploading/processing page:', err);
-        const msg = err instanceof Error ? err.message : 'Upload failed';
+        console.error("Error uploading/processing page:", err);
+        const msg = err instanceof Error ? err.message : "Upload failed";
         toast.error(msg);
-        setPages(prev => prev.map(p => 
-          p.id === page.id 
-            ? { ...p, status: "failed", error: msg } 
-            : p
+        setPages(prev => prev.map(p =>
+          p.id === page.id ? { ...p, status: "failed", error: msg } : p
         ));
       }
     }
@@ -155,7 +193,11 @@ const Upload = () => {
 
 
   const readyCount = pages.filter(p => p.status === "ready").length;
-  const processingCount = pages.filter(p => p.status === "processing" || p.status === "uploading").length;
+  const processingCount = pages.filter(p => 
+    p.status === "normalizing" || 
+    p.status === "prep-complete" || 
+    p.status === "processing"
+  ).length;
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -224,7 +266,7 @@ const Upload = () => {
               {pages.map(page => (
                 <Card key={page.id} className="relative p-2">
                   <div className="aspect-square rounded overflow-hidden bg-muted mb-2">
-                    {page.status === "ready" && page.coloringImageUrl ? (
+                     {page.status === "ready" && page.coloringImageUrl ? (
                        <img 
                          src={page.coloringImageUrl} 
                          alt="Processed coloring page" 
@@ -235,18 +277,43 @@ const Upload = () => {
                        />
                      ) : (
                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-2">
-                        {page.status === "uploading" || page.status === "processing" ? (
+                        {page.status === "accepted" && (
+                          <>
+                            <CheckCircle2 className="w-8 h-8 text-muted-foreground" />
+                            <span className="text-xs text-center text-muted-foreground">
+                              Image accepted
+                            </span>
+                          </>
+                        )}
+                        {page.status === "normalizing" && (
                           <>
                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
                             <span className="text-xs text-center text-muted-foreground">
-                              {page.status === "uploading" ? "Uploading..." : "Processing..."}
+                              Preparing image...
                             </span>
                           </>
-                        ) : (
-                           <>
+                        )}
+                        {page.status === "prep-complete" && (
+                          <>
+                            <CheckCircle2 className="w-8 h-8 text-primary" />
+                            <span className="text-xs text-center text-muted-foreground">
+                              Image prep complete
+                            </span>
+                          </>
+                        )}
+                        {page.status === "processing" && (
+                          <>
+                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                            <span className="text-xs text-center text-muted-foreground">
+                              Creating coloring page...
+                            </span>
+                          </>
+                        )}
+                        {page.status === "failed" && (
+                          <>
                             <AlertCircle className="w-8 h-8 text-destructive" />
                             <span className="text-xs text-center text-destructive font-medium">
-                              {page.error || 'Image processing failed – click to retry upload'}
+                              {page.error || 'Image processing did not complete'}
                             </span>
                             <Button
                               variant="outline"
