@@ -7,72 +7,14 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useDropzone } from "react-dropzone";
 import { ProjectTypeBadge } from "@/components/ProjectTypeBadge";
+import { normalizeToPng } from "@/utils/normalizeImage";
 
 interface UploadedPage {
   id: string;
   originalFile: File;
-  status: "accepted" | "normalizing" | "prep-complete" | "processing" | "ready" | "failed";
+  status: "accepted" | "preparing" | "prepared" | "processing" | "ready" | "failed";
   coloringImageUrl?: string;
   error?: string;
-}
-
-async function readFileAsDataURL(file: File): Promise<string> {
-  return await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () =>
-      reject(reader.error || new Error("FileReader error"));
-    reader.readAsDataURL(file);
-  });
-}
-
-async function loadImageFromDataURL(dataUrl: string): Promise<HTMLImageElement> {
-  return await new Promise<HTMLImageElement>((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Image decode error"));
-    img.src = dataUrl;
-  });
-}
-
-/**
- * Try to normalize a File to PNG using canvas.
- * If anything fails, LOG it and FALL BACK to the original file.
- */
-async function normalizeImageToPng(file: File): Promise<File> {
-  try {
-    const dataUrl = await readFileAsDataURL(file);
-    const img = await loadImageFromDataURL(dataUrl);
-
-    const canvas = document.createElement("canvas");
-    canvas.width = img.width;
-    canvas.height = img.height;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Could not get 2D canvas context");
-
-    ctx.drawImage(img, 0, 0);
-
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob(
-        (b) => {
-          if (b) resolve(b);
-          else reject(new Error("canvas.toBlob returned null"));
-        },
-        "image/png"
-      );
-    });
-
-    const baseName = file.name.replace(/\.[^.]+$/, "");
-    return new File([blob], `${baseName}.png`, { type: "image/png" });
-  } catch (err) {
-    console.error(
-      "normalizeImageToPng failed, falling back to original file",
-      { name: file.name, type: file.type, err }
-    );
-    // DO NOT block – just use the original file
-    return file;
-  }
 }
 
 const Upload = () => {
@@ -126,23 +68,23 @@ const Upload = () => {
 
     for (const page of newPages) {
       try {
-        // Mark as accepted
+        // 1. Just accepted
         setPages(prev => prev.map(p =>
           p.id === page.id ? { ...p, status: "accepted", error: undefined } : p
         ));
 
-        // Phase 1: normalize to PNG
+        // 2. Prep: normalize to PNG
         setPages(prev => prev.map(p =>
-          p.id === page.id ? { ...p, status: "normalizing" } : p
+          p.id === page.id ? { ...p, status: "preparing" } : p
         ));
 
-        const normalizedFile = await normalizeImageToPng(page.originalFile);
+        const normalizedFile = await normalizeToPng(page.originalFile);
 
         setPages(prev => prev.map(p =>
-          p.id === page.id ? { ...p, status: "prep-complete" } : p
+          p.id === page.id ? { ...p, status: "prepared" } : p
         ));
 
-        // Phase 2: call upload-page with normalized PNG
+        // 3. Call upload-page with the normalized file
         setPages(prev => prev.map(p =>
           p.id === page.id ? { ...p, status: "processing" } : p
         ));
@@ -173,16 +115,15 @@ const Upload = () => {
           ));
           toast.success("Page processed successfully!");
         } else {
-          const msg = data?.error || "Image processing did not complete";
+          const msg = "Image processing did not complete";
           console.warn(msg, data);
-          toast.error(msg);
           setPages(prev => prev.map(p =>
             p.id === page.id ? { ...p, status: "failed", error: msg } : p
           ));
         }
       } catch (err) {
         console.error("Error uploading/processing page:", err);
-        const msg = err instanceof Error ? err.message : "Upload failed";
+        const msg = err instanceof Error ? err.message : "Unexpected error during upload";
         toast.error(msg);
         setPages(prev => prev.map(p =>
           p.id === page.id ? { ...p, status: "failed", error: msg } : p
@@ -216,8 +157,8 @@ const Upload = () => {
 
   const readyCount = pages.filter(p => p.status === "ready").length;
   const processingCount = pages.filter(p => 
-    p.status === "normalizing" || 
-    p.status === "prep-complete" || 
+    p.status === "preparing" || 
+    p.status === "prepared" || 
     p.status === "processing"
   ).length;
 
@@ -298,56 +239,56 @@ const Upload = () => {
                          }}
                        />
                      ) : (
-                       <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-2">
-                        {page.status === "accepted" && (
-                          <>
-                            <CheckCircle2 className="w-8 h-8 text-muted-foreground" />
-                            <span className="text-xs text-center text-muted-foreground">
-                              Image accepted
-                            </span>
-                          </>
-                        )}
-                        {page.status === "normalizing" && (
-                          <>
-                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                            <span className="text-xs text-center text-muted-foreground">
-                              Preparing image...
-                            </span>
-                          </>
-                        )}
-                        {page.status === "prep-complete" && (
-                          <>
-                            <CheckCircle2 className="w-8 h-8 text-primary" />
-                            <span className="text-xs text-center text-muted-foreground">
-                              Image prep complete
-                            </span>
-                          </>
-                        )}
-                        {page.status === "processing" && (
-                          <>
-                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                            <span className="text-xs text-center text-muted-foreground">
-                              Creating coloring page...
-                            </span>
-                          </>
-                        )}
-                        {page.status === "failed" && (
-                          <>
-                            <AlertCircle className="w-8 h-8 text-destructive" />
-                            <span className="text-xs text-center text-destructive font-medium">
-                              {page.error || 'Image processing did not complete'}
-                            </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="mt-2"
-                              onClick={() => removePage(page.id)}
-                            >
-                              Remove
-                            </Button>
-                          </>
-                        )}
-                      </div>
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-2">
+                         {page.status === "accepted" && (
+                           <>
+                             <CheckCircle2 className="w-8 h-8 text-muted-foreground" />
+                             <span className="text-xs text-center text-muted-foreground">
+                               Image accepted
+                             </span>
+                           </>
+                         )}
+                         {page.status === "preparing" && (
+                           <>
+                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                             <span className="text-xs text-center text-muted-foreground">
+                               Preparing image…
+                             </span>
+                           </>
+                         )}
+                         {page.status === "prepared" && (
+                           <>
+                             <CheckCircle2 className="w-8 h-8 text-primary" />
+                             <span className="text-xs text-center text-muted-foreground">
+                               Image prep complete
+                             </span>
+                           </>
+                         )}
+                         {page.status === "processing" && (
+                           <>
+                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                             <span className="text-xs text-center text-muted-foreground">
+                               Generating coloring page…
+                             </span>
+                           </>
+                         )}
+                         {page.status === "failed" && (
+                           <>
+                             <AlertCircle className="w-8 h-8 text-destructive" />
+                             <span className="text-xs text-center text-destructive font-medium">
+                               {page.error || 'Image processing did not complete'}
+                             </span>
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               className="mt-2"
+                               onClick={() => removePage(page.id)}
+                             >
+                               Remove
+                             </Button>
+                           </>
+                         )}
+                       </div>
                      )}
                    </div>
                    <div className="flex items-center justify-between">
