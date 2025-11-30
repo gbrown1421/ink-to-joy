@@ -1,11 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+// Normalize any uploaded image to a safe PNG for OpenAI
+async function normalizeToPngForOpenAI(file: File): Promise<File> {
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const img = await Image.decode(buf);
+  const pngBytes = await img.encode(); // encodes as standard PNG RGBA
+  // Convert to a standard Uint8Array for Blob compatibility
+  const standardBytes = new Uint8Array(pngBytes);
+  return new File([standardBytes], "source.png", { type: "image/png" });
+}
 
 type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
 
@@ -112,6 +123,9 @@ serve(async (req) => {
     }
 
     console.log("InkToJoy upload-page: bookId", bookId, "file", imageFile.name);
+
+    // Normalize uploaded image to PNG for OpenAI
+    const openAiImageFile = await normalizeToPngForOpenAI(imageFile);
 
     // Get book to know difficulty / type
     const { data: book, error: bookError } = await supabase
@@ -224,7 +238,7 @@ serve(async (req) => {
       const aiForm = new FormData();
       aiForm.append("model", "gpt-image-1");
       aiForm.append("prompt", prompt);
-      aiForm.append("image", imageFile);
+      aiForm.append("image", openAiImageFile);
       aiForm.append("size", "1024x1536"); // portrait
 
       const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
@@ -237,13 +251,7 @@ serve(async (req) => {
 
       if (!aiRes.ok) {
         const errorText = await aiRes.text();
-        console.error("OpenAI API error:", {
-          project_type: book.project_type,
-          difficulty,
-          imageType: imageFile.type,
-          status: aiRes.status,
-          error: errorText.substring(0, 500),
-        });
+        console.error("OpenAI API error:", aiRes.status, errorText);
         throw new Error(`OpenAI API error ${aiRes.status}`);
       }
 
