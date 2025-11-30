@@ -236,7 +236,7 @@ serve(async (req) => {
           model: "gpt-image-1",
           prompt,
           size: "1024x1536",
-          response_format: "url",
+          response_format: "b64_json",
         }),
       });
 
@@ -252,23 +252,19 @@ serve(async (req) => {
         throw new Error(`OpenAI API error ${generateResponse.status}`);
       }
 
-      const generateJson = await generateResponse.json();
-      const imageUrl = generateJson.data?.[0]?.url;
+      const aiJson = await generateResponse.json();
+      const b64 = aiJson?.data?.[0]?.b64_json;
 
-      if (!imageUrl) {
-        console.error("No image URL from OpenAI:", JSON.stringify(generateJson));
-        throw new Error("No image URL returned from OpenAI");
+      if (!b64) {
+        console.error("No b64_json from OpenAI:", JSON.stringify(aiJson));
+        throw new Error("No b64_json returned from OpenAI");
       }
 
-      console.log("OpenAI generated image URL:", imageUrl);
+      console.log("OpenAI generated b64_json, decoding...");
 
-      // Fetch the image from OpenAI's URL
-      const imageResponse = await fetch(imageUrl);
-      if (!imageResponse.ok) {
-        throw new Error(`Failed to fetch generated image: ${imageResponse.status}`);
-      }
-
-      const resultBlob = await imageResponse.blob();
+      // Decode base64 to binary and create PNG blob
+      const binary = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      const resultBlob = new Blob([binary], { type: "image/png" });
 
       // Use difficulty for file naming
       const difficultySuffix = difficulty.toLowerCase().replace(/\s+/g, "-");
