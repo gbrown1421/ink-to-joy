@@ -236,7 +236,7 @@ serve(async (req) => {
           model: "gpt-image-1",
           prompt,
           size: "1024x1536",
-          response_format: "b64_json",
+          // Note: gpt-image-1 always returns base64, no response_format needed
         }),
       });
 
