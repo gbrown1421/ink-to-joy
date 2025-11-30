@@ -6,6 +6,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
+
+function normalizeDifficulty(raw: string | null): Difficulty {
+  const v = (raw || "").toLowerCase().replace(/[&\s]/g, "");
+  if (v === "quickandeasy" || v === "quick" || v === "quickeasy") return "Quick and Easy";
+  if (v === "beginner") return "Beginner";
+  return "Intermediate";
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -40,7 +49,7 @@ serve(async (req) => {
       );
     }
 
-    const difficulty = book.difficulty;
+    const difficulty = normalizeDifficulty(book.difficulty as string | null);
 
     // Get all pages marked as keep, ordered
     const { data: pages, error: pagesError } = await supabase
@@ -61,20 +70,20 @@ serve(async (req) => {
 
     if (!pages || pages.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No pages to export' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ bookName: book.name, pages: [], status: 'empty' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Select the correct image URL based on difficulty
     const getImageUrlForDifficulty = (page: any) => {
-      if ((difficulty === 'quick-easy' || difficulty === 'quick') && page.easy_image_url) {
-        return page.easy_image_url;
-      } else if (difficulty === 'beginner' && page.beginner_image_url) {
-        return page.beginner_image_url;
+      if (difficulty === "Quick and Easy") {
+        return page.easy_image_url || page.coloring_image_url || page.intermediate_image_url;
+      } else if (difficulty === "Beginner") {
+        return page.beginner_image_url || page.coloring_image_url || page.intermediate_image_url;
       } else {
-        // intermediate and advanced both use intermediate_image_url
-        return page.intermediate_image_url || page.coloring_image_url;
+        // Intermediate
+        return page.intermediate_image_url || page.coloring_image_url || page.beginner_image_url || page.easy_image_url;
       }
     };
 
