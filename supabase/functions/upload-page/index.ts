@@ -226,20 +226,10 @@ serve(async (req) => {
 
     // Call OpenAI /v1/images/edits endpoint
     try {
-      // Fetch the original image from storage to ensure it's in a format OpenAI accepts
-      const originalRes = await fetch(originalUrl);
-      if (!originalRes.ok) {
-        throw new Error("Failed to fetch original from storage");
-      }
-      const originalBlob = await originalRes.blob();
-      
-      // Wrap in a new File object with PNG content type
-      const openAiImageFile = new File([originalBlob], "source.png", { type: "image/png" });
-      
       const aiForm = new FormData();
       aiForm.append("model", "gpt-image-1");
       aiForm.append("prompt", prompt);
-      aiForm.append("image", openAiImageFile);
+      aiForm.append("image", imageFile);
       aiForm.append("size", "1024x1536");
 
       const generateResponse = await fetch("https://api.openai.com/v1/images/edits", {
@@ -252,8 +242,14 @@ serve(async (req) => {
 
       if (!generateResponse.ok) {
         const errorText = await generateResponse.text();
-        console.error("OpenAI API error:", generateResponse.status, errorText);
-        throw new Error(`OpenAI API error ${generateResponse.status}: ${errorText}`);
+        console.error("OpenAI API error:", {
+          project_type: book.project_type,
+          difficulty,
+          imageType: imageFile.type,
+          status: generateResponse.status,
+          error: errorText.substring(0, 500)
+        });
+        throw new Error(`OpenAI API error ${generateResponse.status}`);
       }
 
       const generateJson = await generateResponse.json();
@@ -294,7 +290,11 @@ serve(async (req) => {
         data: { publicUrl: coloringImageUrl },
       } = supabase.storage.from("book-images").getPublicUrl(resultPath);
 
-      console.log("Coloring image stored at:", coloringImageUrl);
+      console.log("SUCCESS_REALISTIC:", {
+        difficulty,
+        pageId: page.id,
+        coloringImageUrl
+      });
 
       await supabase
         .from("pages")
