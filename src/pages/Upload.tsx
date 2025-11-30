@@ -18,19 +18,47 @@ interface UploadedPage {
 
 // Normalize any uploaded image to a safe PNG for OpenAI
 async function normalizeImageToPng(file: File): Promise<File> {
+  console.log('Normalizing image:', file.name, file.type, file.size);
+  
   // Read file as data URL
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error || new Error("FileReader error"));
+    reader.onload = () => {
+      console.log('FileReader loaded, data URL length:', (reader.result as string)?.length);
+      resolve(reader.result as string);
+    };
+    reader.onerror = () => {
+      console.error('FileReader error:', reader.error);
+      reject(reader.error || new Error("FileReader error"));
+    };
     reader.readAsDataURL(file);
   });
 
-  // Load into an Image element
+  // Load into an Image element with timeout
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("Image load error"));
+    
+    // Set up timeout
+    const timeout = setTimeout(() => {
+      reject(new Error("Image load timeout - file may be too large or corrupted"));
+    }, 30000); // 30 second timeout
+    
+    image.onload = () => {
+      clearTimeout(timeout);
+      console.log('Image loaded:', image.width, 'x', image.height);
+      resolve(image);
+    };
+    
+    image.onerror = (e) => {
+      clearTimeout(timeout);
+      console.error('Image load error:', e, 'File:', file.name, 'Type:', file.type);
+      reject(new Error(`Image load error for ${file.name}. File type: ${file.type}`));
+    };
+    
+    // CORS for external images
+    image.crossOrigin = "anonymous";
+    
+    // Set src after handlers are attached
     image.src = dataUrl;
   });
 
@@ -40,17 +68,25 @@ async function normalizeImageToPng(file: File): Promise<File> {
   canvas.height = img.height;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not get 2D canvas context");
+  
+  console.log('Drawing to canvas...');
   ctx.drawImage(img, 0, 0);
 
   const blob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((b) => {
-      if (b) resolve(b);
-      else reject(new Error("canvas.toBlob returned null"));
+      if (b) {
+        console.log('Canvas toBlob complete, size:', b.size);
+        resolve(b);
+      } else {
+        reject(new Error("canvas.toBlob returned null"));
+      }
     }, "image/png");
   });
 
   const baseName = file.name.replace(/\.[^.]+$/, "");
-  return new File([blob], `${baseName}.png`, { type: "image/png" });
+  const pngFile = new File([blob], `${baseName}.png`, { type: "image/png" });
+  console.log('Normalization complete:', pngFile.name, pngFile.size);
+  return pngFile;
 }
 
 const Upload = () => {
