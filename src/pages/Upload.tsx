@@ -16,77 +16,63 @@ interface UploadedPage {
   error?: string;
 }
 
-// Normalize any uploaded image to a safe PNG for OpenAI
-async function normalizeImageToPng(file: File): Promise<File> {
-  console.log('Normalizing image:', file.name, file.type, file.size);
-  
-  // Read file as data URL
-  const dataUrl = await new Promise<string>((resolve, reject) => {
+async function readFileAsDataURL(file: File): Promise<string> {
+  return await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => {
-      console.log('FileReader loaded, data URL length:', (reader.result as string)?.length);
-      resolve(reader.result as string);
-    };
-    reader.onerror = () => {
-      console.error('FileReader error:', reader.error);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () =>
       reject(reader.error || new Error("FileReader error"));
-    };
     reader.readAsDataURL(file);
   });
+}
 
-  // Load into an Image element with timeout
-  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
-    
-    // Set up timeout
-    const timeout = setTimeout(() => {
-      reject(new Error("Image load timeout - file may be too large or corrupted"));
-    }, 30000); // 30 second timeout
-    
-    image.onload = () => {
-      clearTimeout(timeout);
-      console.log('Image loaded:', image.width, 'x', image.height);
-      resolve(image);
-    };
-    
-    image.onerror = (e) => {
-      clearTimeout(timeout);
-      console.error('Image load error:', e, 'File:', file.name, 'Type:', file.type);
-      reject(new Error(`Image load error for ${file.name}. File type: ${file.type}`));
-    };
-    
-    // CORS for external images
-    image.crossOrigin = "anonymous";
-    
-    // Set src after handlers are attached
-    image.src = dataUrl;
+async function loadImageFromDataURL(dataUrl: string): Promise<HTMLImageElement> {
+  return await new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Image decode error"));
+    img.src = dataUrl;
   });
+}
 
-  // Draw to canvas and export as PNG
-  const canvas = document.createElement("canvas");
-  canvas.width = img.width;
-  canvas.height = img.height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Could not get 2D canvas context");
-  
-  console.log('Drawing to canvas...');
-  ctx.drawImage(img, 0, 0);
+/**
+ * Try to normalize a File to PNG using canvas.
+ * If anything fails, LOG it and FALL BACK to the original file.
+ */
+async function normalizeImageToPng(file: File): Promise<File> {
+  try {
+    const dataUrl = await readFileAsDataURL(file);
+    const img = await loadImageFromDataURL(dataUrl);
 
-  const blob = await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((b) => {
-      if (b) {
-        console.log('Canvas toBlob complete, size:', b.size);
-        resolve(b);
-      } else {
-        reject(new Error("canvas.toBlob returned null"));
-      }
-    }, "image/png");
-  });
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
 
-  const baseName = file.name.replace(/\.[^.]+$/, "");
-  const pngFile = new File([blob], `${baseName}.png`, { type: "image/png" });
-  console.log('Normalization complete:', pngFile.name, pngFile.size);
-  return pngFile;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Could not get 2D canvas context");
+
+    ctx.drawImage(img, 0, 0);
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (b) => {
+          if (b) resolve(b);
+          else reject(new Error("canvas.toBlob returned null"));
+        },
+        "image/png"
+      );
+    });
+
+    const baseName = file.name.replace(/\.[^.]+$/, "");
+    return new File([blob], `${baseName}.png`, { type: "image/png" });
+  } catch (err) {
+    console.error(
+      "normalizeImageToPng failed, falling back to original file",
+      { name: file.name, type: file.type, err }
+    );
+    // DO NOT block – just use the original file
+    return file;
+  }
 }
 
 const Upload = () => {
