@@ -138,6 +138,29 @@ const Upload = () => {
     setPages(prev => prev.filter(p => p.id !== id));
   };
 
+  const handleFixInPaint = (page: UploadedPage) => {
+    if (!page.originalFile) {
+      console.error("No original file available for download");
+      toast.error("Original file not available");
+      return;
+    }
+    
+    try {
+      const url = URL.createObjectURL(page.originalFile);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = page.originalFile.name || "image-to-fix.png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success("Image downloaded. Fix it in Paint and re-upload!");
+    } catch (err) {
+      console.error("Error downloading file:", err);
+      toast.error("Failed to download image");
+    }
+  };
+
   const handleContinue = () => {
     const readyPages = pages.filter(p => p.status === "ready");
     if (readyPages.length === 0) {
@@ -278,14 +301,25 @@ const Upload = () => {
                              <span className="text-xs text-center text-destructive font-medium">
                                {page.error || 'Image processing did not complete'}
                              </span>
-                             <Button
-                               variant="outline"
-                               size="sm"
-                               className="mt-2"
-                               onClick={() => removePage(page.id)}
-                             >
-                               Remove
-                             </Button>
+                             <div className="flex gap-2 mt-2">
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => removePage(page.id)}
+                               >
+                                 Remove
+                               </Button>
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => handleFixInPaint(page)}
+                               >
+                                 Fix in Paint
+                               </Button>
+                             </div>
+                             <p className="text-[10px] text-muted-foreground text-center mt-2 px-2">
+                               Download the file, open in Paint, then File → Save as → PNG picture and upload here
+                             </p>
                            </>
                          )}
                        </div>
