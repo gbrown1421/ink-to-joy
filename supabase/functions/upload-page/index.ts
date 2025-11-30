@@ -24,33 +24,31 @@ function normalizeDifficulty(raw: string | null): Difficulty {
 function buildColoringPrompt(difficulty: Difficulty): string {
   switch (difficulty) {
     case "Quick and Easy":
-      return `
-Create a very simple black-and-white line-art coloring page.
-- Thick bold outlines.
-- Big simple shapes that are easy for young kids to color.
-- Very few small details.
-- Background should be mostly empty or just a couple of large, simple shapes.
-- No shading, gradients, or cross-hatching – only solid black lines on white.
-`.trim();
+      return `Convert the uploaded photo into a very simple black-and-white line-art coloring page for young children.
+– Keep the same main subject(s) and general composition from the photo, but simplify everything into big, easy-to-color shapes.
+– Use thick bold outlines.
+– Remove tiny textures and small background clutter.
+– Background should be mostly empty or just one or two large simple shapes.
+– Do not invent new characters, animals, or objects that are not in the photo.
+– No shading, gradients, or cross-hatching: only solid black lines on a white page.`.trim();
 
     case "Beginner":
-      return `
-Create a black-and-white line-art coloring page for early elementary kids.
-- Medium-thick clean outlines.
-- Moderate detail in clothing and hair.
-- Simple background with a few large and medium-sized elements.
-- Avoid tiny clutter and dense patterns.
-- No shading, gradients, or cross-hatching – only solid black lines on white.
-`.trim();
+      return `Convert the uploaded photo into a black-and-white line-art coloring page for early elementary kids.
+– Keep the same main subject(s) and pose from the photo so the picture is clearly recognizable.
+– Use medium-thick, clean outlines.
+– Include a simple, uncluttered background with just a few large and medium-sized elements from the real scene.
+– Add moderate detail to clothing and hair, but avoid dense textures and tiny patterns.
+– Do not replace people with animals or change the scene type; stay faithful to the original photo.
+– No shading, gradients, or cross-hatching: only solid black lines on white.`.trim();
 
     case "Intermediate":
-      return `
-Create a black-and-white line-art coloring page with richer detail.
-- Finer, controlled outlines while still remaining clear.
-- More folds, textures, and elements to color.
-- Fuller background scene, but still readable and not chaotic.
-- No shading, gradients, or cross-hatching – only solid black lines on white.
-`.trim();
+      return `Convert the uploaded photo into a more detailed black-and-white line-art coloring page.
+– Preserve the same people/subjects, poses, and overall layout from the photo.
+– Use finer, controlled outlines while keeping everything readable for coloring.
+– Include a fuller background based on the real scene (furniture, decor, environment), but keep it clean and not chaotic.
+– Add more folds, textures, and elements to color, but no scribbly noise.
+– Do not invent a totally new scene or characters; the line art should clearly match the uploaded photo.
+– No shading, gradients, or cross-hatching: only black outlines on white.`.trim();
   }
 }
 
@@ -221,23 +219,23 @@ serve(async (req) => {
     console.log("Book details:", { id: book.id, project_type: book.project_type, difficulty: book.difficulty });
     console.log("Using coloring prompt, difficulty:", difficulty);
 
-    console.log("Generating coloring page with gpt-image-1 for page", page.id);
+    console.log("Converting photo to coloring page with gpt-image-1 for page", page.id);
     console.log("Using prompt length:", prompt.length);
 
-    // Call OpenAI /v1/images/generations endpoint (no image file needed)
+    // Call OpenAI /v1/images/edits endpoint with the uploaded photo
     try {
-      const generateResponse = await fetch("https://api.openai.com/v1/images/generations", {
+      const aiForm = new FormData();
+      aiForm.append("model", "gpt-image-1");
+      aiForm.append("prompt", prompt);
+      aiForm.append("image", imageFile);
+      aiForm.append("size", "1024x1536");
+
+      const generateResponse = await fetch("https://api.openai.com/v1/images/edits", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${openaiKey}`,
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          model: "gpt-image-1",
-          prompt,
-          size: "1024x1536",
-          // Note: gpt-image-1 always returns base64, no response_format needed
-        }),
+        body: aiForm,
       });
 
       if (!generateResponse.ok) {
