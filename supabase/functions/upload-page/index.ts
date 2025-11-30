@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,9 +8,7 @@ const corsHeaders = {
 
 type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
 
-/**
- * Normalize difficulty strings stored in the DB.
- */
+// Normalize difficulty strings from DB
 function normalizeDifficulty(raw: string | null): Difficulty {
   const v = (raw || "").toLowerCase();
   if (v === "quick" || v === "quick and easy" || v === "quick & easy") {
@@ -23,10 +20,7 @@ function normalizeDifficulty(raw: string | null): Difficulty {
   return "Intermediate";
 }
 
-/**
- * Prompt builder – image-agnostic, only talks about difficulty + style.
- * We rely on the photo we send to OpenAI, not on hard-coded image content.
- */
+// Image-agnostic prompt; difficulty only
 function buildColoringPrompt(difficulty: Difficulty): string {
   if (difficulty === "Quick and Easy") {
     return `
@@ -65,17 +59,6 @@ Rules:
 - Fuller background scene, but still readable and not chaotic.
 - No shading, gradients, hatching or gray tones – only solid black outlines on white.
 `.trim();
-}
-
-/**
- * OpenAI /images/edits is picky: it wants PNG with an alpha channel (RGBA).
- * This helper converts whatever the user uploaded into a clean RGBA PNG File.
- */
-async function normalizeForOpenAI(file: File): Promise<File> {
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  const img = await Image.decode(bytes); // auto-detects format
-  const pngBytes = await img.encode(); // encodes as PNG (RGBA)
-  return new File([pngBytes], "source.png", { type: "image/png" });
 }
 
 serve(async (req) => {
@@ -119,7 +102,7 @@ serve(async (req) => {
 
     console.log("InkToJoy upload-page: bookId", bookId, "file", imageFile.name);
 
-    // Only allow formats OpenAI will accept as a source.
+    // Basic MIME filter (what OpenAI claims to accept)
     const supported = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"];
     const imageType = (imageFile.type || "").toLowerCase();
     if (!supported.includes(imageType)) {
@@ -131,7 +114,7 @@ serve(async (req) => {
       });
     }
 
-    // Get book – we only support project_type === "coloring" here.
+    // Get book – this function is ONLY for realistic coloring books
     const { data: book, error: bookError } = await supabase
       .from("books")
       .select("id, project_type, difficulty")
@@ -147,7 +130,7 @@ serve(async (req) => {
     }
 
     if (book.project_type !== "coloring") {
-      const msg = "This edge function is locked to REALISTIC coloring projects only.";
+      const msg = "upload-page is locked to REALISTIC coloring projects only.";
       console.error(msg, { project_type: book.project_type });
       return new Response(JSON.stringify({ error: msg }), {
         status: 400,
@@ -165,7 +148,7 @@ serve(async (req) => {
 
     const nextOrder = existingPages && existingPages.length > 0 ? (existingPages[0].page_order ?? 0) + 1 : 1;
 
-    // Upload original photo as-is to Supabase storage
+    // Upload original photo
     const ext = imageFile.name.includes(".") ? imageFile.name.split(".").pop() : "jpg";
     const originalPath = `books/${bookId}/original/${crypto.randomUUID()}.${ext}`;
 
@@ -208,52 +191,60 @@ serve(async (req) => {
       });
     }
 
-    // ==== OPENAI CALL – REALISTIC LINE ART BASED ON PHOTO ====
+    // ---------- OpenAI realistic line-art pipeline ----------
+    const difficulty = normalizeDifficulty(book.difficulty as string | null);
+    const prompt = buildColoringPrompt(difficulty);
+
     try {
-      const difficulty = normalizeDifficulty(book.difficulty as string | null);
-      const prompt = buildColoringPrompt(difficulty);
-      console.log("OpenAI realistic pipeline:", {
-        bookId,
-        pageId: page.id,
+      console.log("Calling OpenAI gpt-image-1 /images/edits for page", page.id, {
         difficulty,
+        imageType,
       });
 
-      // Re-encode to RGBA PNG for /images/edits
-      const openAiImage = await normalizeForOpenAI(imageFile);
+      // Fetch the stored image back and re-wrap as PNG File for OpenAI
+      const srcRes = await fetch(originalUrl);
+      if (!srcRes.ok) {
+        throw new Error(`Failed to re-fetch original image: ${srcRes.status}`);
+      }
+      const srcBlob = await srcRes.blob();
+      const srcBytes = new Uint8Array(await srcBlob.arrayBuffer());
+      const openAiImage = new File([srcBytes], "source.png", {
+        type: "image/png",
+      });
 
-      const aiForm = new FormData();
-      aiForm.append("model", "gpt-image-1");
-      aiForm.append("prompt", prompt);
-      aiForm.append("image", openAiImage);
-      aiForm.append("size", "1024x1536");
+      const fd = new FormData();
+      fd.append("model", "gpt-image-1");
+      fd.append("prompt", prompt);
+      fd.append("image", openAiImage);
+      fd.append("size", "1024x1536");
 
       const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${openaiKey}`,
         },
-        body: aiForm,
+        body: fd,
       });
 
       if (!aiRes.ok) {
         const errorText = await aiRes.text();
-        console.error("OpenAI API error:", {
-          status: aiRes.status,
-          error: errorText.slice(0, 500),
-        });
+        console.error("OpenAI API error:", aiRes.status, errorText.slice(0, 500));
         throw new Error(`OpenAI API error ${aiRes.status}`);
       }
 
       const aiJson = await aiRes.json();
-      const b64 = aiJson?.data?.[0]?.b64_json;
-
-      if (!b64) {
-        console.error("No b64_json from OpenAI:", JSON.stringify(aiJson));
-        throw new Error("No image data returned from OpenAI");
+      const url = aiJson?.data?.[0]?.url;
+      if (!url) {
+        console.error("No URL in OpenAI response:", JSON.stringify(aiJson));
+        throw new Error("No image URL returned from OpenAI");
       }
 
-      const binary = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-      const resultBlob = new Blob([binary], { type: "image/png" });
+      const imgRes = await fetch(url);
+      if (!imgRes.ok) {
+        throw new Error(`Failed to fetch generated image: ${imgRes.status}`);
+      }
+
+      const resultBlob = await imgRes.blob();
 
       const difficultySuffix = difficulty.toLowerCase().replace(/\s+/g, "-");
       const resultPath = `books/${bookId}/pages/${page.id}-${difficultySuffix}.png`;
@@ -272,7 +263,7 @@ serve(async (req) => {
         data: { publicUrl: coloringImageUrl },
       } = supabase.storage.from("book-images").getPublicUrl(resultPath);
 
-      console.log("SUCCESS_REALISTIC", {
+      console.log("SUCCESS_REALISTIC:", {
         difficulty,
         pageId: page.id,
         coloringImageUrl,
