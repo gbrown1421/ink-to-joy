@@ -117,8 +117,9 @@ const Upload = () => {
           ));
           toast.success("Page processed successfully!");
         } else {
-          const msg = "Image processing did not complete";
+          const msg = "We couldn't read this image file.";
           console.warn(msg, data);
+          toast.error(msg);
           setPages(prev => prev.map(p =>
             p.id === page.id ? { ...p, status: "failed", error: msg } : p
           ));
@@ -278,7 +279,7 @@ const Upload = () => {
                             <>
                               <AlertCircle className="w-8 h-8 text-destructive" />
                               <span className="text-xs text-center text-destructive font-medium">
-                                {page.error || 'Image processing did not complete'}
+                                We couldn't read this image file.
                               </span>
                               <div className="flex gap-2 mt-2">
                                 <Button
@@ -296,6 +297,9 @@ const Upload = () => {
                                   How do I fix this?
                                 </Button>
                               </div>
+                              <p className="text-xs text-muted-foreground text-center mt-2 px-2">
+                                Some photos use special formats our system can't decode. Click "How do I fix this?" for quick steps to repair and re-upload.
+                              </p>
                             </>
                           )}
                        </div>
