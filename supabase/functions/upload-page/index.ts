@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,70 +7,59 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// Normalize any uploaded image to a safe PNG for OpenAI
-async function normalizeToPngForOpenAI(file: File): Promise<File> {
-  const buf = new Uint8Array(await file.arrayBuffer());
-  const img = await Image.decode(buf);
-  const pngBytes = await img.encode(); // encodes as standard PNG RGBA
-  // Convert to a standard Uint8Array for Blob compatibility
-  const standardBytes = new Uint8Array(pngBytes);
-  return new File([standardBytes], "source.png", { type: "image/png" });
-}
-
 type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
 
-// Normalize difficulty strings from DB into our three allowed values
 function normalizeDifficulty(raw: string | null): Difficulty {
   const v = (raw || "").toLowerCase();
   if (v === "quick" || v === "quick and easy" || v === "quick & easy") {
     return "Quick and Easy";
   }
-  if (v === "beginner") {
-    return "Beginner";
-  }
+  if (v === "beginner") return "Beginner";
   return "Intermediate";
 }
 
-// Prompt for realistic photo → line-art coloring page
 function buildColoringPrompt(difficulty: Difficulty): string {
-  switch (difficulty) {
-    case "Quick and Easy":
-      return `
-Convert the uploaded photo into a very simple black-and-white line-art coloring page for young children.
-
-Rules:
-- Keep the main subject(s) from the photo.
-- Use thick bold outlines and big simple shapes.
-- Very few small details.
-- Background should be mostly empty or just a couple of large, simple shapes.
-- No shading, gradients, or cross-hatching – only solid black lines on white.
+  const base = `
+Turn the uploaded photo into a black-and-white line-art coloring page.
+Use only solid black outlines on pure white — no shading, no gradients, no cross-hatching.
+Keep the same people/subjects and overall pose from the photo.
 `.trim();
 
-    case "Beginner":
-      return `
-Convert the uploaded photo into a black-and-white line-art coloring page for early elementary kids.
-
-Rules:
-- Keep the main subject(s) from the photo clearly recognizable.
-- Use medium-thick clean outlines.
-- Moderate detail in clothing, hair, and key objects.
-- Simple background with a few large and medium-sized elements.
-- Avoid tiny clutter and dense patterns.
-- No shading, gradients, or cross-hatching – only solid black lines on white.
-`.trim();
-
-    case "Intermediate":
-      return `
-Convert the uploaded photo into a black-and-white line-art coloring page with richer detail.
-
-Rules:
-- Keep the main subject(s) from the photo full and clearly recognizable.
-- Use finer, controlled outlines while still remaining clear.
-- More folds, textures, and elements to color.
-- Fuller background scene, but still readable and not chaotic.
-- No shading, gradients, or cross-hatching – only solid black lines on white.
-`.trim();
+  if (difficulty === "Quick and Easy") {
+    return (
+      base +
+      `
+Make this version very simple for young kids:
+- Very thick bold outlines.
+- Big simple shapes, minimal interior detail.
+- Background should be mostly empty or have at most 1–2 large simple shapes.
+`.trim()
+    );
   }
+
+  if (difficulty === "Beginner") {
+    return (
+      base +
+      `
+Make this version for early elementary kids:
+- Medium-thick clean outlines.
+- Moderate detail in clothing and hair.
+- Simple, uncluttered background with a few large/medium elements.
+- Avoid tiny clutter or dense patterns.
+`.trim()
+    );
+  }
+
+  // Intermediate
+  return (
+    base +
+    `
+Make this version more detailed:
+- Finer, controlled outlines while still clear.
+- More folds, textures, and elements to color.
+- Fuller background scene that is still readable, not chaotic.
+`.trim()
+  );
 }
 
 serve(async (req) => {
@@ -122,12 +110,32 @@ serve(async (req) => {
       );
     }
 
-    console.log("InkToJoy upload-page: bookId", bookId, "file", imageFile.name);
+    console.log("upload-page: bookId", bookId, "file", imageFile.name);
 
-    // Normalize uploaded image to PNG for OpenAI
-    const openAiImageFile = await normalizeToPngForOpenAI(imageFile);
+    // Basic type guard – OpenAI supports png, jpeg, gif, webp
+    const supported = [
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+      "image/gif",
+      "image/webp",
+    ];
+    const imageType = (imageFile.type || "").toLowerCase();
+    if (!supported.includes(imageType)) {
+      console.error("Unsupported image type:", imageType);
+      return new Response(
+        JSON.stringify({
+          error:
+            "Unsupported image format. Please upload PNG, JPEG, GIF, or WEBP.",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
 
-    // Get book to know difficulty / type
+    // Look up book: we only handle realistic coloring here
     const { data: book, error: bookError } = await supabase
       .from("books")
       .select("id, project_type, difficulty")
@@ -148,7 +156,7 @@ serve(async (req) => {
     if (book.project_type !== "coloring") {
       return new Response(
         JSON.stringify({
-          error: 'Only "coloring" projects are supported by this function',
+          error: "This edge function currently supports only realistic coloring books.",
         }),
         {
           status: 400,
@@ -165,11 +173,12 @@ serve(async (req) => {
       .order("page_order", { ascending: false })
       .limit(1);
 
-    const nextOrder = existingPages && existingPages.length > 0
-      ? (existingPages[0].page_order ?? 0) + 1
-      : 1;
+    const nextOrder =
+      existingPages && existingPages.length > 0
+        ? (existingPages[0].page_order ?? 0) + 1
+        : 1;
 
-    // Upload original photo to storage
+    // Upload original to storage
     const ext = imageFile.name.includes(".")
       ? imageFile.name.split(".").pop()
       : "jpg";
@@ -178,7 +187,7 @@ serve(async (req) => {
     const { error: uploadError } = await supabase.storage
       .from("book-images")
       .upload(originalPath, imageFile, {
-        contentType: imageFile.type || "image/jpeg",
+        contentType: imageType || "image/jpeg",
         upsert: false,
       });
 
@@ -199,7 +208,7 @@ serve(async (req) => {
 
     console.log("Original stored at:", originalUrl);
 
-    // Create page record (processing)
+    // Create page DB row
     const { data: page, error: pageError } = await supabase
       .from("pages")
       .insert({
@@ -222,24 +231,21 @@ serve(async (req) => {
       );
     }
 
-    // Build realistic coloring prompt
     const difficulty = normalizeDifficulty(book.difficulty as string | null);
     const prompt = buildColoringPrompt(difficulty);
 
-    console.log("Book details:", {
-      id: book.id,
+    console.log("Calling gpt-image-1 /images/edits", {
+      pageId: page.id,
+      difficulty,
       project_type: book.project_type,
-      difficulty: book.difficulty,
     });
-    console.log("Using coloring prompt, difficulty:", difficulty);
 
-    // ---- Call OpenAI /v1/images/edits with the uploaded photo ----
     try {
       const aiForm = new FormData();
       aiForm.append("model", "gpt-image-1");
       aiForm.append("prompt", prompt);
-      aiForm.append("image", openAiImageFile);
-      aiForm.append("size", "1024x1536"); // portrait
+      aiForm.append("image", imageFile);
+      aiForm.append("size", "1024x1536");
 
       const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
         method: "POST",
@@ -250,27 +256,30 @@ serve(async (req) => {
       });
 
       if (!aiRes.ok) {
-        const errorText = await aiRes.text();
-        console.error("OpenAI API error:", aiRes.status, errorText);
+        const errText = await aiRes.text();
+        console.error("OpenAI error:", aiRes.status, errText.slice(0, 500));
         throw new Error(`OpenAI API error ${aiRes.status}`);
       }
 
       const aiJson = await aiRes.json();
-      const b64 = aiJson?.data?.[0]?.b64_json;
+      const url: string | undefined = aiJson?.data?.[0]?.url;
 
-      if (!b64) {
-        console.error("No b64_json from OpenAI:", JSON.stringify(aiJson));
-        throw new Error("No b64_json returned from OpenAI");
+      if (!url) {
+        console.error("No URL in OpenAI response:", JSON.stringify(aiJson));
+        throw new Error("No image URL returned from OpenAI");
       }
 
-      console.log("OpenAI returned b64_json, decoding…");
+      const imageRes = await fetch(url);
+      if (!imageRes.ok) {
+        throw new Error(
+          `Failed to fetch generated image from OpenAI CDN: ${imageRes.status}`,
+        );
+      }
 
-      const binary = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-      const resultBlob = new Blob([binary], { type: "image/png" });
+      const resultBlob = await imageRes.blob();
 
       const difficultySuffix = difficulty.toLowerCase().replace(/\s+/g, "-");
-      const resultPath =
-        `books/${bookId}/pages/${page.id}-${difficultySuffix}.png`;
+      const resultPath = `books/${bookId}/pages/${page.id}-${difficultySuffix}.png`;
 
       const { error: resultUploadError } = await supabase.storage
         .from("book-images")
@@ -288,7 +297,7 @@ serve(async (req) => {
         data: { publicUrl: coloringImageUrl },
       } = supabase.storage.from("book-images").getPublicUrl(resultPath);
 
-      console.log("SUCCESS_REALISTIC:", {
+      console.log("SUCCESS_REALISTIC", {
         difficulty,
         pageId: page.id,
         coloringImageUrl,
@@ -322,7 +331,9 @@ serve(async (req) => {
         .eq("id", page.id);
 
       const message =
-        err instanceof Error ? err.message : "Unknown error during image processing";
+        err instanceof Error
+          ? err.message
+          : "Unknown error during image processing";
 
       return new Response(
         JSON.stringify({
@@ -339,6 +350,7 @@ serve(async (req) => {
   } catch (err) {
     console.error("upload-page top-level error:", err);
     const message = err instanceof Error ? err.message : "Unknown error";
+
     return new Response(
       JSON.stringify({ error: message }),
       {
