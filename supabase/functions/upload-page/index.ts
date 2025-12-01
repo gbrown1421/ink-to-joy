@@ -234,52 +234,73 @@ serve(async (req) => {
     const difficulty = normalizeDifficulty(book.difficulty as string | null);
     const prompt = buildColoringPrompt(difficulty);
 
-    console.log("Calling gpt-image-1 /images/edits", {
-      pageId: page.id,
-      difficulty,
-      project_type: book.project_type,
-    });
+    console.log("Generating coloring page with gpt-image-1 for page", page.id);
+    console.log("Using prompt length:", prompt.length);
 
+    // Call OpenAI /v1/images/edits endpoint
     try {
-      const aiForm = new FormData();
-      aiForm.append("model", "gpt-image-1");
-      aiForm.append("prompt", prompt);
-      aiForm.append("image", imageFile);
-      aiForm.append("size", "1024x1536");
-
-      const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openaiKey}`,
-        },
-        body: aiForm,
-      });
-
-      if (!aiRes.ok) {
-        const errText = await aiRes.text();
-        console.error("OpenAI error:", aiRes.status, errText.slice(0, 500));
-        throw new Error(`OpenAI API error ${aiRes.status}`);
-      }
-
-      const aiJson = await aiRes.json();
-      const url: string | undefined = aiJson?.data?.[0]?.url;
-
-      if (!url) {
-        console.error("No URL in OpenAI response:", JSON.stringify(aiJson));
-        throw new Error("No image URL returned from OpenAI");
-      }
-
-      const imageRes = await fetch(url);
-      if (!imageRes.ok) {
+      // IMPORTANT: fetch the stored image from Supabase and wrap it
+      // as a clean PNG file before sending to OpenAI.
+      const originalRes = await fetch(originalUrl);
+      if (!originalRes.ok) {
         throw new Error(
-          `Failed to fetch generated image from OpenAI CDN: ${imageRes.status}`,
+          `Failed to fetch original image from storage: ${originalRes.status}`,
         );
       }
 
-      const resultBlob = await imageRes.blob();
+      const originalBlob = await originalRes.blob();
+      const openAiFile = new File([originalBlob], "source.png", {
+        type: "image/png",
+      });
+
+      const aiForm = new FormData();
+      aiForm.append("model", "gpt-image-1");
+      aiForm.append("prompt", prompt);
+      aiForm.append("image", openAiFile);
+      aiForm.append("size", "1024x1536");
+
+      const generateResponse = await fetch(
+        "https://api.openai.com/v1/images/edits",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${openaiKey}`,
+          },
+          body: aiForm,
+        },
+      );
+
+      if (!generateResponse.ok) {
+        const errorText = await generateResponse.text();
+        console.error("OpenAI API error:", {
+          project_type: book.project_type,
+          difficulty,
+          status: generateResponse.status,
+          error: errorText.substring(0, 500),
+        });
+        throw new Error(`OpenAI API error ${generateResponse.status}`);
+      }
+
+      const aiJson = await generateResponse.json();
+      const url: string | undefined = aiJson?.data?.[0]?.url;
+
+      if (!url) {
+        console.error("No image URL from OpenAI:", JSON.stringify(aiJson));
+        throw new Error("No image URL returned from OpenAI");
+      }
+
+      const imageResponse = await fetch(url);
+      if (!imageResponse.ok) {
+        throw new Error(
+          `Failed to fetch generated image: ${imageResponse.status}`,
+        );
+      }
+
+      const resultBlob = await imageResponse.blob();
 
       const difficultySuffix = difficulty.toLowerCase().replace(/\s+/g, "-");
-      const resultPath = `books/${bookId}/pages/${page.id}-${difficultySuffix}.png`;
+      const resultPath =
+        `books/${bookId}/pages/${page.id}-${difficultySuffix}.png`;
 
       const { error: resultUploadError } = await supabase.storage
         .from("book-images")
@@ -297,7 +318,7 @@ serve(async (req) => {
         data: { publicUrl: coloringImageUrl },
       } = supabase.storage.from("book-images").getPublicUrl(resultPath);
 
-      console.log("SUCCESS_REALISTIC", {
+      console.log("SUCCESS_REALISTIC:", {
         difficulty,
         pageId: page.id,
         coloringImageUrl,
