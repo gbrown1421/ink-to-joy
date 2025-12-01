@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDropzone } from "react-dropzone";
 import { ProjectTypeBadge } from "@/components/ProjectTypeBadge";
 import { normalizeToPng } from "@/utils/normalizeImage";
+import { ImageTroubleshootingModal } from "@/components/ImageTroubleshootingModal";
 
 interface UploadedPage {
   id: string;
@@ -27,6 +28,7 @@ const Upload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [projectType, setProjectType] = useState<"coloring" | "toon">("coloring");
   const [bookDifficulty, setBookDifficulty] = useState<string>("intermediate");
+  const [showTroubleshootingModal, setShowTroubleshootingModal] = useState(false);
 
   useEffect(() => {
     loadBookDetails();
@@ -136,29 +138,6 @@ const Upload = () => {
 
   const removePage = (id: string) => {
     setPages(prev => prev.filter(p => p.id !== id));
-  };
-
-  const handleFixInPaint = (page: UploadedPage) => {
-    if (!page.originalFile) {
-      console.error("No original file available for download");
-      toast.error("Original file not available");
-      return;
-    }
-    
-    try {
-      const url = URL.createObjectURL(page.originalFile);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = page.originalFile.name || "image-to-fix.png";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      toast.success("Image downloaded. Fix it in Paint and re-upload!");
-    } catch (err) {
-      console.error("Error downloading file:", err);
-      toast.error("Failed to download image");
-    }
   };
 
   const handleContinue = () => {
@@ -295,33 +274,30 @@ const Upload = () => {
                              </span>
                            </>
                          )}
-                         {page.status === "failed" && (
-                           <>
-                             <AlertCircle className="w-8 h-8 text-destructive" />
-                             <span className="text-xs text-center text-destructive font-medium">
-                               {page.error || 'Image processing did not complete'}
-                             </span>
-                             <div className="flex gap-2 mt-2">
-                               <Button
-                                 variant="outline"
-                                 size="sm"
-                                 onClick={() => removePage(page.id)}
-                               >
-                                 Remove
-                               </Button>
-                               <Button
-                                 variant="outline"
-                                 size="sm"
-                                 onClick={() => handleFixInPaint(page)}
-                               >
-                                 Fix in Paint
-                               </Button>
-                             </div>
-                             <p className="text-[10px] text-muted-foreground text-center mt-2 px-2">
-                               Download the file, open in Paint, then File → Save as → PNG picture and upload here
-                             </p>
-                           </>
-                         )}
+                          {page.status === "failed" && (
+                            <>
+                              <AlertCircle className="w-8 h-8 text-destructive" />
+                              <span className="text-xs text-center text-destructive font-medium">
+                                {page.error || 'Image processing did not complete'}
+                              </span>
+                              <div className="flex gap-2 mt-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => removePage(page.id)}
+                                >
+                                  Remove
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setShowTroubleshootingModal(true)}
+                                >
+                                  How do I fix this?
+                                </Button>
+                              </div>
+                            </>
+                          )}
                        </div>
                      )}
                    </div>
@@ -361,6 +337,11 @@ const Upload = () => {
           )}
         </div>
       </main>
+
+      <ImageTroubleshootingModal 
+        open={showTroubleshootingModal}
+        onClose={() => setShowTroubleshootingModal(false)}
+      />
     </div>
   );
 };
