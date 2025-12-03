@@ -97,12 +97,13 @@ const Review = () => {
       setProjectType(bookProjectType);
       setBorderStyles(getBorderStylesForDifficulty(bookDifficulty));
 
-      // Load pages
+      // Load pages - only accepted (keep=true) and ready pages
       const pagesResponse: any = await (supabase as any)
         .from('pages')
         .select('*')
         .eq('book_id', bookId)
         .eq('status', 'ready')
+        .eq('keep', true)
         .order('page_order');
 
       if (pagesResponse.error) throw pagesResponse.error;
