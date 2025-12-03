@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Check, ArrowRight, Type, Square, Trash2 } from "lucide-react";
+import { Check, ArrowRight, Type, Trash2 } from "lucide-react";
 import { ReviewPage } from "./ReviewFilmstrip";
 
 interface ReviewControlsCardProps {
@@ -100,10 +99,10 @@ export function ReviewControlsCard({
 
         {/* Add Title */}
         <div className="space-y-2">
-          <Label className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm font-medium">
             <Type className="w-4 h-4" />
             Add Title
-          </Label>
+          </div>
           <Input
             value={localTitle}
             onChange={(e) => handleTitleChange(e.target.value)}
@@ -119,10 +118,7 @@ export function ReviewControlsCard({
 
         {/* Add Border */}
         <div className="space-y-2">
-          <Label className="flex items-center gap-2 text-sm">
-            <Square className="w-4 h-4" />
-            Add Border
-          </Label>
+          <p className="text-sm font-medium">Add Border</p>
           <div className="grid grid-cols-2 gap-2">
             {BORDER_OPTIONS.map((option) => (
               <Button
