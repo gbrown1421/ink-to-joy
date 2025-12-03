@@ -48,7 +48,7 @@ export function CenterPreview({ tile, onOpenTroubleshooting }: CenterPreviewProp
             We couldn't read this image file.
           </p>
           <p className="text-sm text-muted-foreground text-center mb-6 max-w-md">
-            Some photos use special formats our system can't decode.
+            Some photos use special formats our system can't decode. First, try clicking the yellow 'New Image' button to reload and re-process this photo. If it still fails after that, click 'How do I fix this?' for quick steps to repair and re-upload.
           </p>
           <Button
             variant="outline"
