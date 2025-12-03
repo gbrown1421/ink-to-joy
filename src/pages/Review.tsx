@@ -137,6 +137,51 @@ const Review = () => {
     ));
   };
 
+  const handleDelete = async (pageId: string) => {
+    try {
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('pages')
+        .delete()
+        .eq('id', pageId);
+
+      if (error) throw error;
+
+      // Remove from local state
+      const newPages = pages.filter(p => p.id !== pageId);
+      
+      // Re-number page_order for remaining pages
+      const reorderedPages = newPages.map((page, index) => ({
+        ...page,
+        page_order: index + 1,
+      }));
+      
+      // Update page_order in database
+      for (const page of reorderedPages) {
+        await supabase
+          .from('pages')
+          .update({ page_order: page.page_order })
+          .eq('id', page.id);
+      }
+      
+      setPages(reorderedPages);
+      
+      // Select next page
+      if (reorderedPages.length > 0) {
+        const deletedIndex = pages.findIndex(p => p.id === pageId);
+        const nextIndex = Math.min(deletedIndex, reorderedPages.length - 1);
+        setSelectedPageId(reorderedPages[nextIndex].id);
+      } else {
+        setSelectedPageId(null);
+      }
+      
+      toast.success("Page deleted");
+    } catch (error) {
+      console.error('Error deleting page:', error);
+      toast.error("Failed to delete page");
+    }
+  };
+
   const handleUpdateTitle = useCallback(async (pageId: string, title: string) => {
     // Update local state immediately
     setPages(prev => prev.map(p => 
@@ -262,6 +307,7 @@ const Review = () => {
             page={selectedPage}
             pages={pages}
             onAccept={handleAccept}
+            onDelete={handleDelete}
             onUpdateTitle={handleUpdateTitle}
             onUpdateBorder={handleUpdateBorder}
             onContinue={handleContinue}
