@@ -48,22 +48,22 @@ export function ReviewFilmstrip({
     const hasImage = !!page.coloring_image_url;
 
     if (!hasImage) {
-      return "border-2 border-destructive/50";
+      return "ring-2 ring-destructive/50 border-2 border-destructive/30";
     }
     if (isSelected && isAccepted) {
       return "ring-2 ring-orange-500 border-2 border-green-500";
     }
     if (isSelected) {
-      return "ring-2 ring-orange-500 border-2 border-border";
+      return "ring-2 ring-orange-500 border-2 border-muted";
     }
     if (isAccepted) {
       return "border-2 border-green-500";
     }
-    return "border-2 border-border";
+    return "border-2 border-muted";
   };
 
   return (
-    <div className="flex flex-col h-full w-[250px] bg-card rounded-lg border border-border">
+    <div className="flex flex-col h-full w-[220px] bg-card rounded-lg border border-border">
       {/* Up navigation */}
       <Button
         variant="ghost"
@@ -104,44 +104,47 @@ export function ReviewFilmstrip({
                             }
                           }}
                           {...provided.draggableProps}
-                          className={`relative rounded-lg overflow-hidden cursor-pointer transition-all ${getBorderClasses(page)} ${
-                            snapshot.isDragging ? "shadow-lg" : ""
+                          className={`relative rounded-lg overflow-hidden cursor-pointer transition-all bg-background ${getBorderClasses(page)} ${
+                            snapshot.isDragging ? "shadow-lg scale-105" : ""
                           }`}
                           onClick={() => onSelectPage(page)}
                         >
-                          <div className="flex items-center gap-2 p-2 bg-background">
-                            <div {...provided.dragHandleProps} className="cursor-grab">
+                          {/* Square thumbnail area */}
+                          <div className="relative aspect-square w-full bg-muted/30">
+                            {page.coloring_image_url ? (
+                              <img
+                                src={page.coloring_image_url}
+                                alt={`Page ${index + 1}`}
+                                className="w-full h-full object-contain p-1"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <AlertCircle className="w-8 h-8 text-destructive" />
+                              </div>
+                            )}
+                            
+                            {/* Drag handle overlay */}
+                            <div 
+                              {...provided.dragHandleProps} 
+                              className="absolute top-1 left-1 p-1 bg-background/80 rounded cursor-grab hover:bg-background"
+                            >
                               <GripVertical className="w-4 h-4 text-muted-foreground" />
                             </div>
                             
-                            <div className="relative w-14 h-14 flex-shrink-0">
-                              {page.coloring_image_url ? (
-                                <img
-                                  src={page.coloring_image_url}
-                                  alt={`Page ${index + 1}`}
-                                  className="w-full h-full object-cover rounded"
-                                  style={{ imageRendering: "crisp-edges" }}
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-muted rounded flex items-center justify-center">
-                                  <AlertCircle className="w-5 h-5 text-destructive" />
-                                </div>
-                              )}
-                              
-                              {/* Accepted badge */}
-                              {page.accepted && page.coloring_image_url && (
-                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                                  <Check className="w-3 h-3 text-white" />
-                                </div>
-                              )}
-                            </div>
-                            
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium">Page {index + 1}</p>
-                              <p className="text-xs text-muted-foreground truncate">
-                                {page.heading_text || "No title"}
-                              </p>
-                            </div>
+                            {/* Accepted badge */}
+                            {page.accepted && page.coloring_image_url && (
+                              <div className="absolute top-1 right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
+                                <Check className="w-4 h-4 text-white" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Page info below thumbnail */}
+                          <div className="p-2 border-t border-border/50">
+                            <p className="text-xs font-medium">Page {index + 1}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {page.heading_text || "No title"}
+                            </p>
                           </div>
                         </div>
                       )}

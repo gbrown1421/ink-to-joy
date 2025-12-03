@@ -3,13 +3,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check, ArrowRight, Type, Square } from "lucide-react";
+import { Check, ArrowRight, Type, Square, Trash2 } from "lucide-react";
 import { ReviewPage } from "./ReviewFilmstrip";
 
 interface ReviewControlsCardProps {
   page: ReviewPage | null;
   pages: ReviewPage[];
   onAccept: (pageId: string) => void;
+  onDelete: (pageId: string) => void;
   onUpdateTitle: (pageId: string, title: string) => void;
   onUpdateBorder: (pageId: string, borderStyle: string) => void;
   onContinue: () => void;
@@ -26,6 +27,7 @@ export function ReviewControlsCard({
   page,
   pages,
   onAccept,
+  onDelete,
   onUpdateTitle,
   onUpdateBorder,
   onContinue,
@@ -39,6 +41,7 @@ export function ReviewControlsCard({
 
   const hasImage = page?.coloring_image_url;
   const canAccept = !!page && !!hasImage;
+  const canDelete = !!page;
   const canEditTitle = !!page && !!hasImage;
   const canEditBorder = !!page && !!hasImage;
 
@@ -56,13 +59,16 @@ export function ReviewControlsCard({
     }
   };
 
-  const handleTitleBlur = () => {
-    // Persist is already handled in onUpdateTitle with debounce
+  const handleDelete = () => {
+    if (!page) return;
+    if (window.confirm(`Delete Page? This will permanently remove this page from your book.`)) {
+      onDelete(page.id);
+    }
   };
 
   return (
     <div className="flex flex-col gap-4 w-full max-w-xs">
-      {/* Image Controls Card */}
+      {/* Page Controls Card */}
       <Card className="p-4 space-y-4">
         <h3 className="font-semibold text-sm">Page Controls</h3>
 
@@ -81,6 +87,17 @@ export function ReviewControlsCard({
           {page?.accepted ? "Accepted" : "Accept"}
         </Button>
 
+        {/* Delete Button */}
+        <Button
+          variant="outline"
+          className="w-full justify-start border-destructive text-destructive hover:bg-destructive/10"
+          onClick={handleDelete}
+          disabled={!canDelete}
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Delete
+        </Button>
+
         {/* Add Title */}
         <div className="space-y-2">
           <Label className="flex items-center gap-2 text-sm">
@@ -90,7 +107,6 @@ export function ReviewControlsCard({
           <Input
             value={localTitle}
             onChange={(e) => handleTitleChange(e.target.value)}
-            onBlur={handleTitleBlur}
             placeholder="Enter title (max 26 chars)"
             maxLength={26}
             disabled={!canEditTitle}
