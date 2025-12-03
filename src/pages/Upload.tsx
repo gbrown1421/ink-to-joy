@@ -2,21 +2,16 @@ import { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Palette, Upload as UploadIcon, ArrowRight, Loader2, X, CheckCircle2, AlertCircle, Home } from "lucide-react";
+import { Palette, Upload as UploadIcon, ArrowRight, Home } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useDropzone } from "react-dropzone";
 import { ProjectTypeBadge } from "@/components/ProjectTypeBadge";
-import { normalizeToPng } from "@/utils/normalizeImage";
 import { ImageTroubleshootingModal } from "@/components/ImageTroubleshootingModal";
-
-interface UploadedPage {
-  id: string;
-  originalFile: File;
-  status: "accepted" | "preparing" | "prepared" | "processing" | "ready" | "failed";
-  coloringImageUrl?: string;
-  error?: string;
-}
+import { useUploadTiles } from "@/hooks/useUploadTiles";
+import { TileGrid } from "@/components/upload/TileGrid";
+import { TilePreview } from "@/components/upload/TilePreview";
+import { TileControls } from "@/components/upload/TileControls";
 
 const Upload = () => {
   const { bookId } = useParams<{ bookId: string }>();
@@ -24,11 +19,21 @@ const Upload = () => {
   const location = useLocation();
   const { bookName, difficulty } = location.state || { bookName: "Untitled Book", difficulty: "beginner" };
 
-  const [pages, setPages] = useState<UploadedPage[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
   const [projectType, setProjectType] = useState<"coloring" | "toon">("coloring");
-  const [bookDifficulty, setBookDifficulty] = useState<string>("intermediate");
   const [showTroubleshootingModal, setShowTroubleshootingModal] = useState(false);
+
+  const {
+    tiles,
+    selectedTileId,
+    selectedTile,
+    isProcessing,
+    canContinue,
+    addFiles,
+    acceptTile,
+    regenerateTile,
+    deleteTile,
+    selectTile,
+  } = useUploadTiles(bookId);
 
   useEffect(() => {
     loadBookDetails();
@@ -47,7 +52,6 @@ const Upload = () => {
       if (error) throw error;
       if (data) {
         setProjectType(data.project_type as "coloring" | "toon");
-        setBookDifficulty(data.difficulty || "intermediate");
       }
     } catch (error) {
       console.error('Error loading book details:', error);
@@ -55,96 +59,20 @@ const Upload = () => {
     }
   };
 
-
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (!bookId) return;
-
-    const newPages: UploadedPage[] = acceptedFiles.map(file => ({
-      id: crypto.randomUUID(),
-      originalFile: file,
-      status: "accepted" as const,
-    }));
-
-    setPages(prev => [...prev, ...newPages]);
-    setIsUploading(true);
-
-    for (const page of newPages) {
-      try {
-        // 1. Just accepted
-        setPages(prev => prev.map(p =>
-          p.id === page.id ? { ...p, status: "accepted", error: undefined } : p
-        ));
-
-        // 2. Prep: normalize to PNG
-        setPages(prev => prev.map(p =>
-          p.id === page.id ? { ...p, status: "preparing" } : p
-        ));
-
-        const normalizedFile = await normalizeToPng(page.originalFile);
-
-        setPages(prev => prev.map(p =>
-          p.id === page.id ? { ...p, status: "prepared" } : p
-        ));
-
-        // 3. Call upload-page with the normalized file
-        setPages(prev => prev.map(p =>
-          p.id === page.id ? { ...p, status: "processing" } : p
-        ));
-
-        const formData = new FormData();
-        formData.append("bookId", bookId);
-        formData.append("image", normalizedFile);
-
-        const { data, error } = await supabase.functions.invoke("upload-page", {
-          body: formData,
-        });
-
-        if (error) {
-          const msg = error.message || "Upload / processing failed";
-          console.error("upload-page error:", msg);
-          toast.error(msg);
-          setPages(prev => prev.map(p =>
-            p.id === page.id ? { ...p, status: "failed", error: msg } : p
-          ));
-          continue;
-        }
-
-        if (data?.status === "ready" && data.coloringImageUrl) {
-          setPages(prev => prev.map(p =>
-            p.id === page.id
-              ? { ...p, status: "ready", coloringImageUrl: data.coloringImageUrl as string }
-              : p
-          ));
-          toast.success("Page processed successfully!");
-        } else {
-          const msg = "We couldn't read this image file.";
-          console.warn(msg, data);
-          toast.error(msg);
-          setPages(prev => prev.map(p =>
-            p.id === page.id ? { ...p, status: "failed", error: msg } : p
-          ));
-        }
-      } catch (err) {
-        console.error("Error uploading/processing page:", err);
-        const msg = err instanceof Error ? err.message : "Unexpected error during upload";
-        toast.error(msg);
-        setPages(prev => prev.map(p =>
-          p.id === page.id ? { ...p, status: "failed", error: msg } : p
-        ));
-      }
-    }
-
-    setIsUploading(false);
-  }, [bookId, projectType]);
-
-  const removePage = (id: string) => {
-    setPages(prev => prev.filter(p => p.id !== id));
-  };
+    await addFiles(acceptedFiles);
+  }, [bookId, addFiles]);
 
   const handleContinue = () => {
-    const readyPages = pages.filter(p => p.status === "ready");
-    if (readyPages.length === 0) {
-      toast.error("Please wait for at least one page to be ready");
+    if (!canContinue) {
+      if (tiles.some(t => t.status === "generating" || t.status === "uploading")) {
+        toast.error("Please wait for all images to finish processing");
+      } else if (tiles.some(t => !t.accepted && t.status === "ready")) {
+        toast.error("Please accept all images before continuing");
+      } else if (tiles.length === 0) {
+        toast.error("Please upload at least one image");
+      }
       return;
     }
 
@@ -157,12 +85,10 @@ const Upload = () => {
     multiple: true,
   });
 
-
-  const readyCount = pages.filter(p => p.status === "ready").length;
-  const processingCount = pages.filter(p => 
-    p.status === "preparing" || 
-    p.status === "prepared" || 
-    p.status === "processing"
+  const readyCount = tiles.filter(t => t.status === "ready").length;
+  const acceptedCount = tiles.filter(t => t.accepted).length;
+  const processingCount = tiles.filter(t => 
+    t.status === "uploading" || t.status === "generating"
   ).length;
 
   return (
@@ -194,151 +120,105 @@ const Upload = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="space-y-6">
-          {/* Upload Area */}
-          <Card 
-            {...getRootProps()} 
-            className={`p-12 border-2 border-dashed cursor-pointer transition-all ${
-              isDragActive ? "border-primary bg-primary/5" : "hover:border-primary/50"
-            }`}
-          >
-            <input {...getInputProps()} />
-            <div className="flex flex-col items-center gap-4 text-center">
-              <UploadIcon className="w-16 h-16 text-muted-foreground" />
-              <div>
-                <h3 className="text-xl font-semibold mb-2">
-                  {isDragActive ? "Drop photos here..." : "Upload Photos"}
-                </h3>
-                <p className="text-muted-foreground">
-                  Drag and drop images here, or click to select files
-                </p>
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_280px] gap-6">
+          {/* Left Panel - Controls */}
+          <div className="space-y-4">
+            <TileControls
+              tile={selectedTile}
+              onAccept={() => selectedTileId && acceptTile(selectedTileId)}
+              onRegenerate={() => selectedTileId && regenerateTile(selectedTileId)}
+              onDelete={() => selectedTileId && deleteTile(selectedTileId)}
+            />
+          </div>
+
+          {/* Center Panel - Preview */}
+          <div className="space-y-4">
+            <TilePreview
+              tile={selectedTile}
+              onOpenTroubleshooting={() => setShowTroubleshootingModal(true)}
+            />
+
+            {/* Filmstrip / Tile Grid */}
+            <TileGrid
+              tiles={tiles}
+              selectedTileId={selectedTileId}
+              onSelectTile={selectTile}
+            />
+          </div>
+
+          {/* Right Panel - Upload & Status */}
+          <div className="space-y-4">
+            {/* Upload Area */}
+            <Card 
+              {...getRootProps()} 
+              className={`p-6 border-2 border-dashed cursor-pointer transition-all ${
+                isDragActive ? "border-primary bg-primary/5" : "hover:border-primary/50"
+              }`}
+            >
+              <input {...getInputProps()} />
+              <div className="flex flex-col items-center gap-3 text-center">
+                <UploadIcon className="w-10 h-10 text-muted-foreground" />
+                <div>
+                  <h3 className="font-semibold mb-1">
+                    {isDragActive ? "Drop here..." : "Add Photos"}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Drag & drop or click to select
+                  </p>
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
 
-          {/* Status Summary */}
-          {pages.length > 0 && (
-            <div className="flex gap-4 text-sm">
-              <span className="text-muted-foreground">
-                {readyCount} ready, {processingCount} processing, {pages.length} total
-              </span>
-            </div>
-          )}
+            {/* Status Summary */}
+            {tiles.length > 0 && (
+              <Card className="p-4">
+                <h3 className="font-medium text-sm mb-3">Status</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Total</span>
+                    <span>{tiles.length}</span>
+                  </div>
+                  {processingCount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Processing</span>
+                      <span className="text-yellow-600">{processingCount}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Ready</span>
+                    <span>{readyCount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Accepted</span>
+                    <span className="text-green-600">{acceptedCount}</span>
+                  </div>
+                </div>
+              </Card>
+            )}
 
-          {/* Pages Grid */}
-          {pages.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {pages.map(page => (
-                <Card key={page.id} className="relative p-2">
-                  <div className="aspect-square rounded overflow-hidden bg-muted mb-2">
-                     {page.status === "ready" && page.coloringImageUrl ? (
-                       <img 
-                         src={page.coloringImageUrl} 
-                         alt="Processed coloring page" 
-                         className="w-full h-full object-contain"
-                         style={{ 
-                           imageRendering: 'crisp-edges'
-                         }}
-                       />
-                     ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-2">
-                         {page.status === "accepted" && (
-                           <>
-                             <CheckCircle2 className="w-8 h-8 text-muted-foreground" />
-                             <span className="text-xs text-center text-muted-foreground">
-                               Image accepted
-                             </span>
-                           </>
-                         )}
-                         {page.status === "preparing" && (
-                           <>
-                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                             <span className="text-xs text-center text-muted-foreground">
-                               Preparing image…
-                             </span>
-                           </>
-                         )}
-                         {page.status === "prepared" && (
-                           <>
-                             <CheckCircle2 className="w-8 h-8 text-primary" />
-                             <span className="text-xs text-center text-muted-foreground">
-                               Image prep complete
-                             </span>
-                           </>
-                         )}
-                         {page.status === "processing" && (
-                           <>
-                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                             <span className="text-xs text-center text-muted-foreground">
-                               Generating coloring page…
-                             </span>
-                           </>
-                         )}
-                          {page.status === "failed" && (
-                            <>
-                              <AlertCircle className="w-8 h-8 text-destructive" />
-                              <span className="text-xs text-center text-destructive font-medium">
-                                We couldn't read this image file.
-                              </span>
-                              <div className="flex gap-2 mt-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => removePage(page.id)}
-                                >
-                                  Remove
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setShowTroubleshootingModal(true)}
-                                >
-                                  How do I fix this?
-                                </Button>
-                              </div>
-                              <p className="text-xs text-muted-foreground text-center mt-2 px-2">
-                                Some photos use special formats our system can't decode. Click "How do I fix this?" for quick steps to repair and re-upload.
-                              </p>
-                            </>
-                          )}
-                       </div>
-                     )}
-                   </div>
-                   <div className="flex items-center justify-between">
-                     <span className="text-xs text-muted-foreground truncate flex-1">
-                       {page.originalFile.name}
-                     </span>
-                     <Button
-                       variant="ghost"
-                       size="sm"
-                       className="h-6 w-6 p-0"
-                       onClick={() => removePage(page.id)}
-                     >
-                       <X className="w-4 h-4" />
-                     </Button>
-                   </div>
-                   {page.status === "ready" && (
-                     <CheckCircle2 className="absolute top-4 right-4 w-6 h-6 text-primary" />
-                   )}
-                </Card>
-              ))}
-            </div>
-          )}
+            {/* Continue Button */}
+            <Button 
+              onClick={handleContinue}
+              size="lg"
+              className="w-full"
+              disabled={!canContinue}
+            >
+              Continue to Review
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
 
-          {/* Continue Button */}
-          {pages.length > 0 && (
-            <div className="flex justify-end">
-              <Button 
-                onClick={handleContinue}
-                size="lg"
-                disabled={readyCount === 0}
-              >
-                Continue to Review
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </div>
-          )}
+            {tiles.length > 0 && !canContinue && (
+              <p className="text-xs text-muted-foreground text-center">
+                {isProcessing 
+                  ? "Waiting for images to process..."
+                  : acceptedCount < readyCount
+                    ? "Accept all images to continue"
+                    : "Add at least one image"
+                }
+              </p>
+            )}
+          </div>
         </div>
       </main>
 
