@@ -1,78 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Palette, ArrowRight, GripVertical, Home, ArrowLeft } from "lucide-react";
+import { Palette, Home, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { BorderWrapper } from "@/components/borders/BorderWrapper";
+import { DropResult } from "@hello-pangea/dnd";
 import { ProjectTypeBadge } from "@/components/ProjectTypeBadge";
-
-interface Page {
-  id: string;
-  coloring_image_url: string;
-  easy_image_url: string | null;
-  beginner_image_url: string | null;
-  intermediate_image_url: string | null;
-  border_style: string;
-  heading_text: string;
-  keep: boolean;
-  page_order: number;
-  status: string;
-}
-
-const getDisplayUrlForPage = (page: Page, difficulty: string): string | null => {
-  return page.coloring_image_url;
-};
-
-// Border styles mapped by difficulty level
-const getBorderStylesForDifficulty = (difficulty: string) => {
-  switch (difficulty) {
-    case "quick-easy":
-      return [
-        { id: "balloons", name: "Balloons" },
-        { id: "stars", name: "Stars" },
-        { id: "clouds", name: "Clouds" },
-      ];
-    case "beginner":
-      return [
-        { id: "flowers", name: "Flowers" },
-        { id: "animals", name: "Animals" },
-        { id: "nature", name: "Nature" },
-      ];
-    case "intermediate":
-      return [
-        { id: "geometric", name: "Geometric" },
-        { id: "art-deco", name: "Art Deco" },
-        { id: "mandala", name: "Mandala" },
-      ];
-    case "advanced":
-      return [
-        { id: "ornate", name: "Ornate" },
-        { id: "botanical", name: "Botanical" },
-        { id: "minimalist", name: "Minimalist" },
-      ];
-    default:
-      return [{ id: "classic", name: "Classic" }];
-  }
-};
+import { ReviewFilmstrip, ReviewPage } from "@/components/review/ReviewFilmstrip";
+import { ReviewPreview } from "@/components/review/ReviewPreview";
+import { ReviewControlsCard } from "@/components/review/ReviewControlsCard";
 
 const Review = () => {
   const { bookId } = useParams<{ bookId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { bookName } = location.state || { bookName: "Untitled Book" };
+  const { bookName, difficulty: navDifficulty } = location.state || { bookName: "Untitled Book" };
 
-  const [pages, setPages] = useState<Page[]>([]);
+  const [pages, setPages] = useState<ReviewPage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedPage, setSelectedPage] = useState<Page | null>(null);
+  const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<string>("beginner");
-  const [borderStyles, setBorderStyles] = useState(getBorderStylesForDifficulty("beginner"));
   const [projectType, setProjectType] = useState<"coloring" | "toon">("coloring");
+
+  const selectedPage = pages.find(p => p.id === selectedPageId) || null;
 
   useEffect(() => {
     loadBookAndPages();
@@ -82,23 +32,22 @@ const Review = () => {
     if (!bookId) return;
 
     try {
-      // Load book details to get difficulty and project type
-      const bookResponse: any = await (supabase as any)
+      // Load book details
+      const bookResponse = await supabase
         .from('books')
         .select('difficulty, project_type')
         .eq('id', bookId)
-        .single();
+        .maybeSingle();
 
       if (bookResponse.error) throw bookResponse.error;
       
-      const bookDifficulty = bookResponse.data.difficulty;
-      const bookProjectType = bookResponse.data.project_type || 'coloring';
+      const bookDifficulty = bookResponse.data?.difficulty || "beginner";
+      const bookProjectType = (bookResponse.data?.project_type as "coloring" | "toon") || 'coloring';
       setDifficulty(bookDifficulty);
       setProjectType(bookProjectType);
-      setBorderStyles(getBorderStylesForDifficulty(bookDifficulty));
 
       // Load pages - only accepted (keep=true) and ready pages
-      const pagesResponse: any = await (supabase as any)
+      const pagesResponse = await supabase
         .from('pages')
         .select('*')
         .eq('book_id', bookId)
@@ -108,23 +57,21 @@ const Review = () => {
 
       if (pagesResponse.error) throw pagesResponse.error;
       
-      // Set default border style if not set
-      const pagesData = pagesResponse.data || [];
-      const defaultBorderStyle = getBorderStylesForDifficulty(bookDifficulty)[0]?.id || "classic";
-      
-      for (const page of pagesData) {
-        if (!page.border_style) {
-          await (supabase as any)
-            .from('pages')
-            .update({ border_style: defaultBorderStyle })
-            .eq('id', page.id);
-          page.border_style = defaultBorderStyle;
-        }
-      }
+      // Map to ReviewPage with accepted = false (always reset on visit)
+      const pagesData: ReviewPage[] = (pagesResponse.data || []).map(p => ({
+        id: p.id,
+        coloring_image_url: p.coloring_image_url,
+        border_style: p.border_style || "none",
+        heading_text: p.heading_text || "",
+        keep: p.keep ?? true,
+        page_order: p.page_order,
+        status: p.status,
+        accepted: false, // Always reset on page load
+      }));
       
       setPages(pagesData);
       if (pagesData.length > 0) {
-        setSelectedPage(pagesData[0]);
+        setSelectedPageId(pagesData[0].id);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -132,6 +79,25 @@ const Review = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSelectPage = (page: ReviewPage) => {
+    setSelectedPageId(page.id);
+  };
+
+  const handleNavigate = (direction: "up" | "down") => {
+    if (pages.length === 0) return;
+    
+    const currentIndex = pages.findIndex(p => p.id === selectedPageId);
+    let newIndex: number;
+    
+    if (direction === "up") {
+      newIndex = currentIndex <= 0 ? pages.length - 1 : currentIndex - 1;
+    } else {
+      newIndex = currentIndex >= pages.length - 1 ? 0 : currentIndex + 1;
+    }
+    
+    setSelectedPageId(pages[newIndex].id);
   };
 
   const handleDragEnd = async (result: DropResult) => {
@@ -152,7 +118,7 @@ const Review = () => {
     // Update in database
     try {
       for (const page of updatedPages) {
-        const response: any = await (supabase as any)
+        const response = await supabase
           .from('pages')
           .update({ page_order: page.page_order })
           .eq('id', page.id);
@@ -165,29 +131,57 @@ const Review = () => {
     }
   };
 
-  const updatePage = async (pageId: string, updates: Partial<Page>) => {
+  const handleAccept = (pageId: string) => {
+    setPages(prev => prev.map(p => 
+      p.id === pageId ? { ...p, accepted: !p.accepted } : p
+    ));
+  };
+
+  const handleUpdateTitle = useCallback(async (pageId: string, title: string) => {
+    // Update local state immediately
+    setPages(prev => prev.map(p => 
+      p.id === pageId ? { ...p, heading_text: title } : p
+    ));
+
+    // Debounced persist to database
     try {
-      const response: any = await (supabase as any)
+      await supabase
         .from('pages')
-        .update(updates)
+        .update({ heading_text: title })
         .eq('id', pageId);
-
-      if (response.error) throw response.error;
-
-      setPages(prev => prev.map(p => p.id === pageId ? { ...p, ...updates } : p));
-      if (selectedPage?.id === pageId) {
-        setSelectedPage(prev => prev ? { ...prev, ...updates } : null);
-      }
     } catch (error) {
-      console.error('Error updating page:', error);
-      toast.error("Failed to update page");
+      console.error('Error updating title:', error);
+    }
+  }, []);
+
+  const handleUpdateBorder = async (pageId: string, borderStyle: string) => {
+    // Update local state
+    setPages(prev => prev.map(p => 
+      p.id === pageId ? { ...p, border_style: borderStyle } : p
+    ));
+
+    // Persist to database
+    try {
+      await supabase
+        .from('pages')
+        .update({ border_style: borderStyle })
+        .eq('id', pageId);
+    } catch (error) {
+      console.error('Error updating border:', error);
+      toast.error("Failed to update border style");
     }
   };
 
   const handleContinue = () => {
-    const keptPages = pages.filter(p => p.keep);
-    if (keptPages.length === 0) {
-      toast.error("Please keep at least one page");
+    const pagesWithImages = pages.filter(p => p.coloring_image_url);
+    if (pagesWithImages.length === 0) {
+      toast.error("No pages available");
+      return;
+    }
+
+    const allAccepted = pagesWithImages.every(p => p.accepted);
+    if (!allAccepted) {
+      toast.error("Please accept all pages before continuing");
       return;
     }
 
@@ -206,16 +200,17 @@ const Review = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-6">
+    <div className="min-h-screen bg-gradient-subtle flex flex-col">
+      {/* Header */}
+      <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm flex-shrink-0">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-creative flex items-center justify-center">
-                <Palette className="w-6 h-6 text-primary-foreground" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-creative flex items-center justify-center">
+                <Palette className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">{bookName}</h1>
+                <h1 className="text-xl font-bold">{bookName}</h1>
                 <p className="text-sm text-muted-foreground">Step 3: Review & Organize</p>
               </div>
             </div>
@@ -242,152 +237,35 @@ const Review = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Preview */}
-          <div className="lg:col-span-2">
-            {selectedPage && (
-              <Card className="p-6 space-y-6">
-                <div className="bg-background rounded-lg p-4">
-                  {(() => {
-                    const displayUrl = getDisplayUrlForPage(selectedPage, difficulty);
-                    if (!displayUrl) {
-                      return (
-                        <div className="flex flex-col items-center justify-center p-12 bg-muted rounded-lg border-2 border-border">
-                          <p className="text-sm text-muted-foreground mb-4 text-center">
-                            Page image not ready – go back and re-upload this photo.
-                          </p>
-                        </div>
-                      );
-                    }
-                    return (
-                      <BorderWrapper
-                        borderStyle={selectedPage.border_style}
-                        headingText={selectedPage.heading_text}
-                        difficulty={difficulty}
-                      >
-                         <img 
-                           src={displayUrl}
-                           alt="Coloring page preview"
-                           className="w-full rounded-lg"
-                           style={{ 
-                             imageRendering: 'crisp-edges'
-                           }}
-                         />
-                      </BorderWrapper>
-                    );
-                  })()}
-                </div>
+      {/* Main Content - 3 column layout */}
+      <main 
+        className="flex-1 container mx-auto px-4 py-4 flex gap-4"
+        style={{ height: 'calc(100vh - 73px)', overflow: 'hidden' }}
+      >
+        {/* Left: Filmstrip */}
+        <ReviewFilmstrip
+          pages={pages}
+          selectedPageId={selectedPageId}
+          onSelectPage={handleSelectPage}
+          onDragEnd={handleDragEnd}
+          onNavigate={handleNavigate}
+        />
 
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Heading Text</Label>
-                    <Input
-                      value={selectedPage.heading_text || ''}
-                      onChange={(e) => updatePage(selectedPage.id, { heading_text: e.target.value })}
-                      placeholder="Enter a heading (optional)"
-                    />
-                  </div>
+        {/* Center: Preview */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <ReviewPreview page={selectedPage} />
+        </div>
 
-                  <div className="space-y-2">
-                    <Label>Border Style</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {borderStyles.map(border => (
-                        <Button
-                          key={border.id}
-                          variant={selectedPage.border_style === border.id ? "default" : "outline"}
-                          onClick={() => updatePage(selectedPage.id, { border_style: border.id })}
-                          className="h-auto py-4"
-                        >
-                          {border.name}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            )}
-          </div>
-
-          {/* Page List */}
-          <div className="space-y-4">
-            <h3 className="font-semibold">Pages ({pages.filter(p => p.keep).length} of {pages.length})</h3>
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <Droppable droppableId="pages">
-                {(provided) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="space-y-2"
-                  >
-                    {pages.map((page, index) => (
-                      <Draggable key={page.id} draggableId={page.id} index={index}>
-                        {(provided) => (
-                          <Card
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={`p-3 cursor-pointer ${
-                              selectedPage?.id === page.id ? "ring-2 ring-primary" : ""
-                            }`}
-                            onClick={() => setSelectedPage(page)}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div {...provided.dragHandleProps}>
-                                <GripVertical className="w-5 h-5 text-muted-foreground" />
-                              </div>
-                              {(() => {
-                                const displayUrl = getDisplayUrlForPage(page, difficulty);
-                                if (!displayUrl) {
-                                  return (
-                                    <div className="w-16 h-16 bg-muted rounded flex items-center justify-center border-2 border-border">
-                                      <span className="text-xs text-muted-foreground font-bold">?</span>
-                                    </div>
-                                  );
-                                }
-                                return (
-                                   <img 
-                                     src={displayUrl}
-                                     alt={`Page ${index + 1}`}
-                                     className="w-16 h-16 object-cover rounded"
-                                     style={{ 
-                                       imageRendering: 'crisp-edges'
-                                     }}
-                                   />
-                                );
-                              })()}
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">Page {index + 1}</p>
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {page.heading_text || "No heading"}
-                                </p>
-                              </div>
-                              <Checkbox
-                                checked={page.keep}
-                                onCheckedChange={(checked) => 
-                                  updatePage(page.id, { keep: !!checked })
-                                }
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </div>
-                          </Card>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-
-            <Button 
-              onClick={handleContinue}
-              size="lg"
-              className="w-full"
-            >
-              Continue to Finalize
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </div>
+        {/* Right: Controls */}
+        <div className="flex-shrink-0">
+          <ReviewControlsCard
+            page={selectedPage}
+            pages={pages}
+            onAccept={handleAccept}
+            onUpdateTitle={handleUpdateTitle}
+            onUpdateBorder={handleUpdateBorder}
+            onContinue={handleContinue}
+          />
         </div>
       </main>
     </div>
