@@ -11,7 +11,7 @@ interface CenterPreviewProps {
 export function CenterPreview({ tile, onOpenTroubleshooting }: CenterPreviewProps) {
   if (!tile) {
     return (
-      <Card className="flex-1 flex items-center justify-center bg-muted/30 min-h-[400px]">
+      <Card className="flex-1 flex items-center justify-center bg-muted/30 overflow-auto">
         <div className="text-center text-muted-foreground">
           <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
           <p className="text-lg">Select an image to preview</p>
@@ -24,7 +24,7 @@ export function CenterPreview({ tile, onOpenTroubleshooting }: CenterPreviewProp
   const isProcessing = tile.status === "uploading" || tile.status === "generating";
 
   return (
-    <Card className={`flex-1 overflow-hidden relative min-h-[400px] ${
+    <Card className={`flex-1 overflow-auto relative flex items-center justify-center ${
       tile.accepted ? "ring-2 ring-green-500" : ""
     }`}>
       {/* Processing State */}
@@ -65,7 +65,7 @@ export function CenterPreview({ tile, onOpenTroubleshooting }: CenterPreviewProp
         <img
           src={tile.coloringImageUrl}
           alt="Coloring page preview"
-          className="w-full h-full object-contain"
+          className="max-w-full max-h-full object-contain"
           style={{ imageRendering: 'crisp-edges' }}
         />
       )}

@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Palette, Upload as UploadIcon, ArrowRight, Home } from "lucide-react";
+import { Palette, Upload as UploadIcon, Home } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useDropzone } from "react-dropzone";
@@ -136,8 +136,8 @@ const Upload = () => {
         </div>
       </header>
 
-      {/* Main Content - 3 Column Layout */}
-      <main className="flex-1 flex overflow-hidden">
+      {/* Main Content - 3 Column Layout with fixed viewport height */}
+      <main className="flex overflow-hidden" style={{ height: 'calc(100vh - 73px)' }}>
         {/* Left Column - Vertical Filmstrip */}
         <div className="border-r border-border/50 bg-card/30">
           <VerticalFilmstrip
@@ -149,7 +149,7 @@ const Upload = () => {
         </div>
 
         {/* Center Column - Preview */}
-        <div className="flex-1 p-6 flex flex-col">
+        <div className="flex-1 p-6 flex flex-col min-h-0">
           <CenterPreview
             tile={selectedTile}
             onOpenTroubleshooting={() => setShowTroubleshootingModal(true)}
@@ -206,40 +206,15 @@ const Upload = () => {
             </Card>
           )}
 
-          {/* Image Controls */}
+          {/* Image Controls with Continue Button */}
           <ImageControlsCard
             tile={selectedTile}
             onAccept={() => selectedTileId && acceptTile(selectedTileId)}
             onRegenerate={() => selectedTileId && regenerateTile(selectedTileId)}
             onDelete={() => selectedTileId && deleteTile(selectedTileId)}
+            canContinue={canContinue}
+            onContinue={handleContinue}
           />
-
-          {/* Spacer */}
-          <div className="flex-1" />
-
-          {/* Continue Button */}
-          <div className="space-y-2">
-            <Button 
-              onClick={handleContinue}
-              size="lg"
-              className="w-full"
-              disabled={!canContinue}
-            >
-              Continue to Review
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-
-            {tiles.length > 0 && !canContinue && (
-              <p className="text-xs text-muted-foreground text-center">
-                {isProcessing 
-                  ? "Waiting for images to process..."
-                  : acceptedCount < readyCount
-                    ? "Accept all ready images to continue"
-                    : "Add at least one image"
-                }
-              </p>
-            )}
-          </div>
         </div>
       </main>
 
