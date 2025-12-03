@@ -14,6 +14,19 @@ interface PageData {
   headingText: string;
 }
 
+// PDF dimensions in points (72 points = 1 inch)
+const PAGE_WIDTH_PT = 612;  // 8.5"
+const PAGE_HEIGHT_PT = 792; // 11"
+const MARGIN_PT = 54;       // 0.75"
+const BORDER_X = MARGIN_PT;
+const BORDER_Y = MARGIN_PT;
+const BORDER_WIDTH = PAGE_WIDTH_PT - 2 * MARGIN_PT;  // 504 pt
+const BORDER_HEIGHT = PAGE_HEIGHT_PT - 2 * MARGIN_PT; // 684 pt
+const HEADER_HEIGHT_PT = 90; // 1.25" (from 0.75" to 2" = 1.25")
+
+// Convert points to inches for jsPDF
+const ptToIn = (pt: number) => pt / 72;
+
 const Finalize = () => {
   const { bookId } = useParams<{ bookId: string }>();
   const navigate = useNavigate();
@@ -66,6 +79,131 @@ const Finalize = () => {
     }
   };
 
+  const drawBorder = (pdf: jsPDF, borderStyle: string) => {
+    if (borderStyle === "none" || !borderStyle) return;
+
+    const x = ptToIn(BORDER_X);
+    const y = ptToIn(BORDER_Y);
+    const w = ptToIn(BORDER_WIDTH);
+    const h = ptToIn(BORDER_HEIGHT);
+
+    pdf.setDrawColor(0, 0, 0); // Black
+
+    if (borderStyle === "thick") {
+      pdf.setLineWidth(ptToIn(3));
+      pdf.rect(x, y, w, h, 'S');
+    } else if (borderStyle === "thin") {
+      pdf.setLineWidth(ptToIn(1));
+      pdf.rect(x, y, w, h, 'S');
+    } else if (borderStyle === "dashed") {
+      pdf.setLineWidth(ptToIn(2));
+      pdf.setLineDashPattern([ptToIn(6), ptToIn(4)], 0);
+      pdf.rect(x, y, w, h, 'S');
+      pdf.setLineDashPattern([], 0); // Reset dash pattern
+    }
+  };
+
+  const drawTitle = (pdf: jsPDF, headingText: string) => {
+    const title = (headingText || "").toUpperCase().trim();
+    if (!title) return;
+
+    pdf.setFontSize(36);
+    pdf.setTextColor(0, 0, 0);
+
+    // Header band: from y=54pt to y=144pt (0.75" to 2")
+    // Center title vertically within header band
+    const headerTopIn = ptToIn(BORDER_Y);
+    const headerCenterY = headerTopIn + ptToIn(HEADER_HEIGHT_PT) / 2;
+    
+    // Center horizontally within the page
+    const pageCenterX = ptToIn(PAGE_WIDTH_PT) / 2;
+    
+    pdf.text(title, pageCenterX, headerCenterY, { 
+      align: 'center',
+      baseline: 'middle'
+    });
+  };
+
+  const drawImage = async (pdf: jsPDF, imageUrl: string) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = imageUrl;
+    });
+
+    // Image area: below header, inside border
+    const imageAreaTop = BORDER_Y + HEADER_HEIGHT_PT; // 54 + 90 = 144 pt
+    const imageAreaBottom = BORDER_Y + BORDER_HEIGHT; // 54 + 684 = 738 pt
+    const imageAreaHeight = imageAreaBottom - imageAreaTop; // 594 pt
+    const imageAreaWidth = BORDER_WIDTH; // 504 pt
+
+    // Convert to inches
+    const areaTopIn = ptToIn(imageAreaTop);
+    const areaWidthIn = ptToIn(imageAreaWidth);
+    const areaHeightIn = ptToIn(imageAreaHeight);
+    const areaLeftIn = ptToIn(BORDER_X);
+
+    // Calculate scaled dimensions preserving aspect ratio
+    const imgAspectRatio = img.width / img.height;
+    let imgWidthIn = areaWidthIn;
+    let imgHeightIn = imgWidthIn / imgAspectRatio;
+    
+    if (imgHeightIn > areaHeightIn) {
+      imgHeightIn = areaHeightIn;
+      imgWidthIn = imgHeightIn * imgAspectRatio;
+    }
+
+    // Center image within the area
+    const xPos = areaLeftIn + (areaWidthIn - imgWidthIn) / 2;
+    const yPos = areaTopIn + (areaHeightIn - imgHeightIn) / 2;
+
+    // Draw to canvas first for CORS handling
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    
+    if (ctx) {
+      ctx.drawImage(img, 0, 0);
+    }
+
+    pdf.addImage(canvas, 'PNG', xPos, yPos, imgWidthIn, imgHeightIn);
+  };
+
+  const generatePDFBlob = async (pdfData: { bookName: string; pages: PageData[] }): Promise<Blob> => {
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'in',
+      format: 'letter'
+    });
+
+    for (let i = 0; i < pdfData.pages.length; i++) {
+      const page = pdfData.pages[i];
+      
+      if (i > 0) {
+        pdf.addPage();
+      }
+
+      // Draw border based on borderStyle
+      drawBorder(pdf, page.borderStyle);
+
+      // Draw title (uppercase, centered in header band)
+      drawTitle(pdf, page.headingText);
+
+      // Draw coloring image below header
+      try {
+        await drawImage(pdf, page.coloringImageUrl);
+      } catch (error) {
+        console.error(`Error loading image for page ${i + 1}:`, error);
+      }
+    }
+
+    return pdf.output('blob');
+  };
+
   const handleGeneratePDF = async () => {
     if (!bookId) return;
 
@@ -111,7 +249,7 @@ const Finalize = () => {
           pdf_created_at: new Date().toISOString(),
           pdf_expires_at: expiresAt.toISOString(),
           pdf_deleted: false,
-          total_price: 0, // Set to actual price if available
+          total_price: 0,
         })
         .eq('id', bookId);
 
@@ -127,74 +265,6 @@ const Finalize = () => {
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  const generatePDFBlob = async (pdfData: { bookName: string; pages: PageData[] }): Promise<Blob> => {
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'in',
-      format: 'letter'
-    });
-
-    const pageWidth = 8.5;
-    const pageHeight = 11;
-    const margin = 0.5;
-
-    for (let i = 0; i < pdfData.pages.length; i++) {
-      const page = pdfData.pages[i];
-      
-      if (i > 0) {
-        pdf.addPage();
-      }
-
-      if (page.headingText) {
-        pdf.setFontSize(24);
-        pdf.text(page.headingText, pageWidth / 2, margin + 0.3, { align: 'center' });
-      }
-
-      try {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = page.coloringImageUrl;
-        });
-
-        // No need to invert - variants are already black-on-white
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        
-        if (ctx) {
-          ctx.drawImage(img, 0, 0);
-        }
-
-        const availableHeight = pageHeight - (2 * margin) - (page.headingText ? 0.5 : 0);
-        const availableWidth = pageWidth - (2 * margin);
-        
-        const imgAspectRatio = img.width / img.height;
-        let imgWidth = availableWidth;
-        let imgHeight = imgWidth / imgAspectRatio;
-        
-        if (imgHeight > availableHeight) {
-          imgHeight = availableHeight;
-          imgWidth = imgHeight * imgAspectRatio;
-        }
-
-        const xPos = (pageWidth - imgWidth) / 2;
-        const yPos = margin + (page.headingText ? 0.6 : 0);
-
-        // Add the processed variant image to PDF
-        pdf.addImage(canvas, 'PNG', xPos, yPos, imgWidth, imgHeight);
-      } catch (error) {
-        console.error(`Error loading image for page ${i + 1}:`, error);
-      }
-    }
-
-    return pdf.output('blob');
   };
 
   const deletePageImages = async () => {
@@ -237,67 +307,18 @@ const Finalize = () => {
     try {
       toast.info("Generating PDF file...");
       
-      // Create a new PDF with Letter size (8.5" x 11")
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'in',
-        format: 'letter'
-      });
-
-      // Page dimensions
-      const pageWidth = 8.5;
-      const pageHeight = 11;
-      const margin = 0.5;
-
-      for (let i = 0; i < pdfData.pages.length; i++) {
-        const page = pdfData.pages[i];
-        
-        if (i > 0) {
-          pdf.addPage();
-        }
-
-        // Add heading if present
-        if (page.headingText) {
-          pdf.setFontSize(24);
-          pdf.text(page.headingText, pageWidth / 2, margin + 0.3, { align: 'center' });
-        }
-
-        // Load and add the coloring image
-        try {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = page.coloringImageUrl;
-          });
-
-          // Calculate image dimensions to fit in the page
-          const availableHeight = pageHeight - (2 * margin) - (page.headingText ? 0.5 : 0);
-          const availableWidth = pageWidth - (2 * margin);
-          
-          const imgAspectRatio = img.width / img.height;
-          let imgWidth = availableWidth;
-          let imgHeight = imgWidth / imgAspectRatio;
-          
-          if (imgHeight > availableHeight) {
-            imgHeight = availableHeight;
-            imgWidth = imgHeight * imgAspectRatio;
-          }
-
-          const xPos = (pageWidth - imgWidth) / 2;
-          const yPos = margin + (page.headingText ? 0.6 : 0);
-
-          pdf.addImage(img, 'PNG', xPos, yPos, imgWidth, imgHeight);
-        } catch (error) {
-          console.error(`Error loading image for page ${i + 1}:`, error);
-          toast.error(`Failed to load image for page ${i + 1}`);
-        }
-      }
-
-      // Save the PDF
-      pdf.save(`${pdfData.bookName}.pdf`);
+      const pdfBlob = await generatePDFBlob(pdfData);
+      
+      // Create download link
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${pdfData.bookName}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
       toast.success("PDF downloaded successfully!");
     } catch (error) {
       console.error('Error generating PDF:', error);
