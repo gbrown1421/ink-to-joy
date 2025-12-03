@@ -9,9 +9,9 @@ import { useDropzone } from "react-dropzone";
 import { ProjectTypeBadge } from "@/components/ProjectTypeBadge";
 import { ImageTroubleshootingModal } from "@/components/ImageTroubleshootingModal";
 import { useUploadTiles } from "@/hooks/useUploadTiles";
-import { TileGrid } from "@/components/upload/TileGrid";
-import { TilePreview } from "@/components/upload/TilePreview";
-import { TileControls } from "@/components/upload/TileControls";
+import { VerticalFilmstrip } from "@/components/upload/VerticalFilmstrip";
+import { CenterPreview } from "@/components/upload/CenterPreview";
+import { ImageControlsCard } from "@/components/upload/ImageControlsCard";
 
 const Upload = () => {
   const { bookId } = useParams<{ bookId: string }>();
@@ -64,6 +64,21 @@ const Upload = () => {
     await addFiles(acceptedFiles);
   }, [bookId, addFiles]);
 
+  const handleNavigate = useCallback((direction: "up" | "down") => {
+    if (tiles.length === 0) return;
+    
+    const currentIndex = tiles.findIndex(t => t.id === selectedTileId);
+    let newIndex: number;
+    
+    if (direction === "up") {
+      newIndex = currentIndex <= 0 ? tiles.length - 1 : currentIndex - 1;
+    } else {
+      newIndex = currentIndex >= tiles.length - 1 ? 0 : currentIndex + 1;
+    }
+    
+    selectTile(tiles[newIndex].id);
+  }, [tiles, selectedTileId, selectTile]);
+
   const handleContinue = () => {
     if (!canContinue) {
       if (tiles.some(t => t.status === "generating" || t.status === "uploading")) {
@@ -92,16 +107,17 @@ const Upload = () => {
   ).length;
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-gradient-subtle flex flex-col">
+      {/* Header */}
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-creative flex items-center justify-center">
-                <Palette className="w-6 h-6 text-primary-foreground" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-creative flex items-center justify-center">
+                <Palette className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">{bookName}</h1>
+                <h1 className="text-xl font-bold">{bookName}</h1>
                 <p className="text-sm text-muted-foreground">Step 2: Upload Photos</p>
               </div>
             </div>
@@ -120,84 +136,89 @@ const Upload = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_280px] gap-6">
-          {/* Left Panel - Controls */}
-          <div className="space-y-4">
-            <TileControls
-              tile={selectedTile}
-              onAccept={() => selectedTileId && acceptTile(selectedTileId)}
-              onRegenerate={() => selectedTileId && regenerateTile(selectedTileId)}
-              onDelete={() => selectedTileId && deleteTile(selectedTileId)}
-            />
-          </div>
+      {/* Main Content - 3 Column Layout */}
+      <main className="flex-1 flex overflow-hidden">
+        {/* Left Column - Vertical Filmstrip */}
+        <div className="border-r border-border/50 bg-card/30">
+          <VerticalFilmstrip
+            tiles={tiles}
+            selectedTileId={selectedTileId}
+            onSelectTile={selectTile}
+            onNavigate={handleNavigate}
+          />
+        </div>
 
-          {/* Center Panel - Preview */}
-          <div className="space-y-4">
-            <TilePreview
-              tile={selectedTile}
-              onOpenTroubleshooting={() => setShowTroubleshootingModal(true)}
-            />
+        {/* Center Column - Preview */}
+        <div className="flex-1 p-6 flex flex-col">
+          <CenterPreview
+            tile={selectedTile}
+            onOpenTroubleshooting={() => setShowTroubleshootingModal(true)}
+          />
+        </div>
 
-            {/* Filmstrip / Tile Grid */}
-            <TileGrid
-              tiles={tiles}
-              selectedTileId={selectedTileId}
-              onSelectTile={selectTile}
-            />
-          </div>
+        {/* Right Column - Controls & Status */}
+        <div className="w-[300px] border-l border-border/50 bg-card/30 p-4 flex flex-col gap-4 overflow-y-auto">
+          {/* Upload Area */}
+          <Card 
+            {...getRootProps()} 
+            className={`p-6 border-2 border-dashed cursor-pointer transition-all ${
+              isDragActive ? "border-primary bg-primary/5" : "hover:border-primary/50"
+            }`}
+          >
+            <input {...getInputProps()} />
+            <div className="flex flex-col items-center gap-3 text-center">
+              <UploadIcon className="w-10 h-10 text-muted-foreground" />
+              <div>
+                <h3 className="font-semibold mb-1">
+                  {isDragActive ? "Drop here..." : "Add Photos"}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Drag & drop or click to select
+                </p>
+              </div>
+            </div>
+          </Card>
 
-          {/* Right Panel - Upload & Status */}
-          <div className="space-y-4">
-            {/* Upload Area */}
-            <Card 
-              {...getRootProps()} 
-              className={`p-6 border-2 border-dashed cursor-pointer transition-all ${
-                isDragActive ? "border-primary bg-primary/5" : "hover:border-primary/50"
-              }`}
-            >
-              <input {...getInputProps()} />
-              <div className="flex flex-col items-center gap-3 text-center">
-                <UploadIcon className="w-10 h-10 text-muted-foreground" />
-                <div>
-                  <h3 className="font-semibold mb-1">
-                    {isDragActive ? "Drop here..." : "Add Photos"}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Drag & drop or click to select
-                  </p>
+          {/* Status Summary */}
+          {tiles.length > 0 && (
+            <Card className="p-4">
+              <h3 className="font-semibold text-sm mb-3">Status</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Total</span>
+                  <span className="font-medium">{tiles.length}</span>
+                </div>
+                {processingCount > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Processing</span>
+                    <span className="text-yellow-600 font-medium">{processingCount}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Ready</span>
+                  <span className="font-medium">{readyCount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Accepted</span>
+                  <span className="text-green-600 font-medium">{acceptedCount}</span>
                 </div>
               </div>
             </Card>
+          )}
 
-            {/* Status Summary */}
-            {tiles.length > 0 && (
-              <Card className="p-4">
-                <h3 className="font-medium text-sm mb-3">Status</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total</span>
-                    <span>{tiles.length}</span>
-                  </div>
-                  {processingCount > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Processing</span>
-                      <span className="text-yellow-600">{processingCount}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Ready</span>
-                    <span>{readyCount}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Accepted</span>
-                    <span className="text-green-600">{acceptedCount}</span>
-                  </div>
-                </div>
-              </Card>
-            )}
+          {/* Image Controls */}
+          <ImageControlsCard
+            tile={selectedTile}
+            onAccept={() => selectedTileId && acceptTile(selectedTileId)}
+            onRegenerate={() => selectedTileId && regenerateTile(selectedTileId)}
+            onDelete={() => selectedTileId && deleteTile(selectedTileId)}
+          />
 
-            {/* Continue Button */}
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Continue Button */}
+          <div className="space-y-2">
             <Button 
               onClick={handleContinue}
               size="lg"
@@ -213,7 +234,7 @@ const Upload = () => {
                 {isProcessing 
                   ? "Waiting for images to process..."
                   : acceptedCount < readyCount
-                    ? "Accept all images to continue"
+                    ? "Accept all ready images to continue"
                     : "Add at least one image"
                 }
               </p>
