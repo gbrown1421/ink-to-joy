@@ -154,8 +154,15 @@ const Menu = () => {
                 {/* Content */}
                 <Card className="relative z-10 bg-transparent border-0 shadow-none" style={{ margin: '16px 16px 48px 16px' }}>
                   <CardHeader className="pb-4">
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(180deg, #5a7d9a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 2px 3px rgba(255,255,255,0.4), inset 0 -2px 3px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.3)' }}>
-                      <Image className="w-7 h-7 text-white" />
+                    <div className="relative w-14 h-14 mb-4">
+                      {/* Outer metallic bevel */}
+                      <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #e8e8e8 0%, #c0c0c0 20%, #808080 50%, #505050 80%, #303030 100%)' }} />
+                      {/* Inner bevel highlight */}
+                      <div className="absolute rounded-md" style={{ top: '3px', left: '3px', right: '3px', bottom: '3px', background: 'linear-gradient(135deg, #404040 0%, #606060 20%, #a0a0a0 50%, #d0d0d0 80%, #f0f0f0 100%)' }} />
+                      {/* Dark blue center */}
+                      <div className="absolute rounded flex items-center justify-center" style={{ top: '6px', left: '6px', right: '6px', bottom: '6px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
+                        <Image className="w-6 h-6 text-white/90" />
+                      </div>
                     </div>
                     <CardTitle className="text-xl text-gray-900">Coloring Books</CardTitle>
                     <CardDescription className="text-gray-700">Realistic line art from photos</CardDescription>
@@ -192,8 +199,15 @@ const Menu = () => {
                 <div className="absolute rounded-lg" style={{ top: '16px', left: '16px', right: '16px', bottom: '48px', background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
                 <Card className="relative z-10 bg-transparent border-0 shadow-none" style={{ margin: '16px 16px 48px 16px' }}>
                   <CardHeader className="pb-4">
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(180deg, #5a7d9a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 2px 3px rgba(255,255,255,0.4), inset 0 -2px 3px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.3)' }}>
-                      <Smile className="w-7 h-7 text-white" />
+                    <div className="relative w-14 h-14 mb-4">
+                      {/* Outer metallic bevel */}
+                      <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #e8e8e8 0%, #c0c0c0 20%, #808080 50%, #505050 80%, #303030 100%)' }} />
+                      {/* Inner bevel highlight */}
+                      <div className="absolute rounded-md" style={{ top: '3px', left: '3px', right: '3px', bottom: '3px', background: 'linear-gradient(135deg, #404040 0%, #606060 20%, #a0a0a0 50%, #d0d0d0 80%, #f0f0f0 100%)' }} />
+                      {/* Dark blue center */}
+                      <div className="absolute rounded flex items-center justify-center" style={{ top: '6px', left: '6px', right: '6px', bottom: '6px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
+                        <Smile className="w-6 h-6 text-white/90" />
+                      </div>
                     </div>
                     <CardTitle className="text-xl text-gray-900">Cartoon Books</CardTitle>
                     <CardDescription className="text-gray-700">Stylized caricature illustrations</CardDescription>
@@ -230,8 +244,15 @@ const Menu = () => {
                 <div className="absolute rounded-lg" style={{ top: '16px', left: '16px', right: '16px', bottom: '48px', background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
                 <Card className="relative z-10 bg-transparent border-0 shadow-none" style={{ margin: '16px 16px 48px 16px' }}>
                   <CardHeader className="pb-4">
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(180deg, #5a7d9a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 2px 3px rgba(255,255,255,0.4), inset 0 -2px 3px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.3)' }}>
-                      <RefreshCw className="w-7 h-7 text-white" />
+                    <div className="relative w-14 h-14 mb-4">
+                      {/* Outer metallic bevel */}
+                      <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #e8e8e8 0%, #c0c0c0 20%, #808080 50%, #505050 80%, #303030 100%)' }} />
+                      {/* Inner bevel highlight */}
+                      <div className="absolute rounded-md" style={{ top: '3px', left: '3px', right: '3px', bottom: '3px', background: 'linear-gradient(135deg, #404040 0%, #606060 20%, #a0a0a0 50%, #d0d0d0 80%, #f0f0f0 100%)' }} />
+                      {/* Dark blue center */}
+                      <div className="absolute rounded flex items-center justify-center" style={{ top: '6px', left: '6px', right: '6px', bottom: '6px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
+                        <RefreshCw className="w-6 h-6 text-white/90" />
+                      </div>
                     </div>
                     <CardTitle className="text-xl text-gray-900">Image Refresh</CardTitle>
                     <CardDescription className="text-gray-700">Optimize images for AI tools</CardDescription>
