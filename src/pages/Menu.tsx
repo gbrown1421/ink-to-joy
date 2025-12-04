@@ -29,7 +29,7 @@ const Menu = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/30 bg-background/80 backdrop-blur-xl">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <img src={pixfixLogo} alt="Pix Fix Studio" style={{ height: '512px' }} />
