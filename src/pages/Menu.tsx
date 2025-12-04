@@ -154,8 +154,8 @@ const Menu = () => {
                 {/* Content */}
                 <Card className="relative z-10 bg-transparent border-0 shadow-none" style={{ margin: '16px 16px 48px 16px' }}>
                   <CardHeader className="pb-4">
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #c0c0c0, #808080)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -1px 2px rgba(0,0,0,0.3)' }}>
-                      <Image className="w-7 h-7" style={{ color: '#4682B4' }} />
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #4a6d8a, #2c4a5e)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3), inset 0 -1px 2px rgba(0,0,0,0.4)' }}>
+                      <Image className="w-7 h-7 text-white" />
                     </div>
                     <CardTitle className="text-xl text-gray-900">Coloring Books</CardTitle>
                     <CardDescription className="text-gray-700">Realistic line art from photos</CardDescription>
@@ -192,8 +192,8 @@ const Menu = () => {
                 <div className="absolute rounded-lg" style={{ top: '16px', left: '16px', right: '16px', bottom: '48px', background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
                 <Card className="relative z-10 bg-transparent border-0 shadow-none" style={{ margin: '16px 16px 48px 16px' }}>
                   <CardHeader className="pb-4">
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #c0c0c0, #808080)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -1px 2px rgba(0,0,0,0.3)' }}>
-                      <Smile className="w-7 h-7" style={{ color: '#4682B4' }} />
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #4a6d8a, #2c4a5e)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3), inset 0 -1px 2px rgba(0,0,0,0.4)' }}>
+                      <Smile className="w-7 h-7 text-white" />
                     </div>
                     <CardTitle className="text-xl text-gray-900">Cartoon Books</CardTitle>
                     <CardDescription className="text-gray-700">Stylized caricature illustrations</CardDescription>
@@ -230,8 +230,8 @@ const Menu = () => {
                 <div className="absolute rounded-lg" style={{ top: '16px', left: '16px', right: '16px', bottom: '48px', background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
                 <Card className="relative z-10 bg-transparent border-0 shadow-none" style={{ margin: '16px 16px 48px 16px' }}>
                   <CardHeader className="pb-4">
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #c0c0c0, #808080)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -1px 2px rgba(0,0,0,0.3)' }}>
-                      <RefreshCw className="w-7 h-7" style={{ color: '#4682B4' }} />
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #4a6d8a, #2c4a5e)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3), inset 0 -1px 2px rgba(0,0,0,0.4)' }}>
+                      <RefreshCw className="w-7 h-7 text-white" />
                     </div>
                     <CardTitle className="text-xl text-gray-900">Image Refresh</CardTitle>
                     <CardDescription className="text-gray-700">Optimize images for AI tools</CardDescription>
