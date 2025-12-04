@@ -28,11 +28,11 @@ const Menu = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border/30 bg-background/80 backdrop-blur-xl">
-        <div className="container mx-auto px-4 py-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <img src={pixfixLogo} alt="Pix Fix Studio" style={{ height: '512px' }} />
+      <header className="sticky top-0 z-50 border-b border-border/30 bg-background/80 backdrop-blur-xl h-24">
+        <div className="container mx-auto px-4 h-full">
+          <div className="flex items-center justify-between h-full">
+            <div className="flex items-center h-full py-1">
+              <img src={pixfixLogo} alt="Pix Fix Studio" className="h-full w-auto" />
             </div>
             
             <nav className="hidden md:flex items-center gap-8 ml-auto">
