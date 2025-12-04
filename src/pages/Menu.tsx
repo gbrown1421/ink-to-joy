@@ -156,9 +156,9 @@ const Menu = () => {
                   <CardHeader className="pb-4">
                     <div className="relative w-14 h-14 mb-4">
                       {/* Outer steel blue metallic bevel */}
-                      <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #8ab4d4 0%, #5a8ab0 20%, #3d6a8a 50%, #2a4a60 80%, #1a3040 100%)' }} />
+                      <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                       {/* Inner bevel highlight */}
-                      <div className="absolute rounded-md" style={{ top: '3px', left: '3px', right: '3px', bottom: '3px', background: 'linear-gradient(135deg, #1a3040 0%, #2a4a60 20%, #4a7a9a 50%, #7aaaca 80%, #a0d0f0 100%)' }} />
+                      <div className="absolute rounded-md" style={{ top: '3px', left: '3px', right: '3px', bottom: '3px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
                       {/* Dark blue center */}
                       <div className="absolute rounded flex items-center justify-center" style={{ top: '6px', left: '6px', right: '6px', bottom: '6px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
                         <Image className="w-6 h-6 text-white/90" />
@@ -186,8 +186,8 @@ const Menu = () => {
                       </li>
                     </ul>
                     <div className="relative w-full h-10">
-                      <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #8ab4d4 0%, #5a8ab0 20%, #3d6a8a 50%, #2a4a60 80%, #1a3040 100%)' }} />
-                      <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #1a3040 0%, #2a4a60 20%, #4a7a9a 50%, #7aaaca 80%, #a0d0f0 100%)' }} />
+                      <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
+                      <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
                       <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
                         Create Coloring Book
                       </Button>
@@ -205,9 +205,9 @@ const Menu = () => {
                   <CardHeader className="pb-4">
                     <div className="relative w-14 h-14 mb-4">
                       {/* Outer steel blue metallic bevel */}
-                      <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #8ab4d4 0%, #5a8ab0 20%, #3d6a8a 50%, #2a4a60 80%, #1a3040 100%)' }} />
+                      <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                       {/* Inner bevel highlight */}
-                      <div className="absolute rounded-md" style={{ top: '3px', left: '3px', right: '3px', bottom: '3px', background: 'linear-gradient(135deg, #1a3040 0%, #2a4a60 20%, #4a7a9a 50%, #7aaaca 80%, #a0d0f0 100%)' }} />
+                      <div className="absolute rounded-md" style={{ top: '3px', left: '3px', right: '3px', bottom: '3px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
                       {/* Dark blue center */}
                       <div className="absolute rounded flex items-center justify-center" style={{ top: '6px', left: '6px', right: '6px', bottom: '6px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
                         <Smile className="w-6 h-6 text-white/90" />
@@ -235,8 +235,8 @@ const Menu = () => {
                       </li>
                     </ul>
                     <div className="relative w-full h-10">
-                      <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #8ab4d4 0%, #5a8ab0 20%, #3d6a8a 50%, #2a4a60 80%, #1a3040 100%)' }} />
-                      <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #1a3040 0%, #2a4a60 20%, #4a7a9a 50%, #7aaaca 80%, #a0d0f0 100%)' }} />
+                      <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
+                      <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
                       <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
                         Create Cartoon Book
                       </Button>
@@ -254,9 +254,9 @@ const Menu = () => {
                   <CardHeader className="pb-4">
                     <div className="relative w-14 h-14 mb-4">
                       {/* Outer steel blue metallic bevel */}
-                      <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #8ab4d4 0%, #5a8ab0 20%, #3d6a8a 50%, #2a4a60 80%, #1a3040 100%)' }} />
+                      <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                       {/* Inner bevel highlight */}
-                      <div className="absolute rounded-md" style={{ top: '3px', left: '3px', right: '3px', bottom: '3px', background: 'linear-gradient(135deg, #1a3040 0%, #2a4a60 20%, #4a7a9a 50%, #7aaaca 80%, #a0d0f0 100%)' }} />
+                      <div className="absolute rounded-md" style={{ top: '3px', left: '3px', right: '3px', bottom: '3px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
                       {/* Dark blue center */}
                       <div className="absolute rounded flex items-center justify-center" style={{ top: '6px', left: '6px', right: '6px', bottom: '6px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
                         <RefreshCw className="w-6 h-6 text-white/90" />
@@ -284,8 +284,8 @@ const Menu = () => {
                       </li>
                     </ul>
                     <div className="relative w-full h-10">
-                      <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #8ab4d4 0%, #5a8ab0 20%, #3d6a8a 50%, #2a4a60 80%, #1a3040 100%)' }} />
-                      <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #1a3040 0%, #2a4a60 20%, #4a7a9a 50%, #7aaaca 80%, #a0d0f0 100%)' }} />
+                      <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
+                      <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
                       <Button onClick={() => navigate('/image-refresh')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
                         Refresh Images
                       </Button>
