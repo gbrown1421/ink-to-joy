@@ -31,10 +31,10 @@ const Menu = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <span className="text-2xl font-bold tracking-tight">
+              <span className="text-4xl font-bold tracking-tight">
                 <span className="bg-gradient-to-b from-white via-silver-light to-silver bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">Pix</span>
                 <span className="bg-gradient-to-b from-[hsl(205,65%,70%)] via-[hsl(205,65%,55%)] to-[hsl(205,65%,40%)] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">Fix</span>
-                <span className="text-sm font-medium text-silver-light ml-2 tracking-widest">STUDIO</span>
+                <span className="text-lg font-medium text-silver-light ml-2 tracking-widest">STUDIO</span>
               </span>
             </div>
             
