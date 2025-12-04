@@ -6,7 +6,6 @@ import { Upload, Download, Shield, CheckCircle, Sparkles, BookOpen, Smile, Refre
 import { useNavigate } from "react-router-dom";
 import heroTransformation from "@/assets/hero-transformation.png";
 import pixfixLogo from "@/assets/pixfix-logo.png";
-import pixfixIcon from "@/assets/pixfix-icon.png";
 
 const Menu = () => {
   const navigate = useNavigate();
@@ -32,9 +31,8 @@ const Menu = () => {
       <header className="sticky top-0 z-50 border-b border-border/30 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <img src={pixfixIcon} alt="" className="h-48 w-48" />
-              <img src={pixfixLogo} alt="Pix Fix Studio" className="h-48" />
+            <div className="flex items-center">
+              <img src={pixfixLogo} alt="Pix Fix Studio" style={{ height: '128px' }} />
             </div>
             
             <nav className="hidden md:flex items-center gap-8">
