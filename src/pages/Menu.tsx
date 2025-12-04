@@ -178,7 +178,7 @@ const Menu = () => {
                         Print-ready PDF export
                       </li>
                     </ul>
-                    <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-gray-500 text-accent bg-white/60 hover:bg-white/90">
+                    <Button onClick={() => navigate('/project-type')} className="w-full text-white hover:opacity-90" style={{ background: 'linear-gradient(145deg, #4a6d8a, #2c4a5e)' }}>
                       Create Coloring Book
                     </Button>
                   </CardContent>
@@ -216,7 +216,7 @@ const Menu = () => {
                         Fun caricature effect
                       </li>
                     </ul>
-                    <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-gray-500 text-accent bg-white/60 hover:bg-white/90">
+                    <Button onClick={() => navigate('/project-type')} className="w-full text-white hover:opacity-90" style={{ background: 'linear-gradient(145deg, #4a6d8a, #2c4a5e)' }}>
                       Create Cartoon Book
                     </Button>
                   </CardContent>
@@ -254,7 +254,7 @@ const Menu = () => {
                         Batch processing
                       </li>
                     </ul>
-                    <Button onClick={() => navigate('/image-refresh')} variant="outline" className="w-full border-gray-500 text-accent bg-white/60 hover:bg-white/90">
+                    <Button onClick={() => navigate('/image-refresh')} className="w-full text-white hover:opacity-90" style={{ background: 'linear-gradient(145deg, #4a6d8a, #2c4a5e)' }}>
                       Refresh Images
                     </Button>
                   </CardContent>
