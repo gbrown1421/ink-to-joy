@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Upload, Download, Shield, CheckCircle, Sparkles, BookOpen, Smile, RefreshCw, Layers, Zap, Image, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import pixfixLogo from "@/assets/pixfix-logo.png";
 import heroTransformation from "@/assets/hero-transformation.png";
 
 const Menu = () => {
@@ -32,7 +31,11 @@ const Menu = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <img src={pixfixLogo} alt="Pix Fix Studio" className="h-12 w-auto" />
+              <span className="text-2xl font-bold tracking-tight">
+                <span className="bg-gradient-to-b from-white via-silver-light to-silver bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">Pix</span>
+                <span className="bg-gradient-to-b from-[hsl(205,65%,70%)] via-[hsl(205,65%,55%)] to-[hsl(205,65%,40%)] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">Fix</span>
+                <span className="text-sm font-medium text-silver-light ml-2 tracking-widest">STUDIO</span>
+              </span>
             </div>
             
             <nav className="hidden md:flex items-center gap-8">
@@ -714,7 +717,11 @@ const Menu = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center">
-              <img src={pixfixLogo} alt="Pix Fix Studio" className="h-8 w-auto" />
+              <span className="text-lg font-bold tracking-tight">
+                <span className="bg-gradient-to-b from-white via-silver-light to-silver bg-clip-text text-transparent">Pix</span>
+                <span className="bg-gradient-to-b from-[hsl(205,65%,70%)] via-[hsl(205,65%,55%)] to-[hsl(205,65%,40%)] bg-clip-text text-transparent">Fix</span>
+                <span className="text-xs font-medium text-silver-light ml-1.5 tracking-widest">STUDIO</span>
+              </span>
             </div>
             <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} Pix Fix Studio. All rights reserved.
