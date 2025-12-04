@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Palette, Upload, Download, Shield, CheckCircle, Sparkles, BookOpen, Smile } from "lucide-react";
+import { Palette, Upload, Download, Shield, CheckCircle, Sparkles, BookOpen, Smile, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Menu = () => {
@@ -168,27 +168,23 @@ const Menu = () => {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-xl transition-shadow opacity-75 overflow-hidden">
-              <div className="aspect-video w-full overflow-hidden bg-muted">
-                <img 
-                  src="/images/product-calendars-memo-books.jpg" 
-                  alt="Stack of calendar and notebook with pen on desk"
-                  className="w-full h-full object-cover opacity-60"
-                />
+            <Card className="hover:shadow-xl transition-shadow overflow-hidden">
+              <div className="aspect-video w-full overflow-hidden bg-muted flex items-center justify-center">
+                <RefreshCw className="w-16 h-16 text-muted-foreground" />
               </div>
               <CardHeader>
-                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
-                  <Sparkles className="w-6 h-6 text-muted-foreground" />
+                <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center mb-4">
+                  <RefreshCw className="w-6 h-6 text-accent-foreground" />
                 </div>
-                <CardTitle>Coming Soon</CardTitle>
-                <CardDescription>Calendars & Memo Books</CardDescription>
+                <CardTitle>Image Refresh</CardTitle>
+                <CardDescription>Clean and normalize photos for AI tools</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Create custom photo calendars and memo books with your favorite memories. Stay tuned for these exciting new products!
+                  Downscale and convert your photos to simple PNGs that work with AI tools. Fix "invalid image" errors in one click.
                 </p>
-                <Button disabled className="w-full">
-                  Notify me
+                <Button onClick={() => navigate('/image-refresh')} className="w-full">
+                  Refresh images
                 </Button>
               </CardContent>
             </Card>

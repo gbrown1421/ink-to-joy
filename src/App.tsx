@@ -9,6 +9,7 @@ import DifficultySelection from "./pages/DifficultySelection";
 import Upload from "./pages/Upload";
 import Review from "./pages/Review";
 import Finalize from "./pages/Finalize";
+import ImageRefresh from "./pages/ImageRefresh";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/upload/:bookId" element={<Upload />} />
           <Route path="/review/:bookId" element={<Review />} />
           <Route path="/finalize/:bookId" element={<Finalize />} />
+          <Route path="/image-refresh" element={<ImageRefresh />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
