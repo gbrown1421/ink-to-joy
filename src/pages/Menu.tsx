@@ -32,7 +32,7 @@ const Menu = () => {
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <img src={pixfixLogo} alt="Pix Fix Studio" style={{ height: '80px' }} />
+              <img src={pixfixLogo} alt="Pix Fix Studio" style={{ height: '240px' }} />
             </div>
             
             <nav className="hidden md:flex items-center gap-8 ml-auto">
