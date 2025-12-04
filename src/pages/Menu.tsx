@@ -131,31 +131,31 @@ const Menu = () => {
       </section>
 
       {/* Products Section */}
-      <section id="products" className="py-20 scroll-mt-20 bg-muted/20">
+      <section id="products" className="py-20 scroll-mt-20 bg-black">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center space-y-4 mb-16">
               <p className="text-sm font-medium text-accent uppercase tracking-wider">Our Services</p>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight">Professional Tools</h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white">Professional Tools</h2>
+              <p className="text-lg text-gray-300 max-w-2xl mx-auto">
                 Choose the transformation that fits your creative vision
               </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              <Card className="bg-card border-border/50 hover:border-border transition-all hover:shadow-glow group">
+              <Card className="bg-white border-2 border-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all group">
                 <CardHeader className="pb-4">
-                  <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4 group-hover:bg-accent/10 transition-colors">
-                    <Image className="w-7 h-7 text-foreground" />
+                  <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mb-4 group-hover:bg-accent/10 transition-colors">
+                    <Image className="w-7 h-7 text-gray-800" />
                   </div>
-                  <CardTitle className="text-xl">Coloring Books</CardTitle>
-                  <CardDescription className="text-muted-foreground">Realistic line art from photos</CardDescription>
+                  <CardTitle className="text-xl text-gray-900">Coloring Books</CardTitle>
+                  <CardDescription className="text-gray-600">Realistic line art from photos</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-600">
                     Transform photos into beautiful line art pages. Multiple difficulty levels available for all ages.
                   </p>
-                  <ul className="text-sm text-muted-foreground space-y-2">
+                  <ul className="text-sm text-gray-700 space-y-2">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-accent" />
                       4 difficulty levels
@@ -169,25 +169,25 @@ const Menu = () => {
                       Print-ready PDF export
                     </li>
                   </ul>
-                  <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-border hover:bg-muted">
+                  <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-gray-300 text-accent hover:bg-gray-50">
                     Create Coloring Book
                   </Button>
                 </CardContent>
               </Card>
 
-              <Card className="bg-card border-border/50 hover:border-border transition-all hover:shadow-glow group">
+              <Card className="bg-white border-2 border-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all group">
                 <CardHeader className="pb-4">
-                  <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4 group-hover:bg-accent/10 transition-colors">
-                    <Smile className="w-7 h-7 text-foreground" />
+                  <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mb-4 group-hover:bg-accent/10 transition-colors">
+                    <Smile className="w-7 h-7 text-gray-800" />
                   </div>
-                  <CardTitle className="text-xl">Cartoon Books</CardTitle>
-                  <CardDescription className="text-muted-foreground">Stylized caricature illustrations</CardDescription>
+                  <CardTitle className="text-xl text-gray-900">Cartoon Books</CardTitle>
+                  <CardDescription className="text-gray-600">Stylized caricature illustrations</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-600">
                     Get playful cartoon caricatures with exaggerated features. Perfect for unique gifts and keepsakes.
                   </p>
-                  <ul className="text-sm text-muted-foreground space-y-2">
+                  <ul className="text-sm text-gray-700 space-y-2">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-accent" />
                       Bold cartoon style
@@ -201,25 +201,25 @@ const Menu = () => {
                       Fun caricature effect
                     </li>
                   </ul>
-                  <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-border hover:bg-muted">
+                  <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-gray-300 text-accent hover:bg-gray-50">
                     Create Cartoon Book
                   </Button>
                 </CardContent>
               </Card>
 
-              <Card className="bg-card border-border/50 hover:border-border transition-all hover:shadow-glow group">
+              <Card className="bg-white border-2 border-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all group">
                 <CardHeader className="pb-4">
-                  <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4 group-hover:bg-accent/10 transition-colors">
-                    <RefreshCw className="w-7 h-7 text-foreground" />
+                  <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mb-4 group-hover:bg-accent/10 transition-colors">
+                    <RefreshCw className="w-7 h-7 text-gray-800" />
                   </div>
-                  <CardTitle className="text-xl">Image Refresh</CardTitle>
-                  <CardDescription className="text-muted-foreground">Optimize images for AI tools</CardDescription>
+                  <CardTitle className="text-xl text-gray-900">Image Refresh</CardTitle>
+                  <CardDescription className="text-gray-600">Optimize images for AI tools</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-600">
                     Normalize and optimize photos for AI processing. Fix compatibility issues in one click.
                   </p>
-                  <ul className="text-sm text-muted-foreground space-y-2">
+                  <ul className="text-sm text-gray-700 space-y-2">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-accent" />
                       Auto-normalize format
@@ -233,7 +233,7 @@ const Menu = () => {
                       Batch processing
                     </li>
                   </ul>
-                  <Button onClick={() => navigate('/image-refresh')} variant="outline" className="w-full border-border hover:bg-muted">
+                  <Button onClick={() => navigate('/image-refresh')} variant="outline" className="w-full border-gray-300 text-accent hover:bg-gray-50">
                     Refresh Images
                   </Button>
                 </CardContent>
