@@ -141,49 +141,49 @@ const Menu = () => {
             <div className="grid md:grid-cols-3 gap-8">
               {/* Card 1 - with silver frame image */}
               <div className="relative group">
-                {/* Frame image as border */}
+                {/* Frame image as background */}
                 <img 
                   src={silverFrame} 
                   alt="" 
-                  className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+                  className="w-full h-auto pointer-events-none"
                   style={{ filter: 'drop-shadow(-4px 6px 10px rgba(0,0,0,0.5))' }}
                 />
-                {/* Content positioned inside the frame */}
-                <div className="relative z-10" style={{ padding: '14% 12% 16% 14%' }}>
-                  <Card className="bg-white/95 border-0 shadow-none h-full">
-                    <CardHeader className="pb-4">
-                      <div className="relative w-14 h-14 mb-4">
+                {/* Content positioned inside the frame opening */}
+                <div className="absolute z-10" style={{ top: '12%', left: '14%', right: '10%', bottom: '14%' }}>
+                  <Card className="bg-transparent border-0 shadow-none h-full overflow-hidden">
+                    <CardHeader className="pb-2 pt-2">
+                      <div className="relative w-12 h-12 mb-2">
                         <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                         <div className="absolute rounded-md" style={{ top: '3px', left: '3px', right: '3px', bottom: '3px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
-                        <div className="absolute rounded flex items-center justify-center" style={{ top: '6px', left: '6px', right: '6px', bottom: '6px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
-                          <Image className="w-6 h-6 text-white/90" />
+                        <div className="absolute rounded flex items-center justify-center" style={{ top: '5px', left: '5px', right: '5px', bottom: '5px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
+                          <Image className="w-5 h-5 text-white/90" />
                         </div>
                       </div>
-                      <CardTitle className="text-3xl text-black">Coloring Books</CardTitle>
-                      <CardDescription className="text-base text-black">Realistic line art from photos</CardDescription>
+                      <CardTitle className="text-2xl text-black">Coloring Books</CardTitle>
+                      <CardDescription className="text-sm text-black/70">Realistic line art from photos</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-sm text-black">
-                        Transform photos into beautiful line art pages. Multiple difficulty levels available for all ages.
+                    <CardContent className="space-y-2 py-0">
+                      <p className="text-xs text-black/80">
+                        Transform photos into beautiful line art pages. Multiple difficulty levels.
                       </p>
-                      <ul className="text-sm text-black space-y-2">
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                      <ul className="text-xs text-black/80 space-y-1">
+                        <li className="flex items-center gap-1.5">
+                          <CheckCircle className="w-3.5 h-3.5" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                           4 difficulty levels
                         </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                        <li className="flex items-center gap-1.5">
+                          <CheckCircle className="w-3.5 h-3.5" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                           Custom borders & text
                         </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                        <li className="flex items-center gap-1.5">
+                          <CheckCircle className="w-3.5 h-3.5" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                           Print-ready PDF export
                         </li>
                       </ul>
-                      <div className="relative w-full h-10">
+                      <div className="relative w-full h-9 mt-2">
                         <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                         <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
-                        <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
+                        <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
                           Create Coloring Book
                         </Button>
                       </div>
@@ -197,44 +197,44 @@ const Menu = () => {
                 <img 
                   src={silverFrame} 
                   alt="" 
-                  className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+                  className="w-full h-auto pointer-events-none"
                   style={{ filter: 'drop-shadow(-4px 6px 10px rgba(0,0,0,0.5))' }}
                 />
-                <div className="relative z-10" style={{ padding: '14% 12% 16% 14%' }}>
-                  <Card className="bg-white/95 border-0 shadow-none h-full">
-                    <CardHeader className="pb-4">
-                      <div className="relative w-14 h-14 mb-4">
+                <div className="absolute z-10" style={{ top: '12%', left: '14%', right: '10%', bottom: '14%' }}>
+                  <Card className="bg-transparent border-0 shadow-none h-full overflow-hidden">
+                    <CardHeader className="pb-2 pt-2">
+                      <div className="relative w-12 h-12 mb-2">
                         <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                         <div className="absolute rounded-md" style={{ top: '3px', left: '3px', right: '3px', bottom: '3px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
-                        <div className="absolute rounded flex items-center justify-center" style={{ top: '6px', left: '6px', right: '6px', bottom: '6px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
-                          <Smile className="w-6 h-6 text-white/90" />
+                        <div className="absolute rounded flex items-center justify-center" style={{ top: '5px', left: '5px', right: '5px', bottom: '5px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
+                          <Smile className="w-5 h-5 text-white/90" />
                         </div>
                       </div>
-                      <CardTitle className="text-3xl text-black">Cartoon Books</CardTitle>
-                      <CardDescription className="text-base text-black">Stylized caricature illustrations</CardDescription>
+                      <CardTitle className="text-2xl text-black">Cartoon Books</CardTitle>
+                      <CardDescription className="text-sm text-black/70">Stylized caricature illustrations</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-sm text-black">
-                        Get playful cartoon caricatures with exaggerated features. Perfect for unique gifts and keepsakes.
+                    <CardContent className="space-y-2 py-0">
+                      <p className="text-xs text-black/80">
+                        Get playful cartoon caricatures with exaggerated features. Perfect for gifts.
                       </p>
-                      <ul className="text-sm text-black space-y-2">
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                      <ul className="text-xs text-black/80 space-y-1">
+                        <li className="flex items-center gap-1.5">
+                          <CheckCircle className="w-3.5 h-3.5" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                           Bold cartoon style
                         </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                        <li className="flex items-center gap-1.5">
+                          <CheckCircle className="w-3.5 h-3.5" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                           Character preservation
                         </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                        <li className="flex items-center gap-1.5">
+                          <CheckCircle className="w-3.5 h-3.5" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                           Fun caricature effect
                         </li>
                       </ul>
-                      <div className="relative w-full h-10">
+                      <div className="relative w-full h-9 mt-2">
                         <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                         <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
-                        <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
+                        <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
                           Create Cartoon Book
                         </Button>
                       </div>
@@ -248,44 +248,44 @@ const Menu = () => {
                 <img 
                   src={silverFrame} 
                   alt="" 
-                  className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+                  className="w-full h-auto pointer-events-none"
                   style={{ filter: 'drop-shadow(-4px 6px 10px rgba(0,0,0,0.5))' }}
                 />
-                <div className="relative z-10" style={{ padding: '14% 12% 16% 14%' }}>
-                  <Card className="bg-white/95 border-0 shadow-none h-full">
-                    <CardHeader className="pb-4">
-                      <div className="relative w-14 h-14 mb-4">
+                <div className="absolute z-10" style={{ top: '12%', left: '14%', right: '10%', bottom: '14%' }}>
+                  <Card className="bg-transparent border-0 shadow-none h-full overflow-hidden">
+                    <CardHeader className="pb-2 pt-2">
+                      <div className="relative w-12 h-12 mb-2">
                         <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                         <div className="absolute rounded-md" style={{ top: '3px', left: '3px', right: '3px', bottom: '3px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
-                        <div className="absolute rounded flex items-center justify-center" style={{ top: '6px', left: '6px', right: '6px', bottom: '6px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
-                          <RefreshCw className="w-6 h-6 text-white/90" />
+                        <div className="absolute rounded flex items-center justify-center" style={{ top: '5px', left: '5px', right: '5px', bottom: '5px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
+                          <RefreshCw className="w-5 h-5 text-white/90" />
                         </div>
                       </div>
-                      <CardTitle className="text-3xl text-black">Image Refresh</CardTitle>
-                      <CardDescription className="text-base text-black">Optimize images for AI tools</CardDescription>
+                      <CardTitle className="text-2xl text-black">Image Refresh</CardTitle>
+                      <CardDescription className="text-sm text-black/70">Optimize images for AI tools</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-sm text-black">
-                        Normalize and optimize photos for AI processing. Fix compatibility issues in one click.
+                    <CardContent className="space-y-2 py-0">
+                      <p className="text-xs text-black/80">
+                        Normalize and optimize photos for AI processing. Fix compatibility issues.
                       </p>
-                      <ul className="text-sm text-black space-y-2">
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                      <ul className="text-xs text-black/80 space-y-1">
+                        <li className="flex items-center gap-1.5">
+                          <CheckCircle className="w-3.5 h-3.5" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                           Auto-normalize format
                         </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                        <li className="flex items-center gap-1.5">
+                          <CheckCircle className="w-3.5 h-3.5" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                           Optimal resizing
                         </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                        <li className="flex items-center gap-1.5">
+                          <CheckCircle className="w-3.5 h-3.5" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                           Batch processing
                         </li>
                       </ul>
-                      <div className="relative w-full h-10">
+                      <div className="relative w-full h-9 mt-2">
                         <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                         <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
-                        <Button onClick={() => navigate('/image-refresh')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
+                        <Button onClick={() => navigate('/image-refresh')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
                           Refresh Images
                         </Button>
                       </div>
