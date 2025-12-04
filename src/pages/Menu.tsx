@@ -147,12 +147,12 @@ const Menu = () => {
               <div className="relative group" style={{ filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>
                 {/* Outer frame - top/left highlight */}
                 <div className="absolute inset-0 rounded-2xl" style={{ background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 10%, #a0a0a0 50%, #707070 90%, #505050 100%)' }} />
-                {/* Beveled edge - creates depth */}
-                <div className="absolute inset-[4px] rounded-xl" style={{ background: 'linear-gradient(135deg, #606060 0%, #808080 10%, #c0c0c0 50%, #e8e8e8 90%, #ffffff 100%)' }} />
-                {/* Inner face - the main surface */}
-                <div className="absolute inset-[8px] rounded-lg" style={{ background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
+                {/* Beveled edge - creates depth (8px top/sides, 16px bottom) */}
+                <div className="absolute rounded-xl" style={{ top: '8px', left: '8px', right: '8px', bottom: '16px', background: 'linear-gradient(135deg, #606060 0%, #808080 10%, #c0c0c0 50%, #e8e8e8 90%, #ffffff 100%)' }} />
+                {/* Inner face - the main surface (16px top/sides, 24px bottom) */}
+                <div className="absolute rounded-lg" style={{ top: '16px', left: '16px', right: '16px', bottom: '24px', background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
                 {/* Content */}
-                <Card className="relative z-10 bg-transparent border-0 shadow-none m-[8px]">
+                <Card className="relative z-10 bg-transparent border-0 shadow-none" style={{ margin: '16px 16px 24px 16px' }}>
                   <CardHeader className="pb-4">
                     <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #c0c0c0, #808080)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -1px 2px rgba(0,0,0,0.3)' }}>
                       <Image className="w-7 h-7 text-gray-700" />
@@ -188,9 +188,9 @@ const Menu = () => {
               {/* Embossed Floating Frame Card 2 */}
               <div className="relative group" style={{ filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>
                 <div className="absolute inset-0 rounded-2xl" style={{ background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 10%, #a0a0a0 50%, #707070 90%, #505050 100%)' }} />
-                <div className="absolute inset-[4px] rounded-xl" style={{ background: 'linear-gradient(135deg, #606060 0%, #808080 10%, #c0c0c0 50%, #e8e8e8 90%, #ffffff 100%)' }} />
-                <div className="absolute inset-[8px] rounded-lg" style={{ background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
-                <Card className="relative z-10 bg-transparent border-0 shadow-none m-[8px]">
+                <div className="absolute rounded-xl" style={{ top: '8px', left: '8px', right: '8px', bottom: '16px', background: 'linear-gradient(135deg, #606060 0%, #808080 10%, #c0c0c0 50%, #e8e8e8 90%, #ffffff 100%)' }} />
+                <div className="absolute rounded-lg" style={{ top: '16px', left: '16px', right: '16px', bottom: '24px', background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
+                <Card className="relative z-10 bg-transparent border-0 shadow-none" style={{ margin: '16px 16px 24px 16px' }}>
                   <CardHeader className="pb-4">
                     <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #c0c0c0, #808080)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -1px 2px rgba(0,0,0,0.3)' }}>
                       <Smile className="w-7 h-7 text-gray-700" />
@@ -226,9 +226,9 @@ const Menu = () => {
               {/* Embossed Floating Frame Card 3 */}
               <div className="relative group" style={{ filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>
                 <div className="absolute inset-0 rounded-2xl" style={{ background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 10%, #a0a0a0 50%, #707070 90%, #505050 100%)' }} />
-                <div className="absolute inset-[4px] rounded-xl" style={{ background: 'linear-gradient(135deg, #606060 0%, #808080 10%, #c0c0c0 50%, #e8e8e8 90%, #ffffff 100%)' }} />
-                <div className="absolute inset-[8px] rounded-lg" style={{ background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
-                <Card className="relative z-10 bg-transparent border-0 shadow-none m-[8px]">
+                <div className="absolute rounded-xl" style={{ top: '8px', left: '8px', right: '8px', bottom: '16px', background: 'linear-gradient(135deg, #606060 0%, #808080 10%, #c0c0c0 50%, #e8e8e8 90%, #ffffff 100%)' }} />
+                <div className="absolute rounded-lg" style={{ top: '16px', left: '16px', right: '16px', bottom: '24px', background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
+                <Card className="relative z-10 bg-transparent border-0 shadow-none" style={{ margin: '16px 16px 24px 16px' }}>
                   <CardHeader className="pb-4">
                     <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #c0c0c0, #808080)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -1px 2px rgba(0,0,0,0.3)' }}>
                       <RefreshCw className="w-7 h-7 text-gray-700" />
