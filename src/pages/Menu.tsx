@@ -143,100 +143,109 @@ const Menu = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              <Card className="bg-white border-2 border-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all group">
-                <CardHeader className="pb-4">
-                  <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mb-4 group-hover:bg-accent/10 transition-colors">
-                    <Image className="w-7 h-7 text-gray-800" />
-                  </div>
-                  <CardTitle className="text-xl text-gray-900">Coloring Books</CardTitle>
-                  <CardDescription className="text-gray-600">Realistic line art from photos</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-600">
-                    Transform photos into beautiful line art pages. Multiple difficulty levels available for all ages.
-                  </p>
-                  <ul className="text-sm text-gray-700 space-y-2">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      4 difficulty levels
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      Custom borders & text
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      Print-ready PDF export
-                    </li>
-                  </ul>
-                  <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-gray-300 text-accent hover:bg-gray-50">
-                    Create Coloring Book
-                  </Button>
-                </CardContent>
+              <Card className="relative rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all group" style={{ background: 'linear-gradient(145deg, #e8e8e8, #b8b8b8, #d0d0d0, #a8a8a8)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.2), 0 4px 20px rgba(0,0,0,0.3)' }}>
+                <div className="absolute inset-[3px] rounded-xl" style={{ background: 'linear-gradient(180deg, #c8c8c8, #a0a0a0, #b0b0b0)' }} />
+                <div className="relative z-10 p-6">
+                  <CardHeader className="pb-4 p-0">
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #d0d0d0, #909090)' }}>
+                      <Image className="w-7 h-7 text-gray-700" />
+                    </div>
+                    <CardTitle className="text-xl text-gray-900">Coloring Books</CardTitle>
+                    <CardDescription className="text-gray-700">Realistic line art from photos</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4 p-0 pt-4">
+                    <p className="text-sm text-gray-700">
+                      Transform photos into beautiful line art pages. Multiple difficulty levels available for all ages.
+                    </p>
+                    <ul className="text-sm text-gray-800 space-y-2">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        4 difficulty levels
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        Custom borders & text
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        Print-ready PDF export
+                      </li>
+                    </ul>
+                    <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-gray-500 text-accent bg-white/50 hover:bg-white/80">
+                      Create Coloring Book
+                    </Button>
+                  </CardContent>
+                </div>
               </Card>
 
-              <Card className="bg-white border-2 border-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all group">
-                <CardHeader className="pb-4">
-                  <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mb-4 group-hover:bg-accent/10 transition-colors">
-                    <Smile className="w-7 h-7 text-gray-800" />
-                  </div>
-                  <CardTitle className="text-xl text-gray-900">Cartoon Books</CardTitle>
-                  <CardDescription className="text-gray-600">Stylized caricature illustrations</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-600">
-                    Get playful cartoon caricatures with exaggerated features. Perfect for unique gifts and keepsakes.
-                  </p>
-                  <ul className="text-sm text-gray-700 space-y-2">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      Bold cartoon style
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      Character preservation
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      Fun caricature effect
-                    </li>
-                  </ul>
-                  <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-gray-300 text-accent hover:bg-gray-50">
-                    Create Cartoon Book
-                  </Button>
-                </CardContent>
+              <Card className="relative rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all group" style={{ background: 'linear-gradient(145deg, #e8e8e8, #b8b8b8, #d0d0d0, #a8a8a8)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.2), 0 4px 20px rgba(0,0,0,0.3)' }}>
+                <div className="absolute inset-[3px] rounded-xl" style={{ background: 'linear-gradient(180deg, #c8c8c8, #a0a0a0, #b0b0b0)' }} />
+                <div className="relative z-10 p-6">
+                  <CardHeader className="pb-4 p-0">
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #d0d0d0, #909090)' }}>
+                      <Smile className="w-7 h-7 text-gray-700" />
+                    </div>
+                    <CardTitle className="text-xl text-gray-900">Cartoon Books</CardTitle>
+                    <CardDescription className="text-gray-700">Stylized caricature illustrations</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4 p-0 pt-4">
+                    <p className="text-sm text-gray-700">
+                      Get playful cartoon caricatures with exaggerated features. Perfect for unique gifts and keepsakes.
+                    </p>
+                    <ul className="text-sm text-gray-800 space-y-2">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        Bold cartoon style
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        Character preservation
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        Fun caricature effect
+                      </li>
+                    </ul>
+                    <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-gray-500 text-accent bg-white/50 hover:bg-white/80">
+                      Create Cartoon Book
+                    </Button>
+                  </CardContent>
+                </div>
               </Card>
 
-              <Card className="bg-white border-2 border-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all group">
-                <CardHeader className="pb-4">
-                  <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mb-4 group-hover:bg-accent/10 transition-colors">
-                    <RefreshCw className="w-7 h-7 text-gray-800" />
-                  </div>
-                  <CardTitle className="text-xl text-gray-900">Image Refresh</CardTitle>
-                  <CardDescription className="text-gray-600">Optimize images for AI tools</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-600">
-                    Normalize and optimize photos for AI processing. Fix compatibility issues in one click.
-                  </p>
-                  <ul className="text-sm text-gray-700 space-y-2">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      Auto-normalize format
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      Optimal resizing
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      Batch processing
-                    </li>
-                  </ul>
-                  <Button onClick={() => navigate('/image-refresh')} variant="outline" className="w-full border-gray-300 text-accent hover:bg-gray-50">
-                    Refresh Images
-                  </Button>
-                </CardContent>
+              <Card className="relative rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all group" style={{ background: 'linear-gradient(145deg, #e8e8e8, #b8b8b8, #d0d0d0, #a8a8a8)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.2), 0 4px 20px rgba(0,0,0,0.3)' }}>
+                <div className="absolute inset-[3px] rounded-xl" style={{ background: 'linear-gradient(180deg, #c8c8c8, #a0a0a0, #b0b0b0)' }} />
+                <div className="relative z-10 p-6">
+                  <CardHeader className="pb-4 p-0">
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #d0d0d0, #909090)' }}>
+                      <RefreshCw className="w-7 h-7 text-gray-700" />
+                    </div>
+                    <CardTitle className="text-xl text-gray-900">Image Refresh</CardTitle>
+                    <CardDescription className="text-gray-700">Optimize images for AI tools</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4 p-0 pt-4">
+                    <p className="text-sm text-gray-700">
+                      Normalize and optimize photos for AI processing. Fix compatibility issues in one click.
+                    </p>
+                    <ul className="text-sm text-gray-800 space-y-2">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        Auto-normalize format
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        Optimal resizing
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        Batch processing
+                      </li>
+                    </ul>
+                    <Button onClick={() => navigate('/image-refresh')} variant="outline" className="w-full border-gray-500 text-accent bg-white/50 hover:bg-white/80">
+                      Refresh Images
+                    </Button>
+                  </CardContent>
+                </div>
               </Card>
             </div>
           </div>
