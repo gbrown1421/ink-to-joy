@@ -213,14 +213,14 @@ const Menu = () => {
                         <Smile className="w-6 h-6 text-white/90" />
                       </div>
                     </div>
-                    <CardTitle className="text-xl text-gray-900">Cartoon Books</CardTitle>
-                    <CardDescription className="text-gray-700">Stylized caricature illustrations</CardDescription>
+                    <CardTitle className="text-4xl text-black">Cartoon Books</CardTitle>
+                    <CardDescription className="text-lg text-black">Stylized caricature illustrations</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-black">
                       Get playful cartoon caricatures with exaggerated features. Perfect for unique gifts and keepsakes.
                     </p>
-                    <ul className="text-sm text-gray-800 space-y-2">
+                    <ul className="text-sm text-black space-y-2">
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                         Bold cartoon style
@@ -262,14 +262,14 @@ const Menu = () => {
                         <RefreshCw className="w-6 h-6 text-white/90" />
                       </div>
                     </div>
-                    <CardTitle className="text-xl text-gray-900">Image Refresh</CardTitle>
-                    <CardDescription className="text-gray-700">Optimize images for AI tools</CardDescription>
+                    <CardTitle className="text-4xl text-black">Image Refresh</CardTitle>
+                    <CardDescription className="text-lg text-black">Optimize images for AI tools</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-black">
                       Normalize and optimize photos for AI processing. Fix compatibility issues in one click.
                     </p>
-                    <ul className="text-sm text-gray-800 space-y-2">
+                    <ul className="text-sm text-black space-y-2">
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                         Auto-normalize format
