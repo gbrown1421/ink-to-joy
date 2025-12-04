@@ -143,17 +143,24 @@ const Menu = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              <Card className="relative rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all group" style={{ background: 'linear-gradient(145deg, #e8e8e8, #b8b8b8, #d0d0d0, #a8a8a8)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.2), 0 4px 20px rgba(0,0,0,0.3)' }}>
-                <div className="absolute inset-[3px] rounded-xl" style={{ background: 'linear-gradient(180deg, #c8c8c8, #a0a0a0, #b0b0b0)' }} />
-                <div className="relative z-10 p-6">
-                  <CardHeader className="pb-4 p-0">
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #d0d0d0, #909090)' }}>
+              {/* Embossed Floating Frame Card 1 */}
+              <div className="relative group" style={{ filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>
+                {/* Outer frame - top/left highlight */}
+                <div className="absolute inset-0 rounded-2xl" style={{ background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 10%, #a0a0a0 50%, #707070 90%, #505050 100%)' }} />
+                {/* Beveled edge - creates depth */}
+                <div className="absolute inset-[4px] rounded-xl" style={{ background: 'linear-gradient(135deg, #606060 0%, #808080 10%, #c0c0c0 50%, #e8e8e8 90%, #ffffff 100%)' }} />
+                {/* Inner face - the main surface */}
+                <div className="absolute inset-[8px] rounded-lg" style={{ background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
+                {/* Content */}
+                <Card className="relative z-10 bg-transparent border-0 shadow-none m-[8px]">
+                  <CardHeader className="pb-4">
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #c0c0c0, #808080)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -1px 2px rgba(0,0,0,0.3)' }}>
                       <Image className="w-7 h-7 text-gray-700" />
                     </div>
                     <CardTitle className="text-xl text-gray-900">Coloring Books</CardTitle>
                     <CardDescription className="text-gray-700">Realistic line art from photos</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4 p-0 pt-4">
+                  <CardContent className="space-y-4">
                     <p className="text-sm text-gray-700">
                       Transform photos into beautiful line art pages. Multiple difficulty levels available for all ages.
                     </p>
@@ -171,24 +178,27 @@ const Menu = () => {
                         Print-ready PDF export
                       </li>
                     </ul>
-                    <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-gray-500 text-accent bg-white/50 hover:bg-white/80">
+                    <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-gray-500 text-accent bg-white/60 hover:bg-white/90">
                       Create Coloring Book
                     </Button>
                   </CardContent>
-                </div>
-              </Card>
+                </Card>
+              </div>
 
-              <Card className="relative rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all group" style={{ background: 'linear-gradient(145deg, #e8e8e8, #b8b8b8, #d0d0d0, #a8a8a8)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.2), 0 4px 20px rgba(0,0,0,0.3)' }}>
-                <div className="absolute inset-[3px] rounded-xl" style={{ background: 'linear-gradient(180deg, #c8c8c8, #a0a0a0, #b0b0b0)' }} />
-                <div className="relative z-10 p-6">
-                  <CardHeader className="pb-4 p-0">
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #d0d0d0, #909090)' }}>
+              {/* Embossed Floating Frame Card 2 */}
+              <div className="relative group" style={{ filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>
+                <div className="absolute inset-0 rounded-2xl" style={{ background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 10%, #a0a0a0 50%, #707070 90%, #505050 100%)' }} />
+                <div className="absolute inset-[4px] rounded-xl" style={{ background: 'linear-gradient(135deg, #606060 0%, #808080 10%, #c0c0c0 50%, #e8e8e8 90%, #ffffff 100%)' }} />
+                <div className="absolute inset-[8px] rounded-lg" style={{ background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
+                <Card className="relative z-10 bg-transparent border-0 shadow-none m-[8px]">
+                  <CardHeader className="pb-4">
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #c0c0c0, #808080)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -1px 2px rgba(0,0,0,0.3)' }}>
                       <Smile className="w-7 h-7 text-gray-700" />
                     </div>
                     <CardTitle className="text-xl text-gray-900">Cartoon Books</CardTitle>
                     <CardDescription className="text-gray-700">Stylized caricature illustrations</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4 p-0 pt-4">
+                  <CardContent className="space-y-4">
                     <p className="text-sm text-gray-700">
                       Get playful cartoon caricatures with exaggerated features. Perfect for unique gifts and keepsakes.
                     </p>
@@ -206,24 +216,27 @@ const Menu = () => {
                         Fun caricature effect
                       </li>
                     </ul>
-                    <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-gray-500 text-accent bg-white/50 hover:bg-white/80">
+                    <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-gray-500 text-accent bg-white/60 hover:bg-white/90">
                       Create Cartoon Book
                     </Button>
                   </CardContent>
-                </div>
-              </Card>
+                </Card>
+              </div>
 
-              <Card className="relative rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all group" style={{ background: 'linear-gradient(145deg, #e8e8e8, #b8b8b8, #d0d0d0, #a8a8a8)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.2), 0 4px 20px rgba(0,0,0,0.3)' }}>
-                <div className="absolute inset-[3px] rounded-xl" style={{ background: 'linear-gradient(180deg, #c8c8c8, #a0a0a0, #b0b0b0)' }} />
-                <div className="relative z-10 p-6">
-                  <CardHeader className="pb-4 p-0">
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #d0d0d0, #909090)' }}>
+              {/* Embossed Floating Frame Card 3 */}
+              <div className="relative group" style={{ filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>
+                <div className="absolute inset-0 rounded-2xl" style={{ background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 10%, #a0a0a0 50%, #707070 90%, #505050 100%)' }} />
+                <div className="absolute inset-[4px] rounded-xl" style={{ background: 'linear-gradient(135deg, #606060 0%, #808080 10%, #c0c0c0 50%, #e8e8e8 90%, #ffffff 100%)' }} />
+                <div className="absolute inset-[8px] rounded-lg" style={{ background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
+                <Card className="relative z-10 bg-transparent border-0 shadow-none m-[8px]">
+                  <CardHeader className="pb-4">
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(145deg, #c0c0c0, #808080)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -1px 2px rgba(0,0,0,0.3)' }}>
                       <RefreshCw className="w-7 h-7 text-gray-700" />
                     </div>
                     <CardTitle className="text-xl text-gray-900">Image Refresh</CardTitle>
                     <CardDescription className="text-gray-700">Optimize images for AI tools</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4 p-0 pt-4">
+                  <CardContent className="space-y-4">
                     <p className="text-sm text-gray-700">
                       Normalize and optimize photos for AI processing. Fix compatibility issues in one click.
                     </p>
@@ -241,12 +254,12 @@ const Menu = () => {
                         Batch processing
                       </li>
                     </ul>
-                    <Button onClick={() => navigate('/image-refresh')} variant="outline" className="w-full border-gray-500 text-accent bg-white/50 hover:bg-white/80">
+                    <Button onClick={() => navigate('/image-refresh')} variant="outline" className="w-full border-gray-500 text-accent bg-white/60 hover:bg-white/90">
                       Refresh Images
                     </Button>
                   </CardContent>
-                </div>
-              </Card>
+                </Card>
+              </div>
             </div>
           </div>
         </div>
