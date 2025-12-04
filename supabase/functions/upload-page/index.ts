@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { Image } from "https://deno.land/x/imagescript@1.2.15/mod.ts";
+import { Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,6 +54,41 @@ function normalizeDifficulty(raw: string | null): Difficulty {
     return "Beginner";
   }
   return "Intermediate";
+}
+
+/**
+ * Prepare a safe, square PNG for OpenAI's /images/edits API.
+ * - Decodes the uploaded file
+ * - Scales it to fit inside a 1024x1024 box (keeps aspect ratio)
+ * - Centers it on a white 1024x1024 canvas
+ * - Returns a new PNG File
+ */
+async function prepareOpenAIImage(original: File): Promise<File> {
+  const buf = new Uint8Array(await original.arrayBuffer());
+  const img = await Image.decode(buf); // throws if image is corrupt
+
+  const target = 1024;
+  const { width, height } = img;
+
+  // Scale down to fit inside target while keeping aspect ratio
+  const scale = Math.min(target / width, target / height, 1);
+  const newW = Math.max(1, Math.round(width * scale));
+  const newH = Math.max(1, Math.round(height * scale));
+
+  const resized = scale < 1 ? img.resize(newW, newH) : img; // don't upscale small images
+
+  // White square canvas
+  const canvas = new Image(target, target);
+  canvas.fill(0xffffffff); // solid white background
+
+  const offsetX = Math.floor((target - newW) / 2);
+  const offsetY = Math.floor((target - newH) / 2);
+  canvas.composite(resized, offsetX, offsetY);
+
+  const pngData = await canvas.encode();
+  const pngBytes = new Uint8Array(pngData);
+  const blob = new Blob([pngBytes], { type: "image/png" });
+  return new File([blob], "openai-base.png", { type: "image/png" });
 }
 
 function buildColoringPrompt(difficulty: Difficulty): string {
@@ -278,16 +313,30 @@ serve(async (req) => {
     const difficulty = normalizeDifficulty(book.difficulty as string | null);
     const prompt = buildColoringPrompt(difficulty);
 
-    console.log("Calling gpt-image-1 /images/edits", {
+    console.log("Realistic coloring request:", {
+      bookId,
       pageId: page.id,
       difficulty,
+      originalType: imageFile.type,
     });
 
     try {
+      // Sanitize the uploaded file for OpenAI - use square canvas approach
+      let openAiImageFile: File = sanitizedFile;
+      try {
+        openAiImageFile = await prepareOpenAIImage(imageFile);
+        console.log("prepareOpenAIImage succeeded:", {
+          originalSize: imageFile.size,
+          preparedSize: openAiImageFile.size,
+        });
+      } catch (prepErr) {
+        console.error("prepareOpenAIImage failed, falling back to sanitized image:", prepErr);
+      }
+
       const aiForm = new FormData();
       aiForm.append("model", "gpt-image-1");
       aiForm.append("prompt", prompt);
-      aiForm.append("image", sanitizedFile); // use sanitized PNG
+      aiForm.append("image", openAiImageFile);
       aiForm.append("size", "1024x1536");
 
       const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
