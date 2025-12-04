@@ -1,14 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Palette, Upload, Download, Shield, CheckCircle, Sparkles, BookOpen, Smile, RefreshCw } from "lucide-react";
+import { Upload, Download, Shield, CheckCircle, Sparkles, BookOpen, Smile, RefreshCw, Layers, Zap, Image, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import pixfixLogo from "@/assets/pixfix-logo.png";
+import heroTransformation from "@/assets/hero-transformation.png";
 
 const Menu = () => {
   const navigate = useNavigate();
   const [selectedProjectType, setSelectedProjectType] = useState<'coloring' | 'cartoon'>('coloring');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('beginner');
+
+  // Enable dark mode for this design
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+    return () => {
+      document.documentElement.classList.remove('dark');
+    };
+  }, []);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -16,270 +26,306 @@ const Menu = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border/50 bg-card/80 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-border/30 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-creative flex items-center justify-center">
-                <Palette className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="text-2xl font-bold">Ink to Joy</span>
+            <div className="flex items-center gap-3">
+              <img src={pixfixLogo} alt="Pix Fix Studio" className="w-10 h-10 rounded-lg" />
+              <span className="text-xl font-bold tracking-tight text-foreground">
+                Pix Fix <span className="text-silver-blue">Studio</span>
+              </span>
             </div>
             
-            <nav className="hidden md:flex items-center gap-6">
-              <button onClick={() => scrollToSection("products")} className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+            <nav className="hidden md:flex items-center gap-8">
+              <button onClick={() => scrollToSection("products")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                 Products
               </button>
-              <button onClick={() => scrollToSection("how-it-works")} className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
-                How it works
+              <button onClick={() => scrollToSection("how-it-works")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                Process
               </button>
-              <button onClick={() => scrollToSection("pricing")} className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+              <button onClick={() => scrollToSection("pricing")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                 Pricing
               </button>
-              <button onClick={() => scrollToSection("examples")} className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+              <button onClick={() => scrollToSection("examples")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                 Examples
               </button>
-              <button onClick={() => scrollToSection("faq")} className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+              <button onClick={() => scrollToSection("faq")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                 FAQ
               </button>
             </nav>
 
-            <Button onClick={() => navigate('/project-type')} size="sm">
-              Create a book
+            <Button onClick={() => navigate('/project-type')} size="sm" className="bg-foreground text-background hover:bg-foreground/90">
+              Start Project
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 md:py-32">
+      <section className="container mx-auto px-4 py-20 md:py-28">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
             {/* Left: Text Content */}
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 text-accent-foreground text-sm font-medium mb-4">
-                <Sparkles className="w-4 h-4" />
-                <span>Turn Photos into Print-Ready Books</span>
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted border border-border text-sm font-medium">
+                <Zap className="w-4 h-4 text-accent" />
+                <span className="text-muted-foreground">AI-Powered Photo Transformation</span>
               </div>
               
-              <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-                Turn your photos into{" "}
-                <span className="bg-gradient-creative bg-clip-text text-transparent">
-                  books, cartoons, and coloring pages
+              <h1 className="text-4xl md:text-6xl font-bold leading-tight tracking-tight">
+                Transform photos into{" "}
+                <span className="text-gradient-chrome">
+                  stunning print-ready art
                 </span>
               </h1>
               
-              <p className="text-lg text-muted-foreground">
-                Upload your favorite photos, choose your style, and get a beautiful print-ready PDF in minutes. Perfect for gifts, classrooms, or family fun.
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Convert your photos into professional coloring books, cartoon illustrations, and optimized images. Perfect for gifts, educators, and creative professionals.
               </p>
               
               <div className="flex flex-col sm:flex-row items-start gap-4 pt-4">
-                <Button onClick={() => navigate('/project-type')} size="lg" className="w-full sm:w-auto">
-                  <BookOpen className="w-5 h-5 mr-2" />
-                  Create your book
+                <Button onClick={() => navigate('/project-type')} size="lg" className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90">
+                  <Layers className="w-5 h-5 mr-2" />
+                  Create Your Project
                 </Button>
-                <Button onClick={() => scrollToSection("examples")} variant="outline" size="lg" className="w-full sm:w-auto">
-                  See sample books
+                <Button onClick={() => scrollToSection("examples")} variant="outline" size="lg" className="w-full sm:w-auto border-border text-foreground hover:bg-muted">
+                  View Examples
                 </Button>
+              </div>
+
+              {/* Trust indicators */}
+              <div className="flex items-center gap-6 pt-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-accent" />
+                  <span>Print-ready PDFs</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-accent" />
+                  <span>Secure processing</span>
+                </div>
               </div>
             </div>
 
-            {/* Right: Image Collage */}
+            {/* Right: Hero Image */}
             <div className="relative">
-              <div className="relative">
+              <div className="relative rounded-2xl overflow-hidden border border-border/50 shadow-glow">
                 <img 
-                  src="/images/hero-teacher-coloring.jpg" 
-                  alt="Teacher with young children happily coloring in custom coloring books at a classroom table"
-                  className="w-full h-auto rounded-2xl shadow-2xl"
+                  src={heroTransformation} 
+                  alt="Photo to coloring page transformation - before and after comparison"
+                  className="w-full h-auto"
                 />
-                <div className="absolute -bottom-6 -right-6 w-48 h-48 rounded-xl shadow-xl overflow-hidden border-4 border-background">
-                  <img 
-                    src="/images/hero-coloring-page.jpg" 
-                    alt="Close-up of a personalized coloring page with a child's name in the header"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="bg-card/90 backdrop-blur-sm rounded-xl p-4 border border-border/50">
+                    <p className="text-sm text-muted-foreground">Original photo → Coloring page</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">AI-powered line art conversion</p>
+                  </div>
                 </div>
               </div>
+              {/* Decorative elements */}
+              <div className="absolute -top-4 -right-4 w-24 h-24 bg-accent/10 rounded-full blur-3xl" />
+              <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-silver-blue/10 rounded-full blur-3xl" />
             </div>
           </div>
         </div>
       </section>
 
       {/* Products Section */}
-      <section id="products" className="container mx-auto px-4 py-20 scroll-mt-20">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center space-y-4 mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold">Our Products</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Choose the perfect project type for your creative vision
-            </p>
-          </div>
+      <section id="products" className="py-20 scroll-mt-20 bg-muted/20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center space-y-4 mb-16">
+              <p className="text-sm font-medium text-accent uppercase tracking-wider">Our Services</p>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight">Professional Tools</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Choose the transformation that fits your creative vision
+              </p>
+            </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <Card className="hover:shadow-xl transition-shadow overflow-hidden">
-              <div className="aspect-video w-full overflow-hidden bg-muted">
-                <img 
-                  src="/images/product-coloring-classroom.jpg" 
-                  alt="Teacher with students coloring together at a classroom table"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <CardHeader>
-                <div className="w-12 h-12 rounded-xl bg-gradient-creative flex items-center justify-center mb-4">
-                  <Palette className="w-6 h-6 text-primary-foreground" />
-                </div>
-                <CardTitle>Custom Coloring Books</CardTitle>
-                <CardDescription>Perfect for kids, classrooms, and creative fun</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Transform your photos into beautiful line art coloring pages. Choose difficulty levels from simple to advanced, add custom borders and headings.
-                </p>
-                <Button onClick={() => navigate('/project-type')} className="w-full">
-                  Start a coloring book
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="grid md:grid-cols-3 gap-6">
+              <Card className="bg-card border-border/50 hover:border-border transition-all hover:shadow-glow group">
+                <CardHeader className="pb-4">
+                  <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4 group-hover:bg-accent/10 transition-colors">
+                    <Image className="w-7 h-7 text-foreground" />
+                  </div>
+                  <CardTitle className="text-xl">Coloring Books</CardTitle>
+                  <CardDescription className="text-muted-foreground">Realistic line art from photos</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Transform photos into beautiful line art pages. Multiple difficulty levels available for all ages.
+                  </p>
+                  <ul className="text-sm text-muted-foreground space-y-2">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      4 difficulty levels
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      Custom borders & text
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      Print-ready PDF export
+                    </li>
+                  </ul>
+                  <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-border hover:bg-muted">
+                    Create Coloring Book
+                  </Button>
+                </CardContent>
+              </Card>
 
-            <Card className="hover:shadow-xl transition-shadow overflow-hidden">
-              <div className="aspect-video w-full overflow-hidden bg-muted">
-                <img 
-                  src="/images/product-grandparent-cartoon-book.jpg" 
-                  alt="Grandparent sitting on couch smiling while flipping through a cartoon-style book of grandchildren"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <CardHeader>
-                <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mb-4">
-                  <Smile className="w-6 h-6 text-secondary-foreground" />
-                </div>
-                <CardTitle>Cartoon / Caricature Books</CardTitle>
-                <CardDescription>Fun cartoon versions of your family photos</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Get playful cartoon caricatures with exaggerated features and bold outlines. Great for unique gifts and fun family books.
-                </p>
-                <Button onClick={() => navigate('/project-type')} className="w-full">
-                  Start a cartoon book
-                </Button>
-              </CardContent>
-            </Card>
+              <Card className="bg-card border-border/50 hover:border-border transition-all hover:shadow-glow group">
+                <CardHeader className="pb-4">
+                  <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4 group-hover:bg-accent/10 transition-colors">
+                    <Smile className="w-7 h-7 text-foreground" />
+                  </div>
+                  <CardTitle className="text-xl">Cartoon Books</CardTitle>
+                  <CardDescription className="text-muted-foreground">Stylized caricature illustrations</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Get playful cartoon caricatures with exaggerated features. Perfect for unique gifts and keepsakes.
+                  </p>
+                  <ul className="text-sm text-muted-foreground space-y-2">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      Bold cartoon style
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      Character preservation
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      Fun caricature effect
+                    </li>
+                  </ul>
+                  <Button onClick={() => navigate('/project-type')} variant="outline" className="w-full border-border hover:bg-muted">
+                    Create Cartoon Book
+                  </Button>
+                </CardContent>
+              </Card>
 
-            <Card className="hover:shadow-xl transition-shadow overflow-hidden">
-              <div className="aspect-video w-full overflow-hidden bg-muted flex items-center justify-center">
-                <RefreshCw className="w-16 h-16 text-muted-foreground" />
-              </div>
-              <CardHeader>
-                <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center mb-4">
-                  <RefreshCw className="w-6 h-6 text-accent-foreground" />
-                </div>
-                <CardTitle>Image Refresh</CardTitle>
-                <CardDescription>Clean and normalize photos for AI tools</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Downscale and convert your photos to simple PNGs that work with AI tools. Fix "invalid image" errors in one click.
-                </p>
-                <Button onClick={() => navigate('/image-refresh')} className="w-full">
-                  Refresh images
-                </Button>
-              </CardContent>
-            </Card>
+              <Card className="bg-card border-border/50 hover:border-border transition-all hover:shadow-glow group">
+                <CardHeader className="pb-4">
+                  <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4 group-hover:bg-accent/10 transition-colors">
+                    <RefreshCw className="w-7 h-7 text-foreground" />
+                  </div>
+                  <CardTitle className="text-xl">Image Refresh</CardTitle>
+                  <CardDescription className="text-muted-foreground">Optimize images for AI tools</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Normalize and optimize photos for AI processing. Fix compatibility issues in one click.
+                  </p>
+                  <ul className="text-sm text-muted-foreground space-y-2">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      Auto-normalize format
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      Optimal resizing
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      Batch processing
+                    </li>
+                  </ul>
+                  <Button onClick={() => navigate('/image-refresh')} variant="outline" className="w-full border-border hover:bg-muted">
+                    Refresh Images
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="bg-muted/30 py-20 scroll-mt-20">
+      <section id="how-it-works" className="py-20 scroll-mt-20">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center space-y-4 mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold">How It Works</h2>
-              <p className="text-xl text-muted-foreground">
-                Create your custom book in three simple steps
+              <p className="text-sm font-medium text-accent uppercase tracking-wider">Workflow</p>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight">Three Simple Steps</h2>
+              <p className="text-lg text-muted-foreground">
+                From photo to finished product in minutes
               </p>
             </div>
 
-            {/* Step 1: Pick Your Project */}
+            {/* Step 1 */}
             <div className="mb-20">
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 rounded-full bg-gradient-creative flex items-center justify-center shrink-0">
-                  <span className="text-xl font-bold text-primary-foreground">1</span>
+                <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center shrink-0">
+                  <span className="text-lg font-bold text-foreground">01</span>
                 </div>
-                <h3 className="text-3xl font-bold">Pick Your Project</h3>
+                <h3 className="text-2xl font-bold">Select Your Project Type</h3>
               </div>
 
-              {/* Project Type Toggle Cards */}
               <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <Card 
-                  className={`cursor-pointer transition-all hover:shadow-lg ${
-                    selectedProjectType === 'coloring' ? 'ring-2 ring-primary' : ''
+                <div 
+                  className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
+                    selectedProjectType === 'coloring' ? 'border-accent bg-accent/5' : 'border-border bg-card'
                   }`}
                   onClick={() => setSelectedProjectType('coloring')}
                 >
-                  <CardHeader>
-                    <CardTitle className="text-xl">Realistic Coloring Book</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase">Before</p>
-                        <img 
-                          src="/images/example-photo-family.jpg" 
-                          alt="Original family photo"
-                          className="w-full aspect-square object-cover rounded-lg border border-border"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase">After</p>
-                        <img 
-                          src="/images/example-coloring-page.jpg" 
-                          alt="Converted coloring page"
-                          className="w-full aspect-square object-cover rounded-lg border border-border"
-                        />
-                      </div>
+                  <h4 className="text-lg font-semibold mb-4">Realistic Coloring Book</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Original</p>
+                      <img 
+                        src="/images/example-photo-family.jpg" 
+                        alt="Original family photo"
+                        className="w-full aspect-square object-cover rounded-lg border border-border"
+                      />
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Result</p>
+                      <img 
+                        src="/images/example-coloring-page.jpg" 
+                        alt="Converted coloring page"
+                        className="w-full aspect-square object-cover rounded-lg border border-border"
+                      />
+                    </div>
+                  </div>
+                </div>
 
-                <Card 
-                  className={`cursor-pointer transition-all hover:shadow-lg ${
-                    selectedProjectType === 'cartoon' ? 'ring-2 ring-primary' : ''
+                <div 
+                  className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
+                    selectedProjectType === 'cartoon' ? 'border-accent bg-accent/5' : 'border-border bg-card'
                   }`}
                   onClick={() => setSelectedProjectType('cartoon')}
                 >
-                  <CardHeader>
-                    <CardTitle className="text-xl">Cartoon / Caricature Coloring Book</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase">Before</p>
-                        <img 
-                          src="/images/example-photo-kid-dog.jpg" 
-                          alt="Original photo"
-                          className="w-full aspect-square object-cover rounded-lg border border-border"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase">After</p>
-                        <img 
-                          src="/images/example-cartoon-page.jpg" 
-                          alt="Cartoon style page"
-                          className="w-full aspect-square object-cover rounded-lg border border-border"
-                        />
-                      </div>
+                  <h4 className="text-lg font-semibold mb-4">Cartoon Caricature Book</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Original</p>
+                      <img 
+                        src="/images/example-photo-kid-dog.jpg" 
+                        alt="Original photo"
+                        className="w-full aspect-square object-cover rounded-lg border border-border"
+                      />
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Result</p>
+                      <img 
+                        src="/images/example-cartoon-page.jpg" 
+                        alt="Cartoon style page"
+                        className="w-full aspect-square object-cover rounded-lg border border-border"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Difficulty Selection */}
-              <div className="bg-background/50 rounded-lg p-6 border border-border">
-                <h4 className="text-lg font-semibold mb-4">Choose your detail level</h4>
+              <div className="bg-card rounded-xl p-6 border border-border">
+                <h4 className="text-lg font-semibold mb-4">Detail Level</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
                     { id: 'quick', label: 'Quick & Easy', img: '/images/difficulty-samples/difficulty-quick-sample.jpg' },
@@ -292,14 +338,14 @@ const Menu = () => {
                       onClick={() => setSelectedDifficulty(difficulty.id)}
                       className={`p-4 rounded-lg border-2 transition-all hover:shadow-md ${
                         selectedDifficulty === difficulty.id 
-                          ? 'border-primary bg-primary/5' 
-                          : 'border-border bg-background'
+                          ? 'border-accent bg-accent/5' 
+                          : 'border-border bg-muted/30'
                       }`}
                     >
                       <img 
                         src={difficulty.img} 
                         alt={difficulty.label}
-                        className="w-full aspect-square object-cover rounded-md mb-2"
+                        className="w-full aspect-square object-cover rounded-md mb-3"
                       />
                       <p className="text-sm font-medium text-center">{difficulty.label}</p>
                     </button>
@@ -308,17 +354,17 @@ const Menu = () => {
               </div>
             </div>
 
-            {/* Step 2: Upload & Customize */}
+            {/* Step 2 */}
             <div className="mb-20">
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                  <Upload className="w-6 h-6 text-secondary-foreground" />
+                <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center shrink-0">
+                  <span className="text-lg font-bold text-foreground">02</span>
                 </div>
-                <h3 className="text-3xl font-bold">Upload & Customize</h3>
+                <h3 className="text-2xl font-bold">Upload & Customize</h3>
               </div>
 
-              <div className="bg-background rounded-lg border-2 border-dashed border-border p-12 mb-6 text-center">
-                <Upload className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <div className="bg-card rounded-xl border-2 border-dashed border-border p-12 mb-6 text-center">
+                <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                 <h4 className="text-xl font-semibold mb-2">Upload 10–30 photos</h4>
                 <p className="text-muted-foreground">Drag and drop or click to browse</p>
               </div>
@@ -342,389 +388,342 @@ const Menu = () => {
               </div>
 
               <p className="text-center text-muted-foreground">
-                We convert each photo into a page. You approve, re-order, or delete before finalizing.
+                Each photo converts to a page. Review, reorder, or remove before finalizing.
               </p>
             </div>
 
-            {/* Step 3: Download & Print */}
+            {/* Step 3 */}
             <div className="mb-12">
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center shrink-0">
-                  <Download className="w-6 h-6 text-accent-foreground" />
+                <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center shrink-0">
+                  <span className="text-lg font-bold text-foreground">03</span>
                 </div>
-                <h3 className="text-3xl font-bold">Download & Print</h3>
+                <h3 className="text-2xl font-bold">Download & Print</h3>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
-                <Card>
+                <Card className="bg-card border-border/50">
                   <CardHeader>
-                    <div className="flex items-center justify-between mb-2">
-                      <CardTitle className="text-xl">Print-ready PDF</CardTitle>
-                      <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">Example</span>
-                    </div>
+                    <CardTitle className="text-lg">Digital PDF Delivery</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <img 
-                      src="/images/hero-multi-pages-quick.png" 
-                      alt="Stack of coloring pages"
-                      className="w-full aspect-video object-cover rounded-lg border border-border mb-4"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      High-quality PDF ready to print at home or any print shop. Standard 8.5×11 format.
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Download a high-resolution, print-ready PDF optimized for standard US Letter (8.5×11") paper.
                     </p>
+                    <ul className="text-sm text-muted-foreground space-y-2">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        300 DPI print quality
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        Instant download
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        Unlimited printing
+                      </li>
+                    </ul>
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-card border-border/50">
                   <CardHeader>
-                    <div className="flex items-center justify-between mb-2">
-                      <CardTitle className="text-xl">Book-ready file</CardTitle>
-                      <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">Example</span>
-                    </div>
+                    <CardTitle className="text-lg">Print Options</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <img 
-                      src="/images/example-coffee-table-book.jpg" 
-                      alt="Finished book"
-                      className="w-full aspect-video object-cover rounded-lg border border-border mb-4"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Professional format perfect for binding services or online book printing.
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Print at home or use professional services for the best results.
                     </p>
+                    <ul className="text-sm text-muted-foreground space-y-2">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        Home printer ready
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        Print shop compatible
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-accent" />
+                        Spiral binding ready
+                      </li>
+                    </ul>
                   </CardContent>
                 </Card>
               </div>
             </div>
-
-            <div className="flex justify-center">
-              <Button onClick={() => navigate('/project-type')} size="lg">
-                Start Creating Now
-              </Button>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Examples */}
-      <section id="examples" className="container mx-auto px-4 py-20 scroll-mt-20">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center space-y-4 mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold">Examples</h2>
-            <p className="text-xl text-muted-foreground">
-              See the magic of transformation
-            </p>
-          </div>
+      {/* Examples Section */}
+      <section id="examples" className="py-20 scroll-mt-20 bg-muted/20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center space-y-4 mb-16">
+              <p className="text-sm font-medium text-accent uppercase tracking-wider">Gallery</p>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight">Sample Results</h2>
+              <p className="text-lg text-muted-foreground">
+                See the quality of our AI-powered transformations
+              </p>
+            </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <Card className="overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-lg">Photo → Coloring Page</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-8 mb-12">
+              {/* Coloring Page Example */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Coloring Book</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground uppercase">Before</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Before</p>
                     <img 
                       src="/images/example-photo-family.jpg" 
-                      alt="Original family photo before conversion"
-                      className="example-card-image shadow-md"
+                      alt="Original family photo"
+                      className="w-full aspect-[3/4] object-cover rounded-lg border border-border"
                     />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground uppercase">After</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">After</p>
                     <img 
                       src="/images/example-coloring-page.jpg" 
-                      alt="Converted coloring page with line art"
-                      className="example-card-image shadow-md"
+                      alt="Coloring page result"
+                      className="w-full aspect-[3/4] object-cover rounded-lg border border-border"
                     />
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground text-center">
-                  Transform any photo into beautiful line art
-                </p>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Card className="overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-lg">Photo → Cartoon Page</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              {/* Cartoon Example */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Cartoon Book</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground uppercase">Before</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Before</p>
                     <img 
                       src="/images/example-photo-kid-dog.jpg" 
-                      alt="Original photo of child with pet dog"
-                      className="example-card-image shadow-md"
+                      alt="Original photo"
+                      className="w-full aspect-[3/4] object-cover rounded-lg border border-border"
                     />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground uppercase">After</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">After</p>
                     <img 
                       src="/images/example-cartoon-page.jpg" 
-                      alt="Cartoon style illustration of child with pet"
-                      className="example-card-image shadow-md"
+                      alt="Cartoon result"
+                      className="w-full aspect-[3/4] object-cover rounded-lg border border-border"
                     />
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground text-center">
-                  Get fun caricature versions of your photos
-                </p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <Card className="overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-lg">Finished Book</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <img 
-                  src="/images/example-coffee-table-book.jpg" 
-                  alt="Finished printed book displayed on a coffee table"
-                  className="example-card-image shadow-md"
-                />
-                <p className="text-sm text-muted-foreground text-center">
-                  Print-ready PDF with custom borders
-                </p>
-              </CardContent>
-            </Card>
+            {/* Final Product */}
+            <div className="text-center">
+              <h3 className="text-xl font-semibold mb-4">Print-Ready Output</h3>
+              <img 
+                src="/images/example-coffee-table-book.jpg" 
+                alt="Finished coffee table book"
+                className="w-full max-w-lg mx-auto rounded-xl border border-border shadow-card"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section id="pricing" className="bg-muted/30 py-20 scroll-mt-20">
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 scroll-mt-20">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center space-y-4 mb-12">
-              <h2 className="text-4xl md:text-5xl font-bold">Pricing</h2>
-              <p className="text-xl text-muted-foreground">
-                Simple, transparent pricing for print-ready PDFs
+            <div className="text-center space-y-4 mb-16">
+              <p className="text-sm font-medium text-accent uppercase tracking-wider">Pricing</p>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight">Simple Pricing</h2>
+              <p className="text-lg text-muted-foreground">
+                Pay only for what you create
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
-              <Card>
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="bg-card border-border/50">
                 <CardHeader>
-                  <CardTitle className="text-2xl">Coloring Book (PDF)</CardTitle>
-                  <div className="text-3xl font-bold text-primary mt-2">From $19</div>
-                  <CardDescription>for up to 24 pages</CardDescription>
+                  <CardTitle className="text-2xl">Coloring Books</CardTitle>
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold">$0.25</span>
+                    <span className="text-muted-foreground"> / page</span>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">Transform photos into line-art coloring pages</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">Choose difficulty levels (easy to advanced)</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">Custom borders and headings</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">High-resolution print-ready PDF</span>
-                  </div>
+                <CardContent className="space-y-4">
+                  <ul className="text-sm text-muted-foreground space-y-3">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      All difficulty levels included
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      Custom borders & headings
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      High-resolution PDF
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      Unlimited regenerations
+                    </li>
+                  </ul>
+                  <Button onClick={() => navigate('/project-type')} className="w-full bg-foreground text-background hover:bg-foreground/90">
+                    Start Coloring Book
+                  </Button>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-card border-border/50">
                 <CardHeader>
-                  <CardTitle className="text-2xl">Cartoon Book (PDF)</CardTitle>
-                  <div className="text-3xl font-bold text-secondary mt-2">From $29</div>
-                  <CardDescription>for up to 24 pages</CardDescription>
+                  <CardTitle className="text-2xl">Cartoon Books</CardTitle>
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold">$0.35</span>
+                    <span className="text-muted-foreground"> / page</span>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
-                    <span className="text-sm">AI-powered cartoon caricatures</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
-                    <span className="text-sm">Fun exaggerated features and bold outlines</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
-                    <span className="text-sm">Custom borders and headings</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
-                    <span className="text-sm">High-resolution print-ready PDF</span>
-                  </div>
+                <CardContent className="space-y-4">
+                  <ul className="text-sm text-muted-foreground space-y-3">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      Stylized caricature art
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      Bold cartoon outlines
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      High-resolution PDF
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      Unlimited regenerations
+                    </li>
+                  </ul>
+                  <Button onClick={() => navigate('/project-type')} className="w-full bg-foreground text-background hover:bg-foreground/90">
+                    Start Cartoon Book
+                  </Button>
                 </CardContent>
               </Card>
             </div>
 
-            <div className="text-center p-6 bg-card rounded-lg border border-border">
-              <p className="text-sm text-muted-foreground">
-                <strong>Note:</strong> We do not ship printed books. You download a print-ready PDF and can print anywhere you like – at home, local print shops, or online printing services.
-              </p>
+            <p className="text-center text-sm text-muted-foreground mt-8">
+              Payment processed securely. PDF delivered instantly after completion.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us */}
+      <section className="py-20 bg-muted/20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center space-y-4 mb-16">
+              <p className="text-sm font-medium text-accent uppercase tracking-wider">Why Pix Fix Studio</p>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight">Built for Quality</h2>
+            </div>
+
+            <div className="grid md:grid-cols-4 gap-6">
+              {[
+                { icon: Download, title: "Print-Ready PDFs", desc: "300 DPI resolution optimized for professional printing" },
+                { icon: Shield, title: "Safe & Secure", desc: "Age-appropriate output with secure processing" },
+                { icon: CheckCircle, title: "Full Control", desc: "Approve every page before finalizing your book" },
+                { icon: Sparkles, title: "Instant Delivery", desc: "Download immediately after completion" }
+              ].map((feature, index) => (
+                <div key={index} className="text-center p-6 rounded-xl bg-card border border-border/50">
+                  <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
+                    <feature.icon className="w-6 h-6 text-foreground" />
+                  </div>
+                  <h3 className="font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground">{feature.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Why Ink to Joy */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center space-y-4 mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold">Why Ink to Joy?</h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card>
-              <CardContent className="pt-6 flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <Shield className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Designed for Real Printing</h3>
-                  <p className="text-sm text-muted-foreground">
-                    High-resolution PDFs optimized for professional printing at any print shop or home printer.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6 flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-5 h-5 text-secondary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Kid-Safe Styles</h3>
-                  <p className="text-sm text-muted-foreground">
-                    All content is family-friendly with safe, appropriate transformations perfect for children.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6 flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                  <CheckCircle className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">You Approve Pages Before You Pay</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Review and customize every page before finalizing your order. No surprises.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6 flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <Download className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Instant Digital Delivery</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Get your PDF immediately after payment. Print multiple copies whenever you want.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section id="faq" className="bg-muted/30 py-20 scroll-mt-20">
+      {/* FAQ Section */}
+      <section id="faq" className="py-20 scroll-mt-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
-            <div className="text-center space-y-4 mb-12">
-              <h2 className="text-4xl md:text-5xl font-bold">Frequently Asked Questions</h2>
+            <div className="text-center space-y-4 mb-16">
+              <p className="text-sm font-medium text-accent uppercase tracking-wider">Support</p>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight">FAQ</h2>
             </div>
 
             <Accordion type="single" collapsible className="space-y-4">
-              <AccordionItem value="shipping" className="bg-card border border-border rounded-lg px-6">
-                <AccordionTrigger className="text-left font-semibold hover:no-underline">
-                  Do you ship printed books?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  No, we provide a high-resolution, print-ready PDF that you can download instantly. You can then print it at home, take it to a local print shop, or use any online printing service. This gives you flexibility and control over the final product quality and cost.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="mixing" className="bg-card border border-border rounded-lg px-6">
-                <AccordionTrigger className="text-left font-semibold hover:no-underline">
-                  Can I mix coloring and cartoon pages in one book?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  Currently, each book must be either all coloring pages or all cartoon pages. However, you can create multiple books and combine the PDFs yourself if you'd like a mixed book. We're considering adding mixed-mode support in the future!
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="safety" className="bg-card border border-border rounded-lg px-6">
-                <AccordionTrigger className="text-left font-semibold hover:no-underline">
-                  Are my photos safe and private?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  Yes! Your photos are securely stored and only used to generate your book. We never share or use your photos for any other purpose. You can delete your project and all associated photos at any time.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="photos" className="bg-card border border-border rounded-lg px-6">
-                <AccordionTrigger className="text-left font-semibold hover:no-underline">
-                  How many photos do I need?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  You can create a book with as few as 1 page or up to 24 pages. Each page uses one photo. We recommend uploading clear, well-lit photos with good contrast for the best results. You can preview and approve each transformation before finalizing.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="quality" className="bg-card border border-border rounded-lg px-6">
-                <AccordionTrigger className="text-left font-semibold hover:no-underline">
-                  What if I don't like how a page turned out?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  You review every page before finalizing your book. You can remove any pages you don't like, try different photos, or adjust settings. Only pay when you're completely satisfied with all pages.
-                </AccordionContent>
-              </AccordionItem>
+              {[
+                {
+                  q: "What photo formats are supported?",
+                  a: "We accept JPEG, PNG, and HEIC files. Our system automatically optimizes images for the best results."
+                },
+                {
+                  q: "How many photos can I include?",
+                  a: "We recommend 10-30 photos per book for optimal results. Each photo becomes one page in your final book."
+                },
+                {
+                  q: "Can I preview before paying?",
+                  a: "Yes! You can see every converted page before finalizing. Only pay when you're satisfied with the results."
+                },
+                {
+                  q: "What's the difference between difficulty levels?",
+                  a: "Quick & Easy has fewer lines for young children. Beginner adds more detail. Intermediate includes shading areas. Advanced captures full photographic detail."
+                },
+                {
+                  q: "How do I print my book?",
+                  a: "Download the PDF and print at home on standard paper, or take to a print shop for professional binding. The file is optimized for 8.5×11\" paper."
+                },
+                {
+                  q: "Is there a refund policy?",
+                  a: "Since you approve every page before payment, refunds are handled case-by-case. Contact support if you have concerns."
+                }
+              ].map((item, index) => (
+                <AccordionItem key={index} value={`item-${index}`} className="bg-card border border-border/50 rounded-xl px-6">
+                  <AccordionTrigger className="text-left hover:no-underline py-4">
+                    {item.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground pb-4">
+                    {item.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
             </Accordion>
           </div>
         </div>
       </section>
 
-      {/* Footer CTA */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="max-w-4xl mx-auto text-center space-y-6 p-12 bg-gradient-creative rounded-3xl">
-          <h2 className="text-4xl md:text-5xl font-bold text-primary-foreground">
-            Ready to create your book?
-          </h2>
-          <p className="text-xl text-primary-foreground/90">
-            Start transforming your photos into beautiful books today
-          </p>
-          <Button 
-            onClick={() => navigate('/project-type')} 
-            size="lg" 
-            variant="secondary"
-            className="text-lg"
-          >
-            <BookOpen className="w-5 h-5 mr-2" />
-            Get Started Now
-          </Button>
+      {/* Final CTA */}
+      <section className="py-20 bg-muted/20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Transform Your Photos?</h2>
+            <p className="text-lg text-muted-foreground mb-8">
+              Create professional coloring books and cartoon illustrations in minutes.
+            </p>
+            <Button onClick={() => navigate('/project-type')} size="lg" className="bg-foreground text-background hover:bg-foreground/90">
+              <Layers className="w-5 h-5 mr-2" />
+              Start Your Project
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 bg-card/50 backdrop-blur-sm py-8">
+      <footer className="border-t border-border/30 py-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-creative flex items-center justify-center">
-                <Palette className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span className="font-semibold">Ink to Joy</span>
+            <div className="flex items-center gap-3">
+              <img src={pixfixLogo} alt="Pix Fix Studio" className="w-8 h-8 rounded-lg" />
+              <span className="text-sm font-medium text-foreground">
+                Pix Fix <span className="text-silver-blue">Studio</span>
+              </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2025 Ink to Joy. Transform your photos into creative books.
+              © {new Date().getFullYear()} Pix Fix Studio. All rights reserved.
             </p>
           </div>
         </div>
