@@ -32,31 +32,26 @@ const Menu = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <img src={pixfixLogo} alt="Pix Fix Studio" style={{ height: '256px' }} />
+              <img src={pixfixLogo} alt="Pix Fix Studio" style={{ height: '512px' }} />
             </div>
             
-            <nav className="hidden md:flex items-center gap-8">
-              <button onClick={() => scrollToSection("products")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <nav className="hidden md:flex items-center gap-8 ml-auto">
+              <button onClick={() => scrollToSection("products")} className="text-xl font-medium text-black hover:text-black/70 transition-colors">
                 Products
               </button>
-              <button onClick={() => scrollToSection("how-it-works")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <button onClick={() => scrollToSection("how-it-works")} className="text-xl font-medium text-black hover:text-black/70 transition-colors">
                 Process
               </button>
-              <button onClick={() => scrollToSection("pricing")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <button onClick={() => scrollToSection("pricing")} className="text-xl font-medium text-black hover:text-black/70 transition-colors">
                 Pricing
               </button>
-              <button onClick={() => scrollToSection("examples")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <button onClick={() => scrollToSection("examples")} className="text-xl font-medium text-black hover:text-black/70 transition-colors">
                 Examples
               </button>
-              <button onClick={() => scrollToSection("faq")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <button onClick={() => scrollToSection("faq")} className="text-xl font-medium text-black hover:text-black/70 transition-colors">
                 FAQ
               </button>
             </nav>
-
-            <Button onClick={() => navigate('/project-type')} size="sm" className="bg-foreground text-background hover:bg-foreground/90">
-              Start Project
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
           </div>
         </div>
       </header>
