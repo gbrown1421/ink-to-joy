@@ -173,15 +173,15 @@ const Menu = () => {
                     </p>
                     <ul className="text-sm text-gray-800 space-y-2">
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                         4 difficulty levels
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                         Custom borders & text
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                         Print-ready PDF export
                       </li>
                     </ul>
@@ -222,15 +222,15 @@ const Menu = () => {
                     </p>
                     <ul className="text-sm text-gray-800 space-y-2">
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                         Bold cartoon style
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                         Character preservation
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                         Fun caricature effect
                       </li>
                     </ul>
@@ -271,15 +271,15 @@ const Menu = () => {
                     </p>
                     <ul className="text-sm text-gray-800 space-y-2">
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                         Auto-normalize format
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                         Optimal resizing
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                         Batch processing
                       </li>
                     </ul>
