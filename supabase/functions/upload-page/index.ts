@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { Image } from "https://deno.land/x/imagescript@1.2.15/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,6 +9,40 @@ const corsHeaders = {
 };
 
 type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
+
+const MAX_DIMENSION = 2048;
+
+/**
+ * Decode any image via ImageScript, downscale if needed, re-encode as clean PNG.
+ * This ensures compatibility with OpenAI's image API.
+ */
+async function sanitizeForOpenAI(file: File): Promise<File> {
+  const arrayBuffer = await file.arrayBuffer();
+  const uint8 = new Uint8Array(arrayBuffer);
+
+  // Decode image (supports PNG, JPEG, GIF, etc.)
+  const img = await Image.decode(uint8);
+
+  let width = img.width;
+  let height = img.height;
+
+  // Downscale if either dimension exceeds MAX_DIMENSION
+  if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+    const scale = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+    const newWidth = Math.round(width * scale);
+    const newHeight = Math.round(height * scale);
+    img.resize(newWidth, newHeight);
+    console.log(`Resized image from ${width}x${height} to ${newWidth}x${newHeight}`);
+  }
+
+  // Re-encode as PNG
+  const pngData = await img.encode();
+  // Create a copy to ensure proper ArrayBuffer type for Blob
+  const pngBytes = new Uint8Array(pngData);
+  const blob = new Blob([pngBytes], { type: "image/png" });
+
+  return new File([blob], "sanitized.png", { type: "image/png" });
+}
 
 function normalizeDifficulty(raw: string | null): Difficulty {
   const v = (raw || "").toLowerCase().trim();
@@ -132,6 +167,26 @@ serve(async (req) => {
       fileType: imageFile.type,
     });
 
+    // Sanitize the image: decode, resize if needed, re-encode as clean PNG
+    let sanitizedFile: File;
+    try {
+      sanitizedFile = await sanitizeForOpenAI(imageFile);
+      console.log("Image sanitized successfully:", {
+        originalName: imageFile.name,
+        originalSize: imageFile.size,
+        sanitizedSize: sanitizedFile.size,
+      });
+    } catch (sanitizeErr) {
+      console.error("Image sanitization failed:", sanitizeErr);
+      return new Response(
+        JSON.stringify({ error: "The source image could not be decoded." }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     const { data: book, error: bookError } = await supabase
       .from("books")
       .select("id, project_type, difficulty, name")
@@ -171,15 +226,13 @@ serve(async (req) => {
         ? (existingPages[0].page_order ?? 0) + 1
         : 1;
 
-    const ext = imageFile.name.includes(".")
-      ? imageFile.name.split(".").pop()
-      : "png";
-    const originalPath = `books/${bookId}/original/${crypto.randomUUID()}.${ext}`;
+    // Use sanitized PNG for storage
+    const originalPath = `books/${bookId}/original/${crypto.randomUUID()}.png`;
 
     const { error: uploadError } = await supabase.storage
       .from("book-images")
-      .upload(originalPath, imageFile, {
-        contentType: imageFile.type || "image/png",
+      .upload(originalPath, sanitizedFile, {
+        contentType: "image/png",
         upsert: false,
       });
 
@@ -234,7 +287,7 @@ serve(async (req) => {
       const aiForm = new FormData();
       aiForm.append("model", "gpt-image-1");
       aiForm.append("prompt", prompt);
-      aiForm.append("image", imageFile); // use original upload directly
+      aiForm.append("image", sanitizedFile); // use sanitized PNG
       aiForm.append("size", "1024x1536");
 
       const aiRes = await fetch("https://api.openai.com/v1/images/edits", {
