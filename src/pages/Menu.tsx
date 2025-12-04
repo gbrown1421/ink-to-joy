@@ -138,16 +138,16 @@ const Menu = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {/* Embossed Floating Frame Card 1 */}
-              <div className="relative group" style={{ filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>
-                {/* Outer frame - top/left highlight */}
-                <div className="absolute inset-0 rounded-2xl" style={{ background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 10%, #a0a0a0 50%, #707070 90%, #505050 100%)' }} />
-                {/* Beveled edge - creates depth (8px top/sides, 24px bottom) */}
-                <div className="absolute rounded-xl" style={{ top: '8px', left: '8px', right: '8px', bottom: '24px', background: 'linear-gradient(135deg, #606060 0%, #808080 10%, #c0c0c0 50%, #e8e8e8 90%, #ffffff 100%)' }} />
-                {/* Inner face - the main surface (16px top/sides, 48px bottom) */}
-                <div className="absolute rounded-lg" style={{ top: '16px', left: '16px', right: '16px', bottom: '48px', background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
+              {/* Isometric 3D Card 1 - facing 7 o'clock */}
+              <div className="relative group" style={{ filter: 'drop-shadow(-6px 8px 16px rgba(0,0,0,0.5)) drop-shadow(-3px 4px 6px rgba(0,0,0,0.3))' }}>
+                {/* Left side face (visible due to 7 o'clock angle) */}
+                <div className="absolute" style={{ top: '8px', left: '0', width: '12px', bottom: '8px', background: 'linear-gradient(90deg, #606060 0%, #808080 50%, #a0a0a0 100%)', transform: 'skewY(-6deg)', transformOrigin: 'top left' }} />
+                {/* Bottom side face */}
+                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '14px', background: 'linear-gradient(180deg, #a0a0a0 0%, #707070 50%, #505050 100%)', transform: 'skewX(-6deg)', transformOrigin: 'bottom left' }} />
+                {/* Main front face */}
+                <div className="absolute inset-0" style={{ left: '12px', bottom: '14px', background: 'linear-gradient(135deg, #e8e8e8 0%, #d8d8d8 30%, #c0c0c0 70%, #a8a8a8 100%)', boxShadow: 'inset 2px 2px 4px rgba(255,255,255,0.5), inset -1px -1px 3px rgba(0,0,0,0.15)' }} />
                 {/* Content */}
-                <Card className="relative z-10 bg-transparent border-0 shadow-none" style={{ margin: '16px 16px 48px 16px' }}>
+                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ marginLeft: '12px', marginBottom: '14px' }}>
                   <CardHeader className="pb-4">
                     <div className="relative w-14 h-14 mb-4">
                       {/* Outer steel blue metallic bevel */}
@@ -191,12 +191,15 @@ const Menu = () => {
                 </Card>
               </div>
 
-              {/* Embossed Floating Frame Card 2 */}
-              <div className="relative group" style={{ filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>
-                <div className="absolute inset-0 rounded-2xl" style={{ background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 10%, #a0a0a0 50%, #707070 90%, #505050 100%)' }} />
-                <div className="absolute rounded-xl" style={{ top: '8px', left: '8px', right: '8px', bottom: '24px', background: 'linear-gradient(135deg, #606060 0%, #808080 10%, #c0c0c0 50%, #e8e8e8 90%, #ffffff 100%)' }} />
-                <div className="absolute rounded-lg" style={{ top: '16px', left: '16px', right: '16px', bottom: '48px', background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
-                <Card className="relative z-10 bg-transparent border-0 shadow-none" style={{ margin: '16px 16px 48px 16px' }}>
+              {/* Isometric 3D Card 2 - facing 7 o'clock */}
+              <div className="relative group" style={{ filter: 'drop-shadow(-6px 8px 16px rgba(0,0,0,0.5)) drop-shadow(-3px 4px 6px rgba(0,0,0,0.3))' }}>
+                {/* Left side face */}
+                <div className="absolute" style={{ top: '8px', left: '0', width: '12px', bottom: '8px', background: 'linear-gradient(90deg, #606060 0%, #808080 50%, #a0a0a0 100%)', transform: 'skewY(-6deg)', transformOrigin: 'top left' }} />
+                {/* Bottom side face */}
+                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '14px', background: 'linear-gradient(180deg, #a0a0a0 0%, #707070 50%, #505050 100%)', transform: 'skewX(-6deg)', transformOrigin: 'bottom left' }} />
+                {/* Main front face */}
+                <div className="absolute inset-0" style={{ left: '12px', bottom: '14px', background: 'linear-gradient(135deg, #e8e8e8 0%, #d8d8d8 30%, #c0c0c0 70%, #a8a8a8 100%)', boxShadow: 'inset 2px 2px 4px rgba(255,255,255,0.5), inset -1px -1px 3px rgba(0,0,0,0.15)' }} />
+                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ marginLeft: '12px', marginBottom: '14px' }}>
                   <CardHeader className="pb-4">
                     <div className="relative w-14 h-14 mb-4">
                       {/* Outer steel blue metallic bevel */}
@@ -240,12 +243,15 @@ const Menu = () => {
                 </Card>
               </div>
 
-              {/* Embossed Floating Frame Card 3 */}
-              <div className="relative group" style={{ filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>
-                <div className="absolute inset-0 rounded-2xl" style={{ background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 10%, #a0a0a0 50%, #707070 90%, #505050 100%)' }} />
-                <div className="absolute rounded-xl" style={{ top: '8px', left: '8px', right: '8px', bottom: '24px', background: 'linear-gradient(135deg, #606060 0%, #808080 10%, #c0c0c0 50%, #e8e8e8 90%, #ffffff 100%)' }} />
-                <div className="absolute rounded-lg" style={{ top: '16px', left: '16px', right: '16px', bottom: '48px', background: 'linear-gradient(180deg, #d8d8d8 0%, #b8b8b8 30%, #a8a8a8 70%, #909090 100%)', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.2)' }} />
-                <Card className="relative z-10 bg-transparent border-0 shadow-none" style={{ margin: '16px 16px 48px 16px' }}>
+              {/* Isometric 3D Card 3 - facing 7 o'clock */}
+              <div className="relative group" style={{ filter: 'drop-shadow(-6px 8px 16px rgba(0,0,0,0.5)) drop-shadow(-3px 4px 6px rgba(0,0,0,0.3))' }}>
+                {/* Left side face */}
+                <div className="absolute" style={{ top: '8px', left: '0', width: '12px', bottom: '8px', background: 'linear-gradient(90deg, #606060 0%, #808080 50%, #a0a0a0 100%)', transform: 'skewY(-6deg)', transformOrigin: 'top left' }} />
+                {/* Bottom side face */}
+                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '14px', background: 'linear-gradient(180deg, #a0a0a0 0%, #707070 50%, #505050 100%)', transform: 'skewX(-6deg)', transformOrigin: 'bottom left' }} />
+                {/* Main front face */}
+                <div className="absolute inset-0" style={{ left: '12px', bottom: '14px', background: 'linear-gradient(135deg, #e8e8e8 0%, #d8d8d8 30%, #c0c0c0 70%, #a8a8a8 100%)', boxShadow: 'inset 2px 2px 4px rgba(255,255,255,0.5), inset -1px -1px 3px rgba(0,0,0,0.15)' }} />
+                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ marginLeft: '12px', marginBottom: '14px' }}>
                   <CardHeader className="pb-4">
                     <div className="relative w-14 h-14 mb-4">
                       {/* Outer steel blue metallic bevel */}
