@@ -164,14 +164,14 @@ const Menu = () => {
                         <Image className="w-6 h-6 text-white/90" />
                       </div>
                     </div>
-                    <CardTitle className="text-xl text-gray-900">Coloring Books</CardTitle>
-                    <CardDescription className="text-gray-700">Realistic line art from photos</CardDescription>
+                    <CardTitle className="text-4xl text-black">Coloring Books</CardTitle>
+                    <CardDescription className="text-lg text-black">Realistic line art from photos</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-black">
                       Transform photos into beautiful line art pages. Multiple difficulty levels available for all ages.
                     </p>
-                    <ul className="text-sm text-gray-800 space-y-2">
+                    <ul className="text-sm text-black space-y-2">
                       <li className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                         4 difficulty levels
