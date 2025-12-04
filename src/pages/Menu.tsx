@@ -138,16 +138,56 @@ const Menu = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {/* Isometric 3D Card 1 - facing 7 o'clock */}
-              <div className="relative group" style={{ filter: 'drop-shadow(-6px 8px 16px rgba(0,0,0,0.5)) drop-shadow(-3px 4px 6px rgba(0,0,0,0.3))' }}>
-                {/* Left side face (visible due to 7 o'clock angle) */}
-                <div className="absolute" style={{ top: '8px', left: '0', width: '12px', bottom: '8px', background: 'linear-gradient(90deg, #606060 0%, #808080 50%, #a0a0a0 100%)', transform: 'skewY(-6deg)', transformOrigin: 'top left' }} />
-                {/* Bottom side face */}
-                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '14px', background: 'linear-gradient(180deg, #a0a0a0 0%, #707070 50%, #505050 100%)', transform: 'skewX(-6deg)', transformOrigin: 'bottom left' }} />
-                {/* Main front face */}
-                <div className="absolute inset-0" style={{ left: '12px', bottom: '14px', background: 'linear-gradient(135deg, #e8e8e8 0%, #d8d8d8 30%, #c0c0c0 70%, #a8a8a8 100%)', boxShadow: 'inset 2px 2px 4px rgba(255,255,255,0.5), inset -1px -1px 3px rgba(0,0,0,0.15)' }} />
+              {/* Beveled Frame Card 1 - matching logo style */}
+              <div className="relative group" style={{ filter: 'drop-shadow(-4px 6px 12px rgba(0,0,0,0.4))' }}>
+                {/* Outer frame structure */}
+                <div className="absolute inset-0" style={{ 
+                  background: '#808080',
+                  clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
+                }} />
+                {/* Left dark edge */}
+                <div className="absolute" style={{ 
+                  top: '0', 
+                  left: '0', 
+                  width: '10px', 
+                  bottom: '0', 
+                  background: 'linear-gradient(90deg, #4a4a4a 0%, #686868 40%, #808080 100%)'
+                }} />
+                {/* Bottom dark edge */}
+                <div className="absolute" style={{ 
+                  left: '0', 
+                  right: '0', 
+                  bottom: '0', 
+                  height: '10px', 
+                  background: 'linear-gradient(180deg, #808080 0%, #686868 60%, #4a4a4a 100%)'
+                }} />
+                {/* Top highlight edge */}
+                <div className="absolute" style={{ 
+                  top: '0', 
+                  left: '10px', 
+                  right: '0', 
+                  height: '10px', 
+                  background: 'linear-gradient(180deg, #e0e0e0 0%, #c8c8c8 40%, #a8a8a8 100%)'
+                }} />
+                {/* Right highlight edge */}
+                <div className="absolute" style={{ 
+                  top: '10px', 
+                  right: '0', 
+                  width: '10px', 
+                  bottom: '10px', 
+                  background: 'linear-gradient(90deg, #a8a8a8 0%, #c8c8c8 60%, #e0e0e0 100%)'
+                }} />
+                {/* Inner recessed area */}
+                <div className="absolute" style={{ 
+                  top: '10px', 
+                  left: '10px', 
+                  right: '10px', 
+                  bottom: '10px', 
+                  background: 'linear-gradient(145deg, #d8d8d8 0%, #c0c0c0 50%, #a8a8a8 100%)',
+                  boxShadow: 'inset 2px 2px 6px rgba(0,0,0,0.2), inset -2px -2px 6px rgba(255,255,255,0.5)'
+                }} />
                 {/* Content */}
-                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ marginLeft: '12px', marginBottom: '14px' }}>
+                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ margin: '10px' }}>
                   <CardHeader className="pb-4">
                     <div className="relative w-14 h-14 mb-4">
                       {/* Outer steel blue metallic bevel */}
@@ -191,15 +231,21 @@ const Menu = () => {
                 </Card>
               </div>
 
-              {/* Isometric 3D Card 2 - facing 7 o'clock */}
-              <div className="relative group" style={{ filter: 'drop-shadow(-6px 8px 16px rgba(0,0,0,0.5)) drop-shadow(-3px 4px 6px rgba(0,0,0,0.3))' }}>
-                {/* Left side face */}
-                <div className="absolute" style={{ top: '8px', left: '0', width: '12px', bottom: '8px', background: 'linear-gradient(90deg, #606060 0%, #808080 50%, #a0a0a0 100%)', transform: 'skewY(-6deg)', transformOrigin: 'top left' }} />
-                {/* Bottom side face */}
-                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '14px', background: 'linear-gradient(180deg, #a0a0a0 0%, #707070 50%, #505050 100%)', transform: 'skewX(-6deg)', transformOrigin: 'bottom left' }} />
-                {/* Main front face */}
-                <div className="absolute inset-0" style={{ left: '12px', bottom: '14px', background: 'linear-gradient(135deg, #e8e8e8 0%, #d8d8d8 30%, #c0c0c0 70%, #a8a8a8 100%)', boxShadow: 'inset 2px 2px 4px rgba(255,255,255,0.5), inset -1px -1px 3px rgba(0,0,0,0.15)' }} />
-                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ marginLeft: '12px', marginBottom: '14px' }}>
+              {/* Beveled Frame Card 2 - matching logo style */}
+              <div className="relative group" style={{ filter: 'drop-shadow(-4px 6px 12px rgba(0,0,0,0.4))' }}>
+                {/* Outer frame structure */}
+                <div className="absolute inset-0" style={{ background: '#808080' }} />
+                {/* Left dark edge */}
+                <div className="absolute" style={{ top: '0', left: '0', width: '10px', bottom: '0', background: 'linear-gradient(90deg, #4a4a4a 0%, #686868 40%, #808080 100%)' }} />
+                {/* Bottom dark edge */}
+                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '10px', background: 'linear-gradient(180deg, #808080 0%, #686868 60%, #4a4a4a 100%)' }} />
+                {/* Top highlight edge */}
+                <div className="absolute" style={{ top: '0', left: '10px', right: '0', height: '10px', background: 'linear-gradient(180deg, #e0e0e0 0%, #c8c8c8 40%, #a8a8a8 100%)' }} />
+                {/* Right highlight edge */}
+                <div className="absolute" style={{ top: '10px', right: '0', width: '10px', bottom: '10px', background: 'linear-gradient(90deg, #a8a8a8 0%, #c8c8c8 60%, #e0e0e0 100%)' }} />
+                {/* Inner recessed area */}
+                <div className="absolute" style={{ top: '10px', left: '10px', right: '10px', bottom: '10px', background: 'linear-gradient(145deg, #d8d8d8 0%, #c0c0c0 50%, #a8a8a8 100%)', boxShadow: 'inset 2px 2px 6px rgba(0,0,0,0.2), inset -2px -2px 6px rgba(255,255,255,0.5)' }} />
+                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ margin: '10px' }}>
                   <CardHeader className="pb-4">
                     <div className="relative w-14 h-14 mb-4">
                       {/* Outer steel blue metallic bevel */}
@@ -243,15 +289,21 @@ const Menu = () => {
                 </Card>
               </div>
 
-              {/* Isometric 3D Card 3 - facing 7 o'clock */}
-              <div className="relative group" style={{ filter: 'drop-shadow(-6px 8px 16px rgba(0,0,0,0.5)) drop-shadow(-3px 4px 6px rgba(0,0,0,0.3))' }}>
-                {/* Left side face */}
-                <div className="absolute" style={{ top: '8px', left: '0', width: '12px', bottom: '8px', background: 'linear-gradient(90deg, #606060 0%, #808080 50%, #a0a0a0 100%)', transform: 'skewY(-6deg)', transformOrigin: 'top left' }} />
-                {/* Bottom side face */}
-                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '14px', background: 'linear-gradient(180deg, #a0a0a0 0%, #707070 50%, #505050 100%)', transform: 'skewX(-6deg)', transformOrigin: 'bottom left' }} />
-                {/* Main front face */}
-                <div className="absolute inset-0" style={{ left: '12px', bottom: '14px', background: 'linear-gradient(135deg, #e8e8e8 0%, #d8d8d8 30%, #c0c0c0 70%, #a8a8a8 100%)', boxShadow: 'inset 2px 2px 4px rgba(255,255,255,0.5), inset -1px -1px 3px rgba(0,0,0,0.15)' }} />
-                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ marginLeft: '12px', marginBottom: '14px' }}>
+              {/* Beveled Frame Card 3 - matching logo style */}
+              <div className="relative group" style={{ filter: 'drop-shadow(-4px 6px 12px rgba(0,0,0,0.4))' }}>
+                {/* Outer frame structure */}
+                <div className="absolute inset-0" style={{ background: '#808080' }} />
+                {/* Left dark edge */}
+                <div className="absolute" style={{ top: '0', left: '0', width: '10px', bottom: '0', background: 'linear-gradient(90deg, #4a4a4a 0%, #686868 40%, #808080 100%)' }} />
+                {/* Bottom dark edge */}
+                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '10px', background: 'linear-gradient(180deg, #808080 0%, #686868 60%, #4a4a4a 100%)' }} />
+                {/* Top highlight edge */}
+                <div className="absolute" style={{ top: '0', left: '10px', right: '0', height: '10px', background: 'linear-gradient(180deg, #e0e0e0 0%, #c8c8c8 40%, #a8a8a8 100%)' }} />
+                {/* Right highlight edge */}
+                <div className="absolute" style={{ top: '10px', right: '0', width: '10px', bottom: '10px', background: 'linear-gradient(90deg, #a8a8a8 0%, #c8c8c8 60%, #e0e0e0 100%)' }} />
+                {/* Inner recessed area */}
+                <div className="absolute" style={{ top: '10px', left: '10px', right: '10px', bottom: '10px', background: 'linear-gradient(145deg, #d8d8d8 0%, #c0c0c0 50%, #a8a8a8 100%)', boxShadow: 'inset 2px 2px 6px rgba(0,0,0,0.2), inset -2px -2px 6px rgba(255,255,255,0.5)' }} />
+                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ margin: '10px' }}>
                   <CardHeader className="pb-4">
                     <div className="relative w-14 h-14 mb-4">
                       {/* Outer steel blue metallic bevel */}
