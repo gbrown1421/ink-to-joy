@@ -173,15 +173,15 @@ const Menu = () => {
                     </p>
                     <ul className="text-sm text-gray-800 space-y-2">
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-accent" />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
                         4 difficulty levels
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-accent" />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
                         Custom borders & text
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-accent" />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
                         Print-ready PDF export
                       </li>
                     </ul>
@@ -222,15 +222,15 @@ const Menu = () => {
                     </p>
                     <ul className="text-sm text-gray-800 space-y-2">
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-accent" />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
                         Bold cartoon style
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-accent" />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
                         Character preservation
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-accent" />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
                         Fun caricature effect
                       </li>
                     </ul>
@@ -271,15 +271,15 @@ const Menu = () => {
                     </p>
                     <ul className="text-sm text-gray-800 space-y-2">
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-accent" />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
                         Auto-normalize format
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-accent" />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
                         Optimal resizing
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-accent" />
+                        <CheckCircle className="w-4 h-4" style={{ color: '#2a4055' }} />
                         Batch processing
                       </li>
                     </ul>
