@@ -138,40 +138,22 @@ const Menu = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {/* Double-nested beveled frame Card 1 - matching logo */}
+              {/* Silver beveled frame Card 1 - matching logo front frame */}
               <div className="relative group" style={{ filter: 'drop-shadow(-3px 4px 8px rgba(0,0,0,0.5))' }}>
-                {/* OUTER FRAME */}
-                {/* Outer frame - base */}
-                <div className="absolute inset-0" style={{ background: '#909090' }} />
-                {/* Outer frame - left dark edge */}
-                <div className="absolute" style={{ top: '0', left: '0', width: '8px', bottom: '0', background: 'linear-gradient(90deg, #3a3a3a 0%, #5a5a5a 50%, #7a7a7a 100%)' }} />
-                {/* Outer frame - bottom dark edge */}
-                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '8px', background: 'linear-gradient(180deg, #7a7a7a 0%, #5a5a5a 50%, #3a3a3a 100%)' }} />
-                {/* Outer frame - top light edge */}
-                <div className="absolute" style={{ top: '0', left: '8px', right: '0', height: '8px', background: 'linear-gradient(180deg, #d0d0d0 0%, #b8b8b8 50%, #a0a0a0 100%)' }} />
-                {/* Outer frame - right light edge */}
-                <div className="absolute" style={{ top: '8px', right: '0', width: '8px', bottom: '8px', background: 'linear-gradient(90deg, #a0a0a0 0%, #b8b8b8 50%, #d0d0d0 100%)' }} />
-                
-                {/* GAP/CHANNEL between frames */}
-                <div className="absolute" style={{ top: '8px', left: '8px', right: '8px', bottom: '8px', background: '#606060', boxShadow: 'inset 1px 1px 3px rgba(0,0,0,0.4)' }} />
-                
-                {/* INNER FRAME */}
-                {/* Inner frame - base */}
-                <div className="absolute" style={{ top: '12px', left: '12px', right: '12px', bottom: '12px', background: '#909090' }} />
-                {/* Inner frame - left dark edge */}
-                <div className="absolute" style={{ top: '12px', left: '12px', width: '6px', bottom: '12px', background: 'linear-gradient(90deg, #4a4a4a 0%, #6a6a6a 50%, #8a8a8a 100%)' }} />
-                {/* Inner frame - bottom dark edge */}
-                <div className="absolute" style={{ left: '12px', right: '12px', bottom: '12px', height: '6px', background: 'linear-gradient(180deg, #8a8a8a 0%, #6a6a6a 50%, #4a4a4a 100%)' }} />
-                {/* Inner frame - top light edge */}
-                <div className="absolute" style={{ top: '12px', left: '18px', right: '12px', height: '6px', background: 'linear-gradient(180deg, #c8c8c8 0%, #b0b0b0 50%, #989898 100%)' }} />
-                {/* Inner frame - right light edge */}
-                <div className="absolute" style={{ top: '18px', right: '12px', width: '6px', bottom: '18px', background: 'linear-gradient(90deg, #989898 0%, #b0b0b0 50%, #c8c8c8 100%)' }} />
-                
-                {/* INNER CONTENT AREA */}
-                <div className="absolute" style={{ top: '18px', left: '18px', right: '18px', bottom: '18px', background: 'linear-gradient(145deg, #e0e0e0 0%, #c8c8c8 50%, #b0b0b0 100%)' }} />
-                
+                {/* Frame base */}
+                <div className="absolute inset-0" style={{ background: '#888888' }} />
+                {/* Left dark edge */}
+                <div className="absolute" style={{ top: '0', left: '0', width: '6px', bottom: '0', background: 'linear-gradient(90deg, #404040 0%, #606060 60%, #808080 100%)' }} />
+                {/* Bottom dark edge */}
+                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '6px', background: 'linear-gradient(180deg, #808080 0%, #606060 40%, #404040 100%)' }} />
+                {/* Top light edge */}
+                <div className="absolute" style={{ top: '0', left: '6px', right: '0', height: '6px', background: 'linear-gradient(180deg, #d8d8d8 0%, #c0c0c0 40%, #a8a8a8 100%)' }} />
+                {/* Right light edge */}
+                <div className="absolute" style={{ top: '6px', right: '0', width: '6px', bottom: '6px', background: 'linear-gradient(90deg, #a8a8a8 0%, #c0c0c0 60%, #d8d8d8 100%)' }} />
+                {/* Inner content area - light silver */}
+                <div className="absolute" style={{ top: '6px', left: '6px', right: '6px', bottom: '6px', background: 'linear-gradient(145deg, #e8e8e8 0%, #d0d0d0 50%, #b8b8b8 100%)' }} />
                 {/* Content */}
-                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ margin: '18px' }}>
+                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ margin: '6px' }}>
                   <CardHeader className="pb-4">
                     <div className="relative w-14 h-14 mb-4">
                       {/* Outer steel blue metallic bevel */}
@@ -215,25 +197,15 @@ const Menu = () => {
                 </Card>
               </div>
 
-              {/* Double-nested beveled frame Card 2 - matching logo */}
+              {/* Silver beveled frame Card 2 - matching logo front frame */}
               <div className="relative group" style={{ filter: 'drop-shadow(-3px 4px 8px rgba(0,0,0,0.5))' }}>
-                {/* OUTER FRAME */}
-                <div className="absolute inset-0" style={{ background: '#909090' }} />
-                <div className="absolute" style={{ top: '0', left: '0', width: '8px', bottom: '0', background: 'linear-gradient(90deg, #3a3a3a 0%, #5a5a5a 50%, #7a7a7a 100%)' }} />
-                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '8px', background: 'linear-gradient(180deg, #7a7a7a 0%, #5a5a5a 50%, #3a3a3a 100%)' }} />
-                <div className="absolute" style={{ top: '0', left: '8px', right: '0', height: '8px', background: 'linear-gradient(180deg, #d0d0d0 0%, #b8b8b8 50%, #a0a0a0 100%)' }} />
-                <div className="absolute" style={{ top: '8px', right: '0', width: '8px', bottom: '8px', background: 'linear-gradient(90deg, #a0a0a0 0%, #b8b8b8 50%, #d0d0d0 100%)' }} />
-                {/* GAP/CHANNEL */}
-                <div className="absolute" style={{ top: '8px', left: '8px', right: '8px', bottom: '8px', background: '#606060', boxShadow: 'inset 1px 1px 3px rgba(0,0,0,0.4)' }} />
-                {/* INNER FRAME */}
-                <div className="absolute" style={{ top: '12px', left: '12px', right: '12px', bottom: '12px', background: '#909090' }} />
-                <div className="absolute" style={{ top: '12px', left: '12px', width: '6px', bottom: '12px', background: 'linear-gradient(90deg, #4a4a4a 0%, #6a6a6a 50%, #8a8a8a 100%)' }} />
-                <div className="absolute" style={{ left: '12px', right: '12px', bottom: '12px', height: '6px', background: 'linear-gradient(180deg, #8a8a8a 0%, #6a6a6a 50%, #4a4a4a 100%)' }} />
-                <div className="absolute" style={{ top: '12px', left: '18px', right: '12px', height: '6px', background: 'linear-gradient(180deg, #c8c8c8 0%, #b0b0b0 50%, #989898 100%)' }} />
-                <div className="absolute" style={{ top: '18px', right: '12px', width: '6px', bottom: '18px', background: 'linear-gradient(90deg, #989898 0%, #b0b0b0 50%, #c8c8c8 100%)' }} />
-                {/* INNER CONTENT AREA */}
-                <div className="absolute" style={{ top: '18px', left: '18px', right: '18px', bottom: '18px', background: 'linear-gradient(145deg, #e0e0e0 0%, #c8c8c8 50%, #b0b0b0 100%)' }} />
-                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ margin: '18px' }}>
+                <div className="absolute inset-0" style={{ background: '#888888' }} />
+                <div className="absolute" style={{ top: '0', left: '0', width: '6px', bottom: '0', background: 'linear-gradient(90deg, #404040 0%, #606060 60%, #808080 100%)' }} />
+                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '6px', background: 'linear-gradient(180deg, #808080 0%, #606060 40%, #404040 100%)' }} />
+                <div className="absolute" style={{ top: '0', left: '6px', right: '0', height: '6px', background: 'linear-gradient(180deg, #d8d8d8 0%, #c0c0c0 40%, #a8a8a8 100%)' }} />
+                <div className="absolute" style={{ top: '6px', right: '0', width: '6px', bottom: '6px', background: 'linear-gradient(90deg, #a8a8a8 0%, #c0c0c0 60%, #d8d8d8 100%)' }} />
+                <div className="absolute" style={{ top: '6px', left: '6px', right: '6px', bottom: '6px', background: 'linear-gradient(145deg, #e8e8e8 0%, #d0d0d0 50%, #b8b8b8 100%)' }} />
+                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ margin: '6px' }}>
                   <CardHeader className="pb-4">
                     <div className="relative w-14 h-14 mb-4">
                       {/* Outer steel blue metallic bevel */}
@@ -277,25 +249,15 @@ const Menu = () => {
                 </Card>
               </div>
 
-              {/* Double-nested beveled frame Card 3 - matching logo */}
+              {/* Silver beveled frame Card 3 - matching logo front frame */}
               <div className="relative group" style={{ filter: 'drop-shadow(-3px 4px 8px rgba(0,0,0,0.5))' }}>
-                {/* OUTER FRAME */}
-                <div className="absolute inset-0" style={{ background: '#909090' }} />
-                <div className="absolute" style={{ top: '0', left: '0', width: '8px', bottom: '0', background: 'linear-gradient(90deg, #3a3a3a 0%, #5a5a5a 50%, #7a7a7a 100%)' }} />
-                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '8px', background: 'linear-gradient(180deg, #7a7a7a 0%, #5a5a5a 50%, #3a3a3a 100%)' }} />
-                <div className="absolute" style={{ top: '0', left: '8px', right: '0', height: '8px', background: 'linear-gradient(180deg, #d0d0d0 0%, #b8b8b8 50%, #a0a0a0 100%)' }} />
-                <div className="absolute" style={{ top: '8px', right: '0', width: '8px', bottom: '8px', background: 'linear-gradient(90deg, #a0a0a0 0%, #b8b8b8 50%, #d0d0d0 100%)' }} />
-                {/* GAP/CHANNEL */}
-                <div className="absolute" style={{ top: '8px', left: '8px', right: '8px', bottom: '8px', background: '#606060', boxShadow: 'inset 1px 1px 3px rgba(0,0,0,0.4)' }} />
-                {/* INNER FRAME */}
-                <div className="absolute" style={{ top: '12px', left: '12px', right: '12px', bottom: '12px', background: '#909090' }} />
-                <div className="absolute" style={{ top: '12px', left: '12px', width: '6px', bottom: '12px', background: 'linear-gradient(90deg, #4a4a4a 0%, #6a6a6a 50%, #8a8a8a 100%)' }} />
-                <div className="absolute" style={{ left: '12px', right: '12px', bottom: '12px', height: '6px', background: 'linear-gradient(180deg, #8a8a8a 0%, #6a6a6a 50%, #4a4a4a 100%)' }} />
-                <div className="absolute" style={{ top: '12px', left: '18px', right: '12px', height: '6px', background: 'linear-gradient(180deg, #c8c8c8 0%, #b0b0b0 50%, #989898 100%)' }} />
-                <div className="absolute" style={{ top: '18px', right: '12px', width: '6px', bottom: '18px', background: 'linear-gradient(90deg, #989898 0%, #b0b0b0 50%, #c8c8c8 100%)' }} />
-                {/* INNER CONTENT AREA */}
-                <div className="absolute" style={{ top: '18px', left: '18px', right: '18px', bottom: '18px', background: 'linear-gradient(145deg, #e0e0e0 0%, #c8c8c8 50%, #b0b0b0 100%)' }} />
-                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ margin: '18px' }}>
+                <div className="absolute inset-0" style={{ background: '#888888' }} />
+                <div className="absolute" style={{ top: '0', left: '0', width: '6px', bottom: '0', background: 'linear-gradient(90deg, #404040 0%, #606060 60%, #808080 100%)' }} />
+                <div className="absolute" style={{ left: '0', right: '0', bottom: '0', height: '6px', background: 'linear-gradient(180deg, #808080 0%, #606060 40%, #404040 100%)' }} />
+                <div className="absolute" style={{ top: '0', left: '6px', right: '0', height: '6px', background: 'linear-gradient(180deg, #d8d8d8 0%, #c0c0c0 40%, #a8a8a8 100%)' }} />
+                <div className="absolute" style={{ top: '6px', right: '0', width: '6px', bottom: '6px', background: 'linear-gradient(90deg, #a8a8a8 0%, #c0c0c0 60%, #d8d8d8 100%)' }} />
+                <div className="absolute" style={{ top: '6px', left: '6px', right: '6px', bottom: '6px', background: 'linear-gradient(145deg, #e8e8e8 0%, #d0d0d0 50%, #b8b8b8 100%)' }} />
+                <Card className="relative z-10 bg-transparent border-0 shadow-none rounded-none" style={{ margin: '6px' }}>
                   <CardHeader className="pb-4">
                     <div className="relative w-14 h-14 mb-4">
                       {/* Outer steel blue metallic bevel */}
