@@ -142,7 +142,7 @@ const Menu = () => {
                 <div className="absolute" style={{ top: '10%', left: '10%', right: '10%', bottom: '10%', background: '#e5e5e5' }} />
                 {/* Content positioned inside the frame opening */}
                 <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%' }}>
-                  <div className="relative w-12 h-12 mb-2 flex-shrink-0 border-2 border-black rounded-lg">
+                  <div className="relative w-12 h-12 mb-2 flex-shrink-0 border-[3px] border-black rounded-lg">
                     <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #FF9A5C 0%, #FF7A3C 50%, #E55A1C 100%)' }} />
                     <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #E55A1C 0%, #FF7A3C 50%, #FF9A5C 100%)' }} />
                     <div className="absolute rounded flex items-center justify-center" style={{ top: '4px', left: '4px', right: '4px', bottom: '4px', background: 'linear-gradient(180deg, #FF8A4C 0%, #FF7A3C 50%, #E56A2C 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3)' }}>
@@ -166,7 +166,7 @@ const Menu = () => {
                       Print-ready PDF export
                     </li>
                   </ul>
-                  <div className="relative h-10 mx-auto border-2 border-black rounded-md" style={{ width: '200px' }}>
+                  <div className="relative h-10 mx-auto border-[3px] border-black rounded-md" style={{ width: '200px' }}>
                     <div className="absolute inset-0 rounded" style={{ background: 'linear-gradient(135deg, #FF9A5C 0%, #FF7A3C 50%, #E55A1C 100%)' }} />
                     <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #E55A1C 0%, #FF7A3C 50%, #FF9A5C 100%)' }} />
                     <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm font-bold hover:opacity-90 border-0 rounded" style={{ background: 'linear-gradient(180deg, #FF8A4C 0%, #FF7A3C 50%, #E56A2C 100%)', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
@@ -188,7 +188,7 @@ const Menu = () => {
                 {/* Gray background inside frame */}
                 <div className="absolute" style={{ top: '10%', left: '10%', right: '10%', bottom: '10%', background: '#e5e5e5' }} />
                 <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%' }}>
-                  <div className="relative w-12 h-12 mb-2 flex-shrink-0 border-2 border-black rounded-lg">
+                  <div className="relative w-12 h-12 mb-2 flex-shrink-0 border-[3px] border-black rounded-lg">
                     <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #3FD7C5 0%, #1FB7A5 50%, #0F9785 100%)' }} />
                     <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0F9785 0%, #1FB7A5 50%, #3FD7C5 100%)' }} />
                     <div className="absolute rounded flex items-center justify-center" style={{ top: '4px', left: '4px', right: '4px', bottom: '4px', background: 'linear-gradient(180deg, #2FC7B5 0%, #1FB7A5 50%, #0FA795 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3)' }}>
@@ -212,7 +212,7 @@ const Menu = () => {
                       Fun caricature effect
                     </li>
                   </ul>
-                  <div className="relative h-10 mx-auto border-2 border-black rounded-md" style={{ width: '200px' }}>
+                  <div className="relative h-10 mx-auto border-[3px] border-black rounded-md" style={{ width: '200px' }}>
                     <div className="absolute inset-0 rounded" style={{ background: 'linear-gradient(135deg, #3FD7C5 0%, #1FB7A5 50%, #0F9785 100%)' }} />
                     <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0F9785 0%, #1FB7A5 50%, #3FD7C5 100%)' }} />
                     <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm font-bold hover:opacity-90 border-0 rounded" style={{ background: 'linear-gradient(180deg, #2FC7B5 0%, #1FB7A5 50%, #0FA795 100%)', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
@@ -234,7 +234,7 @@ const Menu = () => {
                 {/* Gray background inside frame */}
                 <div className="absolute" style={{ top: '10%', left: '10%', right: '10%', bottom: '10%', background: '#e5e5e5' }} />
                 <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%' }}>
-                  <div className="relative w-12 h-12 mb-2 flex-shrink-0 border-2 border-black rounded-lg">
+                  <div className="relative w-12 h-12 mb-2 flex-shrink-0 border-[3px] border-black rounded-lg">
                     <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #FF6FAB 0%, #FF4F8B 50%, #DF2F6B 100%)' }} />
                     <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #DF2F6B 0%, #FF4F8B 50%, #FF6FAB 100%)' }} />
                     <div className="absolute rounded flex items-center justify-center" style={{ top: '4px', left: '4px', right: '4px', bottom: '4px', background: 'linear-gradient(180deg, #FF5F9B 0%, #FF4F8B 50%, #EF3F7B 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3)' }}>
@@ -260,7 +260,7 @@ const Menu = () => {
                       Batch processing
                     </li>
                   </ul>
-                  <div className="relative h-10 mx-auto border-2 border-black rounded-md" style={{ width: '200px' }}>
+                  <div className="relative h-10 mx-auto border-[3px] border-black rounded-md" style={{ width: '200px' }}>
                     <div className="absolute inset-0 rounded" style={{ background: 'linear-gradient(135deg, #FF6FAB 0%, #FF4F8B 50%, #DF2F6B 100%)' }} />
                     <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #DF2F6B 0%, #FF4F8B 50%, #FF6FAB 100%)' }} />
                     <Button onClick={() => navigate('/image-refresh')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm font-bold hover:opacity-90 border-0 rounded" style={{ background: 'linear-gradient(180deg, #FF5F9B 0%, #FF4F8B 50%, #EF3F7B 100%)', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
