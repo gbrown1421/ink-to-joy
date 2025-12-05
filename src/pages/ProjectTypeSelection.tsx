@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Palette, Sparkles, Smile, Home } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, createSearchParams } from "react-router-dom";
 
 const ProjectTypeSelection = () => {
   const [selectedType, setSelectedType] = useState<"coloring" | "toon" | null>(null);
@@ -10,7 +10,10 @@ const ProjectTypeSelection = () => {
 
   const handleContinue = () => {
     if (selectedType) {
-      navigate(`/difficulty?type=${selectedType}`);
+      navigate({
+        pathname: "/difficulty",
+        search: createSearchParams({ type: selectedType }).toString(),
+      });
     }
   };
 
