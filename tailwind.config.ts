@@ -73,6 +73,8 @@ export default {
         'gradient-chrome': 'var(--gradient-chrome)',
         'gradient-dark': 'var(--gradient-dark)',
         'gradient-silver': 'var(--gradient-silver)',
+        'gradient-subtle': 'linear-gradient(180deg, hsl(220 10% 98%), hsl(220 10% 94%))',
+        'gradient-creative': 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))',
       },
       boxShadow: {
         'card': 'var(--shadow-card)',
