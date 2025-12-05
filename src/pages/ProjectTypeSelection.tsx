@@ -84,15 +84,18 @@ const ProjectTypeSelection = () => {
           </p>
         </div>
 
-        {/* Orange Banner Background */}
-        <div 
-          className="relative rounded-2xl py-12 px-8"
-          style={{
-            backgroundImage: `url(${orangeTileBg})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
+      </main>
+
+      {/* Full-width Orange Banner */}
+      <div 
+        className="w-full py-16"
+        style={{
+          backgroundImage: `url(${orangeTileBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="container mx-auto px-4 max-w-5xl">
           {/* Tiles Grid */}
           <div className="grid md:grid-cols-2 gap-8 justify-items-center">
             {projectTypes.map((type) => {
@@ -107,52 +110,56 @@ const ProjectTypeSelection = () => {
                   }`}
                   onClick={() => setSelectedType(type.id)}
                 >
-                  {/* Wide Frame */}
-                  <div 
-                    className="relative p-6"
-                    style={{
-                      backgroundImage: `url(${wideFrame})`,
-                      backgroundSize: '100% 100%',
-                      backgroundRepeat: 'no-repeat',
-                    }}
-                  >
-                    {/* Inner Content Area - Light Gray Background */}
+                  {/* Gray background behind frame */}
+                  <div className="relative">
+                    {/* Light gray background - sits behind the frame */}
                     <div 
-                      className={`bg-gradient-to-b from-gray-50 to-gray-100 p-8 flex flex-col items-center text-center ${
+                      className={`absolute inset-[12%] bg-gradient-to-b from-gray-50 to-gray-100 ${
                         isSelected ? "ring-2 ring-offset-2" : ""
                       }`}
                       style={{ 
                         ...(isSelected && { boxShadow: `0 0 0 2px ${ORANGE}` })
                       }}
-                    >
+                    />
+                    
+                    {/* Frame overlay */}
+                    <img 
+                      src={wideFrame} 
+                      alt="" 
+                      className="relative w-full h-auto pointer-events-none"
+                      style={{ maxWidth: '380px' }}
+                    />
+                    
+                    {/* Content positioned inside the frame */}
+                    <div className="absolute inset-[15%] flex flex-col items-center justify-center text-center p-4">
                       {/* Icon */}
                       <div 
-                        className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 shadow-md"
+                        className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 shadow-md"
                         style={{ backgroundColor: ORANGE }}
                       >
-                        <Icon className="w-7 h-7 text-white" />
+                        <Icon className="w-6 h-6 text-white" />
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-2xl font-bold text-gray-900 mb-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-1">
                         {type.title}
                       </h3>
 
                       {/* Subtitle */}
-                      <p className="font-medium mb-3" style={{ color: ORANGE }}>
+                      <p className="font-medium text-sm mb-2" style={{ color: ORANGE }}>
                         {type.subtitle}
                       </p>
 
                       {/* Description */}
-                      <p className="text-gray-600 text-sm mb-5">
+                      <p className="text-gray-600 text-xs mb-3">
                         {type.description}
                       </p>
 
                       {/* Features List */}
-                      <ul className="space-y-2 mb-6 w-full max-w-xs">
+                      <ul className="space-y-1 mb-4 w-full">
                         {type.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-center gap-2 text-gray-700 text-sm">
-                            <CheckCircle2 className="w-5 h-5 flex-shrink-0" style={{ color: ORANGE }} />
+                          <li key={idx} className="flex items-center gap-2 text-gray-700 text-xs">
+                            <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: ORANGE }} />
                             <span>{feature}</span>
                           </li>
                         ))}
@@ -160,7 +167,7 @@ const ProjectTypeSelection = () => {
 
                       {/* CTA Button */}
                       <Button
-                        className="w-full max-w-xs text-white font-semibold py-3 rounded-full shadow-md hover:opacity-90"
+                        className="w-full text-white font-semibold py-2 rounded-full shadow-md hover:opacity-90 text-sm"
                         style={{ backgroundColor: ORANGE }}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -177,8 +184,11 @@ const ProjectTypeSelection = () => {
             })}
           </div>
         </div>
+      </div>
 
-        <div className="flex justify-center mt-8">
+      {/* Continue section */}
+      <div className="bg-gray-100 py-8">
+        <div className="container mx-auto px-4 max-w-5xl flex justify-center">
           <Button
             onClick={handleContinue}
             disabled={!selectedType}
@@ -188,7 +198,7 @@ const ProjectTypeSelection = () => {
             Continue
           </Button>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
