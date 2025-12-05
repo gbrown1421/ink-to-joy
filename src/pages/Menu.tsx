@@ -131,11 +131,7 @@ const Menu = () => {
         <div className="px-4">
           <div className="mx-auto">
             <div className="text-center space-y-4 mb-16">
-              <p className="text-sm font-medium text-accent uppercase tracking-wider">Our Services</p>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white">Professional Tools</h2>
-              <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-                Choose the transformation that fits your creative vision
-              </p>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white">Transformation that fits your creative vision</h2>
             </div>
 
             <div className="flex flex-wrap justify-center gap-2">
