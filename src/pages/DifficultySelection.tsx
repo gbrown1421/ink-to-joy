@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Palette, ArrowRight, Home, ArrowLeft } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -68,8 +68,8 @@ const toonDifficulties: DifficultyOption[] = [
 
 const DifficultySelection = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const projectType = (searchParams.get("type") as "coloring" | "toon") || "coloring";
+  const { type } = useParams();
+  const projectType = (type as "coloring" | "toon") || "coloring";
   
   const difficulties = projectType === "toon" ? toonDifficulties : coloringDifficulties;
   const defaultDifficulty = projectType === "toon" ? "Quick and Easy" : "Beginner";
