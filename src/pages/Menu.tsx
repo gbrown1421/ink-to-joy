@@ -149,7 +149,7 @@ const Menu = () => {
                   style={{ filter: 'drop-shadow(-4px 6px 10px rgba(0,0,0,0.5))' }}
                 />
                 {/* Content positioned inside the frame opening */}
-                <div className="absolute z-10 flex flex-col p-4" style={{ top: '3%', left: '5%', right: '5%', bottom: '8%' }}>
+                <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '3%', left: '5%', right: '5%', bottom: '8%' }}>
                   <div className="relative w-12 h-12 mb-2 flex-shrink-0">
                     <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                     <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
@@ -162,7 +162,7 @@ const Menu = () => {
                   <p className="text-sm text-black/80 mb-2">
                     Transform photos into beautiful line art pages. Multiple difficulty levels.
                   </p>
-                  <ul className="text-sm text-black/80 space-y-1 mb-3 flex-grow">
+                  <ul className="text-sm text-black/80 space-y-1 mb-3 flex-grow text-left">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                       4 difficulty levels
@@ -194,7 +194,7 @@ const Menu = () => {
                   className="w-full h-full object-contain pointer-events-none absolute inset-0"
                   style={{ filter: 'drop-shadow(-4px 6px 10px rgba(0,0,0,0.5))' }}
                 />
-                <div className="absolute z-10 flex flex-col p-4" style={{ top: '3%', left: '5%', right: '5%', bottom: '8%' }}>
+                <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '3%', left: '5%', right: '5%', bottom: '8%' }}>
                   <div className="relative w-12 h-12 mb-2 flex-shrink-0">
                     <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                     <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
@@ -207,7 +207,7 @@ const Menu = () => {
                   <p className="text-sm text-black/80 mb-2">
                     Get playful cartoon caricatures with exaggerated features. Perfect for gifts.
                   </p>
-                  <ul className="text-sm text-black/80 space-y-1 mb-3 flex-grow">
+                  <ul className="text-sm text-black/80 space-y-1 mb-3 flex-grow text-left">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                       Bold cartoon style
@@ -239,7 +239,7 @@ const Menu = () => {
                   className="w-full h-full object-contain pointer-events-none absolute inset-0"
                   style={{ filter: 'drop-shadow(-4px 6px 10px rgba(0,0,0,0.5))' }}
                 />
-                <div className="absolute z-10 flex flex-col p-4" style={{ top: '3%', left: '5%', right: '5%', bottom: '8%' }}>
+                <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '3%', left: '5%', right: '5%', bottom: '8%' }}>
                   <div className="relative w-12 h-12 mb-2 flex-shrink-0">
                     <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                     <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
@@ -252,7 +252,7 @@ const Menu = () => {
                   <p className="text-sm text-black/80 mb-2">
                     Normalize and optimize photos for AI processing. Fix compatibility issues.
                   </p>
-                  <ul className="text-sm text-black/80 space-y-1 mb-3 flex-grow">
+                  <ul className="text-sm text-black/80 space-y-1 mb-3 flex-grow text-left">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#2a4055' }} strokeWidth={2.5} />
                       Auto-normalize format
