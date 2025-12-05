@@ -209,7 +209,8 @@ const DifficultySelection = () => {
                       <img 
                         src={difficulty.sampleImage} 
                         alt={`${difficulty.name} sample`}
-                        className="w-24 h-24 object-cover rounded-lg border border-border/50 mb-3"
+                        className="w-24 h-24 object-cover rounded-lg mb-3"
+                        style={{ border: `3px solid ${ORANGE}` }}
                       />
 
                       {/* Title with radio indicator */}
