@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Palette, Sparkles, Smile, Home } from "lucide-react";
+import { Palette, Smile, Home, CheckCircle2, Image } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import silverFrame from "@/assets/silver-frame.png";
 
 const ProjectTypeSelection = () => {
   const [selectedType, setSelectedType] = useState<"coloring" | "toon" | null>(null);
@@ -13,6 +13,35 @@ const ProjectTypeSelection = () => {
       navigate(`/difficulty/${selectedType}`);
     }
   };
+
+  const projectTypes = [
+    {
+      id: "coloring" as const,
+      icon: Image,
+      title: "Coloring Books",
+      subtitle: "Realistic line art from photos",
+      description: "Transform photos into fun line art.",
+      features: [
+        "4 difficulty levels",
+        "Custom borders & titles",
+        "Print-ready PDF export",
+      ],
+      cta: "Create Coloring Book",
+    },
+    {
+      id: "toon" as const,
+      icon: Smile,
+      title: "Cartoon Books",
+      subtitle: "Fun caricatures from photos",
+      description: "Turn photos into playful cartoons.",
+      features: [
+        "Expressive cartoon style",
+        "Bold outlines & features",
+        "Print-ready PDF export",
+      ],
+      cta: "Create Cartoon Book",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -52,72 +81,80 @@ const ProjectTypeSelection = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card
-            className={`p-8 cursor-pointer transition-all hover:shadow-xl ${
-              selectedType === "coloring"
-                ? "ring-2 ring-primary shadow-card"
-                : "hover:border-primary/50"
-            }`}
-            onClick={() => setSelectedType("coloring")}
-          >
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-creative flex items-center justify-center">
-                <Palette className="w-10 h-10 text-primary-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold">Coloring Book</h3>
-              <p className="text-muted-foreground">
-                Realistic line art perfect for detailed coloring
-              </p>
-              <ul className="text-sm text-muted-foreground space-y-2 text-left w-full">
-                <li className="flex items-start gap-2">
-                  <Sparkles className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
-                  <span>Professional line art conversion</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Sparkles className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
-                  <span>Maintains photo details and features</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Sparkles className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
-                  <span>Perfect for family photos and pets</span>
-                </li>
-              </ul>
-            </div>
-          </Card>
+        <div className="grid md:grid-cols-2 gap-8 mb-8">
+          {projectTypes.map((type) => {
+            const Icon = type.icon;
+            const isSelected = selectedType === type.id;
+            
+            return (
+              <div
+                key={type.id}
+                className={`relative cursor-pointer transition-all duration-300 ${
+                  isSelected ? "scale-[1.02]" : "hover:scale-[1.01]"
+                }`}
+                onClick={() => setSelectedType(type.id)}
+              >
+                {/* Silver Frame */}
+                <div 
+                  className="relative p-6"
+                  style={{
+                    backgroundImage: `url(${silverFrame})`,
+                    backgroundSize: '100% 100%',
+                    backgroundRepeat: 'no-repeat',
+                  }}
+                >
+                  {/* Inner Content Area */}
+                  <div 
+                    className={`bg-gradient-to-b from-gray-100 to-gray-200 p-8 flex flex-col items-center text-center ${
+                      isSelected ? "ring-2 ring-primary ring-offset-2" : ""
+                    }`}
+                  >
+                    {/* Icon */}
+                    <div className="w-14 h-14 rounded-xl bg-primary flex items-center justify-center mb-4 shadow-md">
+                      <Icon className="w-7 h-7 text-primary-foreground" />
+                    </div>
 
-          <Card
-            className={`p-8 cursor-pointer transition-all hover:shadow-xl ${
-              selectedType === "toon"
-                ? "ring-2 ring-primary shadow-card"
-                : "hover:border-primary/50"
-            }`}
-            onClick={() => setSelectedType("toon")}
-          >
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-creative flex items-center justify-center">
-                <Smile className="w-10 h-10 text-primary-foreground" />
+                    {/* Title */}
+                    <h3 className="text-2xl font-bold text-gray-900 mb-1">
+                      {type.title}
+                    </h3>
+
+                    {/* Subtitle */}
+                    <p className="text-primary font-medium mb-3">
+                      {type.subtitle}
+                    </p>
+
+                    {/* Description */}
+                    <p className="text-gray-600 text-sm mb-5">
+                      {type.description}
+                    </p>
+
+                    {/* Features List */}
+                    <ul className="space-y-2 mb-6 w-full max-w-xs">
+                      {type.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-center gap-2 text-gray-700 text-sm">
+                          <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* CTA Button */}
+                    <Button
+                      className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-full shadow-md"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedType(type.id);
+                        navigate(`/difficulty/${type.id}`);
+                      }}
+                    >
+                      {type.cta}
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-2xl font-bold">Cartoon / Caricature Book</h3>
-              <p className="text-muted-foreground">
-                Fun cartoon-style illustrations with expressive features
-              </p>
-              <ul className="text-sm text-muted-foreground space-y-2 text-left w-full">
-                <li className="flex items-start gap-2">
-                  <Sparkles className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
-                  <span>Cartoon caricature conversion</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Sparkles className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
-                  <span>Playful and kid-friendly style</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Sparkles className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
-                  <span>Bold outlines and expressive eyes</span>
-                </li>
-              </ul>
-            </div>
-          </Card>
+            );
+          })}
         </div>
 
         <div className="flex justify-center">
@@ -128,7 +165,6 @@ const ProjectTypeSelection = () => {
             className="px-8"
           >
             Continue
-            <Sparkles className="w-5 h-5 ml-2" />
           </Button>
         </div>
       </main>
