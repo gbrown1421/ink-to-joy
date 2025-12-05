@@ -181,7 +181,7 @@ const DifficultySelection = () => {
               return (
                 <div
                   key={difficulty.id}
-                  className={`relative cursor-pointer transition-all duration-300 w-full max-w-[380px] ${
+                  className={`relative cursor-pointer transition-all duration-300 w-full max-w-[420px] ${
                     isSelected ? "scale-[1.02]" : "hover:scale-[1.01]"
                   }`}
                   onClick={() => setSelectedDifficulty(difficulty.id)}
@@ -206,18 +206,18 @@ const DifficultySelection = () => {
                     />
                     
                     {/* Content positioned inside the frame */}
-                    <div className="absolute inset-[15%] flex flex-col items-center justify-center text-center p-2 overflow-hidden">
+                    <div className="absolute inset-[15%] flex flex-col items-center justify-center text-center p-2">
                       {/* Sample Image */}
                       <img 
                         src={difficulty.sampleImage} 
                         alt={`${difficulty.name} sample`}
-                        className="w-20 h-20 object-cover rounded-lg mb-2 flex-shrink-0"
+                        className="w-24 h-24 object-cover rounded-lg mb-2 flex-shrink-0"
                         style={{ border: `3px solid ${ORANGE}` }}
                       />
 
                       {/* Title with radio indicator */}
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-xl font-bold text-gray-900">{difficulty.name}</h3>
+                        <h3 className="text-2xl font-bold text-gray-900">{difficulty.name}</h3>
                         <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0" style={{ borderColor: ORANGE }}>
                           {isSelected && (
                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ORANGE }} />
@@ -226,18 +226,18 @@ const DifficultySelection = () => {
                       </div>
 
                       {/* Description */}
-                      <p className="text-gray-600 text-xs mb-2">
+                      <p className="text-gray-600 text-sm mb-2">
                         {difficulty.description}
                       </p>
 
                       {/* Details */}
-                      <div className="flex flex-col gap-0.5 text-xs text-gray-500">
+                      <div className="flex flex-col gap-1 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 flex-shrink-0" style={{ color: ORANGE }} />
+                          <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: ORANGE }} />
                           Age: {difficulty.ageRange}
                         </span>
                         <span className="flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 flex-shrink-0" style={{ color: ORANGE }} />
+                          <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: ORANGE }} />
                           {difficulty.detailLevel}
                         </span>
                       </div>
