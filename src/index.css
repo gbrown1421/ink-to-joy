@@ -206,7 +206,9 @@
 
   /* Coloring Books – orange */
   .pf-btn-coloring {
-    background: linear-gradient(90deg, #ff9a5c, #ff7a3c, #e55a1c);
+    background: linear-gradient(180deg, #ffb068 0%, #f98c3c 50%, #e86a1a 100%);
+    border: 3px solid #a04a10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
 
   /* Cartoon Books – teal */
