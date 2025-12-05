@@ -131,7 +131,7 @@ const Menu = () => {
         <div className="px-4">
           <div className="mx-auto">
             <div className="text-center space-y-4 mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white">Transformation that fits your creative vision</h2>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white max-w-[850px] mx-auto leading-tight">Transformation that fits your creative vision</h2>
             </div>
 
             <div className="flex flex-nowrap justify-center gap-2 overflow-x-auto">
