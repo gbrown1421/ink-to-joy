@@ -200,7 +200,7 @@ const DifficultySelection = () => {
                       src={wideFrame} 
                       alt="" 
                       className="relative w-full h-auto pointer-events-none"
-                      style={{ maxWidth: '320px' }}
+                      style={{ maxWidth: '380px' }}
                     />
                     
                     {/* Content positioned inside the frame */}
@@ -209,7 +209,7 @@ const DifficultySelection = () => {
                       <img 
                         src={difficulty.sampleImage} 
                         alt={`${difficulty.name} sample`}
-                        className="w-16 h-16 object-cover rounded-lg border border-border/50 mb-2"
+                        className="w-24 h-24 object-cover rounded-lg border border-border/50 mb-3"
                       />
 
                       {/* Title with radio indicator */}
