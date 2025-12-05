@@ -28,7 +28,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Menu />} />
           <Route path="/project-type" element={<ProjectTypeSelection />} />
-          <Route path="/difficulty" element={<DifficultySelection />} />
+          <Route path="/difficulty/:type" element={<DifficultySelection />} />
           <Route path="/upload/:bookId" element={<Upload />} />
           <Route path="/review/:bookId" element={<Review />} />
           <Route path="/finalize/:bookId" element={<Finalize />} />
