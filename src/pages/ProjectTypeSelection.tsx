@@ -136,8 +136,8 @@ const ProjectTypeSelection = () => {
                     <div className="absolute inset-[15%] flex flex-col items-center justify-center text-center p-4">
                       {/* Icon */}
                       <div 
-                        className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 shadow-md"
-                        style={{ backgroundColor: ORANGE }}
+                        className="w-12 h-12 min-w-12 min-h-12 rounded-xl flex items-center justify-center mb-3 shadow-md flex-shrink-0"
+                        style={{ backgroundColor: ORANGE, aspectRatio: '1 / 1' }}
                       >
                         <Icon className="w-6 h-6 text-white" />
                       </div>
