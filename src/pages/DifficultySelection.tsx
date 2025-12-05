@@ -185,7 +185,7 @@ const DifficultySelection = () => {
                   onClick={() => setSelectedDifficulty(difficulty.id)}
                 >
                   {/* Container for frame content */}
-                  <div className="w-full h-full relative">
+                  <div className="relative" style={{ width: 340, height: 380 }}>
                     {/* Light gray background - sits behind the frame */}
                     <div 
                       className={`absolute inset-[12%] bg-gradient-to-b from-gray-50 to-gray-100 ${

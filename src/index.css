@@ -411,25 +411,9 @@
      DIFFICULTY CARDS LAYOUT
      ================================ */
 
-  .pf-difficulty-grid {
-    /* flex classes set via Tailwind, this is documentation */
-  }
-
+  /* Difficulty cards – prevent flexbox from squeezing the last card */
   .pf-difficulty-card {
-    width: 430px;
-    height: 480px;
-    flex: 0 0 430px;      /* no shrinking, fixed basis */
-    display: flex;
-    align-items: stretch;
-    justify-content: center;
-  }
-
-  /* Make the frame image always fill this box consistently */
-  .pf-difficulty-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+    flex: 0 0 auto;   /* no shrinking, keep natural width */
   }
 
   /* On smaller screens allow wrapping instead of squashing */
