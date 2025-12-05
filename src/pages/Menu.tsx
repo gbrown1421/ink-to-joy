@@ -197,9 +197,9 @@ const Menu = () => {
                     </div>
                   </div>
                   <h3 className="text-2xl font-semibold text-black mb-1">Cartoon Books</h3>
-                  <p className="text-base font-bold text-black/70 mb-2">Stylized caricature illustrations</p>
+                  <p className="text-base font-bold text-black/70 mb-2">Stylized caricatures</p>
                   <p className="text-sm text-black/80 mb-2">
-                    Get playful cartoon caricatures with exaggerated features. Perfect for gifts.
+                    Playful cartoon caricatures with exaggerated features.
                   </p>
                   <ul className="text-sm text-black/80 space-y-1 mb-3 text-left">
                     <li className="flex items-center gap-2">
@@ -245,9 +245,9 @@ const Menu = () => {
                     </div>
                   </div>
                   <h3 className="text-2xl font-semibold text-black mb-1">Image Refresh</h3>
-                  <p className="text-base font-bold text-black/70 mb-2">Optimize images for AI tools</p>
+                  <p className="text-base font-bold text-black/70 mb-2">Optimize for AI tools</p>
                   <p className="text-sm text-black/80 mb-2">
-                    Normalize and optimize photos for AI processing. Fix compatibility issues.
+                    Normalize photos for AI processing.
                   </p>
                   <ul className="text-sm text-black/80 space-y-1 mb-3 text-left">
                     <li className="flex items-center gap-2">
