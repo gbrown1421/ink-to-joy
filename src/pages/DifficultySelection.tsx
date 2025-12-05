@@ -172,7 +172,7 @@ const DifficultySelection = () => {
 
         {/* Difficulty tiles */}
         <div className="relative container mx-auto px-4 pb-16" style={{ maxWidth: '1400px' }}>
-          <div className={`grid gap-2 ${
+          <div className={`grid gap-0 ${
             difficulties.length === 2 ? 'md:grid-cols-2 justify-items-center' : 'grid-cols-1 md:grid-cols-3'
           }`} style={{ gridTemplateColumns: difficulties.length === 3 ? 'repeat(3, 1fr)' : undefined }}>
             {difficulties.map((difficulty) => {
