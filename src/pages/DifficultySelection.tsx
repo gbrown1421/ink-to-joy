@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Palette, ArrowRight, Home, ArrowLeft } from "lucide-react";
+import { Palette, ArrowRight, Home, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import wideFrame from "@/assets/wide-frame.png";
+import orangeTileBg from "@/assets/orange-tile-bg.png";
+
+const ORANGE = "#FF7A3C";
 
 export type DifficultyLevel = "Quick and Easy" | "Beginner" | "Intermediate";
 export type ToonDifficultyLevel = "Quick and Easy" | "Adv Beginner";
@@ -105,7 +108,7 @@ const DifficultySelection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-gray-100">
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between gap-3">
@@ -142,72 +145,140 @@ const DifficultySelection = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="space-y-8">
-          <section className="space-y-4">
-            <Label htmlFor="bookName" className="text-lg font-semibold">
-              {projectType === "toon" ? "Cartoon Book" : "Coloring Book"} Name
-            </Label>
-            <Input
-              id="bookName"
-              placeholder={projectType === "toon" ? "My Amazing Cartoon Book" : "My Amazing Coloring Book"}
-              value={bookName}
-              onChange={(e) => setBookName(e.target.value)}
-              className="text-lg h-12"
-            />
-          </section>
+      {/* Orange banner line */}
+      <div className="w-full h-2" style={{ backgroundColor: ORANGE }} />
 
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Select Difficulty Level</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {difficulties.map((difficulty) => (
-                <Card
+      {/* Full-width Orange Banner with content */}
+      <div 
+        className="w-full"
+        style={{
+          backgroundImage: `url(${orangeTileBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {/* Text section with padding */}
+        <div className="container mx-auto px-4 pt-12 pb-8 max-w-5xl">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold mb-3 text-white">Select Difficulty Level</h2>
+            <p className="text-white/90 text-lg">
+              Choose the complexity that's right for your audience
+            </p>
+          </div>
+        </div>
+
+        {/* Difficulty tiles */}
+        <div className="container mx-auto px-4 pb-16 max-w-6xl">
+          <div className={`grid gap-6 justify-items-center ${
+            difficulties.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'
+          }`}>
+            {difficulties.map((difficulty) => {
+              const isSelected = selectedDifficulty === difficulty.id;
+              
+              return (
+                <div
                   key={difficulty.id}
-                  className={`p-6 cursor-pointer transition-all hover:shadow-lg ${
-                    selectedDifficulty === difficulty.id
-                      ? "ring-2 ring-primary shadow-card"
-                      : "hover:border-primary/50"
+                  className={`relative cursor-pointer transition-all duration-300 ${
+                    isSelected ? "scale-[1.02]" : "hover:scale-[1.01]"
                   }`}
                   onClick={() => setSelectedDifficulty(difficulty.id)}
                 >
-                  <div className="space-y-3">
-                    <img 
-                      src={difficulty.sampleImage} 
-                      alt={`${difficulty.name} sample`}
-                      className="w-24 h-24 mx-auto object-cover rounded-lg border border-border/50"
+                  {/* Gray background behind frame */}
+                  <div className="relative">
+                    {/* Light gray background - sits behind the frame */}
+                    <div 
+                      className={`absolute inset-[12%] bg-gradient-to-b from-gray-50 to-gray-100 ${
+                        isSelected ? "ring-2 ring-offset-2" : ""
+                      }`}
+                      style={{ 
+                        ...(isSelected && { boxShadow: `0 0 0 2px ${ORANGE}` })
+                      }}
                     />
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-bold">{difficulty.name}</h3>
-                      <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
-                        {selectedDifficulty === difficulty.id && (
-                          <div className="w-2 h-2 rounded-full bg-primary" />
-                        )}
+                    
+                    {/* Frame overlay */}
+                    <img 
+                      src={wideFrame} 
+                      alt="" 
+                      className="relative w-full h-auto pointer-events-none"
+                      style={{ maxWidth: '320px' }}
+                    />
+                    
+                    {/* Content positioned inside the frame */}
+                    <div className="absolute inset-[15%] flex flex-col items-center justify-center text-center p-3">
+                      {/* Sample Image */}
+                      <img 
+                        src={difficulty.sampleImage} 
+                        alt={`${difficulty.name} sample`}
+                        className="w-16 h-16 object-cover rounded-lg border border-border/50 mb-2"
+                      />
+
+                      {/* Title with radio indicator */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-bold text-gray-900">{difficulty.name}</h3>
+                        <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0" style={{ borderColor: ORANGE }}>
+                          {isSelected && (
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ORANGE }} />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-gray-600 text-xs mb-2 line-clamp-2">
+                        {difficulty.description}
+                      </p>
+
+                      {/* Details */}
+                      <div className="flex flex-col gap-1 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 flex-shrink-0" style={{ color: ORANGE }} />
+                          Age: {difficulty.ageRange}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 flex-shrink-0" style={{ color: ORANGE }} />
+                          {difficulty.detailLevel}
+                        </span>
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{difficulty.description}</p>
-                    <div className="flex gap-4 text-xs text-muted-foreground">
-                      <span>Age: {difficulty.ageRange}</span>
-                      <span>•</span>
-                      <span>{difficulty.detailLevel}</span>
-                    </div>
                   </div>
-                </Card>
-              ))}
-            </div>
-          </section>
-
-          <div className="flex justify-end">
-            <Button 
-              onClick={handleContinue} 
-              size="lg"
-              disabled={isCreating}
-            >
-              {isCreating ? "Creating..." : "Continue to Upload"}
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
+                </div>
+              );
+            })}
           </div>
         </div>
-      </main>
+      </div>
+
+      {/* Name input and continue section */}
+      <div className="bg-gray-100 py-8">
+        <div className="container mx-auto px-4 max-w-xl">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="bookName" className="text-lg font-semibold">
+                {projectType === "toon" ? "Cartoon Book" : "Coloring Book"} Name
+              </Label>
+              <Input
+                id="bookName"
+                placeholder={projectType === "toon" ? "My Amazing Cartoon Book" : "My Amazing Coloring Book"}
+                value={bookName}
+                onChange={(e) => setBookName(e.target.value)}
+                className="text-lg h-12"
+              />
+            </div>
+
+            <div className="flex justify-center">
+              <Button 
+                onClick={handleContinue} 
+                size="lg"
+                disabled={isCreating}
+                className="text-white font-semibold rounded-full shadow-md hover:opacity-90 px-8"
+                style={{ backgroundColor: ORANGE }}
+              >
+                {isCreating ? "Creating..." : "Continue to Upload"}
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
