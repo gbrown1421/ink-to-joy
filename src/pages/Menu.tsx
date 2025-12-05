@@ -6,7 +6,7 @@ import { Upload, Download, Shield, CheckCircle, Sparkles, BookOpen, Smile, Refre
 import { useNavigate } from "react-router-dom";
 import heroTransformation from "@/assets/hero-transformation.png";
 import pixfixLogo from "@/assets/pixfix-logo-hero.png";
-import silverFrame from "@/assets/small-frame-2.png";
+import silverFrame from "@/assets/wide-frame.png";
 
 const Menu = () => {
   const navigate = useNavigate();
@@ -140,7 +140,7 @@ const Menu = () => {
 
             <div className="flex flex-wrap justify-center gap-4">
               {/* Card 1 - with silver frame image */}
-              <div className="relative group" style={{ width: '360px', height: '470px' }}>
+              <div className="relative group" style={{ width: '400px', height: '420px' }}>
                 {/* Frame image as background */}
                 <img 
                   src={silverFrame} 
@@ -148,8 +148,10 @@ const Menu = () => {
                   className="w-full h-full object-contain pointer-events-none absolute inset-0"
                   style={{ filter: 'drop-shadow(-4px 6px 10px rgba(0,0,0,0.5))' }}
                 />
+                {/* Gray background inside frame */}
+                <div className="absolute z-5" style={{ top: '8%', left: '8%', right: '8%', bottom: '8%', background: '#e5e5e5' }} />
                 {/* Content positioned inside the frame opening */}
-                <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '8%', left: '8%', right: '8%', bottom: '12%' }}>
+                <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '8%', left: '8%', right: '8%', bottom: '8%' }}>
                   <div className="relative w-12 h-12 mb-2 flex-shrink-0">
                     <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                     <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
@@ -187,14 +189,16 @@ const Menu = () => {
               </div>
 
               {/* Card 2 - with silver frame image */}
-              <div className="relative group" style={{ width: '360px', height: '470px' }}>
+              <div className="relative group" style={{ width: '400px', height: '420px' }}>
                 <img 
                   src={silverFrame} 
                   alt="" 
                   className="w-full h-full object-contain pointer-events-none absolute inset-0"
                   style={{ filter: 'drop-shadow(-4px 6px 10px rgba(0,0,0,0.5))' }}
                 />
-                <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '8%', left: '8%', right: '8%', bottom: '12%' }}>
+                {/* Gray background inside frame */}
+                <div className="absolute z-5" style={{ top: '8%', left: '8%', right: '8%', bottom: '8%', background: '#e5e5e5' }} />
+                <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '8%', left: '8%', right: '8%', bottom: '8%' }}>
                   <div className="relative w-12 h-12 mb-2 flex-shrink-0">
                     <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                     <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
@@ -232,14 +236,16 @@ const Menu = () => {
               </div>
 
               {/* Card 3 - with silver frame image */}
-              <div className="relative group" style={{ width: '360px', height: '470px' }}>
+              <div className="relative group" style={{ width: '400px', height: '420px' }}>
                 <img 
                   src={silverFrame} 
                   alt="" 
                   className="w-full h-full object-contain pointer-events-none absolute inset-0"
                   style={{ filter: 'drop-shadow(-4px 6px 10px rgba(0,0,0,0.5))' }}
                 />
-                <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '8%', left: '8%', right: '8%', bottom: '12%' }}>
+                {/* Gray background inside frame */}
+                <div className="absolute z-5" style={{ top: '8%', left: '8%', right: '8%', bottom: '8%', background: '#e5e5e5' }} />
+                <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '8%', left: '8%', right: '8%', bottom: '8%' }}>
                   <div className="relative w-12 h-12 mb-2 flex-shrink-0">
                     <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                     <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
