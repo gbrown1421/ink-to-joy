@@ -166,13 +166,9 @@ const Menu = () => {
                       Print-ready PDF export
                     </li>
                   </ul>
-                  <div className="relative h-10 mx-auto border-[3px] border-black rounded-md" style={{ width: '200px' }}>
-                    <div className="absolute inset-0 rounded" style={{ background: 'linear-gradient(135deg, #FF9A5C 0%, #FF7A3C 50%, #E55A1C 100%)' }} />
-                    <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #E55A1C 0%, #FF7A3C 50%, #FF9A5C 100%)' }} />
-                    <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm font-bold hover:opacity-90 border-0 rounded" style={{ background: 'linear-gradient(180deg, #FF8A4C 0%, #FF7A3C 50%, #E56A2C 100%)', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
-                      Create Coloring Book
-                    </Button>
-                  </div>
+                  <Button onClick={() => navigate('/project-type')} className="pf-btn pf-btn-coloring text-sm">
+                    Create Coloring Book
+                  </Button>
                 </div>
                 {/* Frame image on top */}
                 <img 
@@ -212,13 +208,9 @@ const Menu = () => {
                       Fun caricature effect
                     </li>
                   </ul>
-                  <div className="relative h-10 mx-auto border-[3px] border-black rounded-md" style={{ width: '200px' }}>
-                    <div className="absolute inset-0 rounded" style={{ background: 'linear-gradient(135deg, #3FD7C5 0%, #1FB7A5 50%, #0F9785 100%)' }} />
-                    <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0F9785 0%, #1FB7A5 50%, #3FD7C5 100%)' }} />
-                    <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm font-bold hover:opacity-90 border-0 rounded" style={{ background: 'linear-gradient(180deg, #2FC7B5 0%, #1FB7A5 50%, #0FA795 100%)', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
-                      Create Cartoon Book
-                    </Button>
-                  </div>
+                  <Button onClick={() => navigate('/project-type')} className="pf-btn pf-btn-cartoon text-sm">
+                    Create Cartoon Book
+                  </Button>
                 </div>
                 {/* Frame image on top */}
                 <img 

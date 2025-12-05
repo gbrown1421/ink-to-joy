@@ -154,8 +154,7 @@ const ProjectTypeSelection = () => {
 
                       {/* CTA Button */}
                       <Button
-                        className="w-full text-white font-semibold py-2 rounded-full shadow-md hover:opacity-90 text-sm"
-                        style={{ backgroundColor: ORANGE }}
+                        className="pf-btn pf-btn-coloring w-full text-sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/difficulty/${type.id}`);
