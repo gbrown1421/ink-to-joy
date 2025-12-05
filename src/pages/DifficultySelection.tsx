@@ -171,10 +171,13 @@ const DifficultySelection = () => {
         </div>
 
         {/* Difficulty tiles */}
-        <div className="relative container mx-auto px-4 pb-16" style={{ maxWidth: '1200px' }}>
-          <div className={`flex justify-center gap-4 flex-wrap ${
-            difficulties.length === 2 ? '' : ''
-          }`}>
+        <div className="relative container mx-auto px-4 pb-16" style={{ maxWidth: difficulties.length === 2 ? '800px' : '1200px' }}>
+          <div 
+            className="grid gap-4"
+            style={{ 
+              gridTemplateColumns: `repeat(${difficulties.length}, 1fr)`,
+            }}
+          >
             {difficulties.map((difficulty) => {
               const isSelected = selectedDifficulty === difficulty.id;
               
@@ -184,7 +187,6 @@ const DifficultySelection = () => {
                   className={`relative cursor-pointer transition-all duration-300 ${
                     isSelected ? "scale-[1.02]" : "hover:scale-[1.01]"
                   }`}
-                  style={{ width: '360px', flexShrink: 0 }}
                   onClick={() => setSelectedDifficulty(difficulty.id)}
                 >
                   {/* Gray background behind frame */}
