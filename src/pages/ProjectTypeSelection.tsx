@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Palette, Smile, Home, CheckCircle2, Image } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import silverFrame from "@/assets/silver-frame.png";
+import wideFrame from "@/assets/wide-frame-2.png";
+
+const ORANGE = "#FF7A3C";
 
 const ProjectTypeSelection = () => {
   const [selectedType, setSelectedType] = useState<"coloring" | "toon" | null>(null);
@@ -94,24 +96,30 @@ const ProjectTypeSelection = () => {
                 }`}
                 onClick={() => setSelectedType(type.id)}
               >
-                {/* Silver Frame */}
+                {/* Wide Frame */}
                 <div 
-                  className="relative p-6"
+                  className="relative p-8"
                   style={{
-                    backgroundImage: `url(${silverFrame})`,
+                    backgroundImage: `url(${wideFrame})`,
                     backgroundSize: '100% 100%',
                     backgroundRepeat: 'no-repeat',
                   }}
                 >
                   {/* Inner Content Area */}
                   <div 
-                    className={`bg-gradient-to-b from-gray-100 to-gray-200 p-8 flex flex-col items-center text-center ${
-                      isSelected ? "ring-2 ring-primary ring-offset-2" : ""
+                    className={`bg-white p-8 flex flex-col items-center text-center ${
+                      isSelected ? "ring-2 ring-offset-2" : ""
                     }`}
+                    style={{ 
+                      ...(isSelected && { boxShadow: `0 0 0 2px ${ORANGE}` })
+                    }}
                   >
                     {/* Icon */}
-                    <div className="w-14 h-14 rounded-xl bg-primary flex items-center justify-center mb-4 shadow-md">
-                      <Icon className="w-7 h-7 text-primary-foreground" />
+                    <div 
+                      className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 shadow-md"
+                      style={{ backgroundColor: ORANGE }}
+                    >
+                      <Icon className="w-7 h-7 text-white" />
                     </div>
 
                     {/* Title */}
@@ -120,7 +128,7 @@ const ProjectTypeSelection = () => {
                     </h3>
 
                     {/* Subtitle */}
-                    <p className="text-primary font-medium mb-3">
+                    <p className="font-medium mb-3" style={{ color: ORANGE }}>
                       {type.subtitle}
                     </p>
 
@@ -133,7 +141,7 @@ const ProjectTypeSelection = () => {
                     <ul className="space-y-2 mb-6 w-full max-w-xs">
                       {type.features.map((feature, idx) => (
                         <li key={idx} className="flex items-center gap-2 text-gray-700 text-sm">
-                          <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                          <CheckCircle2 className="w-5 h-5 flex-shrink-0" style={{ color: ORANGE }} />
                           <span>{feature}</span>
                         </li>
                       ))}
@@ -141,7 +149,8 @@ const ProjectTypeSelection = () => {
 
                     {/* CTA Button */}
                     <Button
-                      className="w-full max-w-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-full shadow-md"
+                      className="w-full max-w-xs text-white font-semibold py-3 rounded-full shadow-md hover:opacity-90"
+                      style={{ backgroundColor: ORANGE }}
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedType(type.id);
