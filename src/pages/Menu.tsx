@@ -142,7 +142,7 @@ const Menu = () => {
               {/* Card 1 - with silver frame image */}
               <div className="relative group" style={{ width: '430px', height: '480px' }}>
                 {/* Gray background inside frame */}
-                <div className="absolute" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%', background: '#e5e5e5' }} />
+                <div className="absolute" style={{ top: '10%', left: '10%', right: '10%', bottom: '10%', background: '#e5e5e5' }} />
                 {/* Content positioned inside the frame opening */}
                 <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%' }}>
                   <div className="relative w-12 h-12 mb-2 flex-shrink-0">
@@ -191,7 +191,7 @@ const Menu = () => {
               {/* Card 2 - with silver frame image */}
               <div className="relative group" style={{ width: '430px', height: '480px' }}>
                 {/* Gray background inside frame */}
-                <div className="absolute" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%', background: '#e5e5e5' }} />
+                <div className="absolute" style={{ top: '10%', left: '10%', right: '10%', bottom: '10%', background: '#e5e5e5' }} />
                 <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%' }}>
                   <div className="relative w-12 h-12 mb-2 flex-shrink-0">
                     <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #3FD7C5 0%, #1FB7A5 50%, #0F9785 100%)' }} />
@@ -239,7 +239,7 @@ const Menu = () => {
               {/* Card 3 - with silver frame image */}
               <div className="relative group" style={{ width: '430px', height: '480px' }}>
                 {/* Gray background inside frame */}
-                <div className="absolute" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%', background: '#e5e5e5' }} />
+                <div className="absolute" style={{ top: '10%', left: '10%', right: '10%', bottom: '10%', background: '#e5e5e5' }} />
                 <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%' }}>
                   <div className="relative w-12 h-12 mb-2 flex-shrink-0">
                     <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #FF6FAB 0%, #FF4F8B 50%, #DF2F6B 100%)' }} />
