@@ -213,7 +213,9 @@
 
   /* Cartoon Books – teal */
   .pf-btn-cartoon {
-    background: linear-gradient(90deg, #3fd7c5, #1fb7a5, #0f9785);
+    background: linear-gradient(180deg, #4fe7d5 0%, #1fb7a5 50%, #0f9785 100%);
+    border: 3px solid #0a5a50;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
 
   /* Image Refresh – pink */

@@ -276,8 +276,7 @@ const DifficultySelection = () => {
               onClick={handleContinue} 
               size="lg"
               disabled={isCreating}
-              className="text-white font-semibold rounded-full shadow-md hover:opacity-90 px-8 h-12"
-              style={{ backgroundColor: ORANGE }}
+              className="pf-btn pf-btn-coloring px-8 h-12"
             >
               {isCreating ? "Creating..." : "Continue to Upload"}
               <ArrowRight className="w-5 h-5 ml-2" />
