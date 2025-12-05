@@ -128,8 +128,8 @@ const Menu = () => {
 
       {/* Products Section */}
       <section id="products" className="py-20 scroll-mt-20 bg-black">
-        <div className="container mx-auto px-4">
-          <div className="max-w-7xl mx-auto">
+        <div className="px-4">
+          <div className="mx-auto">
             <div className="text-center space-y-4 mb-16">
               <p className="text-sm font-medium text-accent uppercase tracking-wider">Our Services</p>
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white">Professional Tools</h2>
@@ -138,7 +138,7 @@ const Menu = () => {
               </p>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-2">
               {/* Card 1 - with silver frame image */}
               <div className="relative group" style={{ width: '420px', height: '460px' }}>
                 {/* Gray background inside frame */}
