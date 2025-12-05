@@ -140,7 +140,7 @@ const Menu = () => {
 
             <div className="flex flex-wrap justify-center gap-4">
               {/* Card 1 - with silver frame image */}
-              <div className="relative group" style={{ width: '340px', height: '440px' }}>
+              <div className="relative group" style={{ width: '360px', height: '470px' }}>
                 {/* Frame image as background */}
                 <img 
                   src={silverFrame} 
@@ -187,7 +187,7 @@ const Menu = () => {
               </div>
 
               {/* Card 2 - with silver frame image */}
-              <div className="relative group" style={{ width: '340px', height: '440px' }}>
+              <div className="relative group" style={{ width: '360px', height: '470px' }}>
                 <img 
                   src={silverFrame} 
                   alt="" 
@@ -232,7 +232,7 @@ const Menu = () => {
               </div>
 
               {/* Card 3 - with silver frame image */}
-              <div className="relative group" style={{ width: '340px', height: '440px' }}>
+              <div className="relative group" style={{ width: '360px', height: '470px' }}>
                 <img 
                   src={silverFrame} 
                   alt="" 
