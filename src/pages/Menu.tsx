@@ -146,10 +146,10 @@ const Menu = () => {
                 {/* Content positioned inside the frame opening */}
                 <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%' }}>
                   <div className="relative w-12 h-12 mb-2 flex-shrink-0">
-                    <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
-                    <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
-                    <div className="absolute rounded flex items-center justify-center" style={{ top: '4px', left: '4px', right: '4px', bottom: '4px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
-                      <Image className="w-5 h-5 text-white/90" />
+                    <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #FF9A5C 0%, #FF7A3C 50%, #E55A1C 100%)' }} />
+                    <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #E55A1C 0%, #FF7A3C 50%, #FF9A5C 100%)' }} />
+                    <div className="absolute rounded flex items-center justify-center" style={{ top: '4px', left: '4px', right: '4px', bottom: '4px', background: 'linear-gradient(180deg, #FF8A4C 0%, #FF7A3C 50%, #E56A2C 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3)' }}>
+                      <Image className="w-5 h-5 text-white" />
                     </div>
                   </div>
                   <h3 className="text-lg font-semibold text-black mb-1">Coloring Books</h3>
@@ -159,22 +159,22 @@ const Menu = () => {
                   </p>
                   <ul className="text-sm text-black/80 space-y-1 mb-3 text-left">
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#FF7A3C' }} strokeWidth={2.5} />
                       4 difficulty levels
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#FF7A3C' }} strokeWidth={2.5} />
                       Custom borders & text
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#FF7A3C' }} strokeWidth={2.5} />
                       Print-ready PDF export
                     </li>
                   </ul>
                   <div className="relative h-10 mx-auto" style={{ width: '85%' }}>
-                    <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
-                    <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
-                    <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
+                    <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #FF9A5C 0%, #FF7A3C 50%, #E55A1C 100%)' }} />
+                    <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #E55A1C 0%, #FF7A3C 50%, #FF9A5C 100%)' }} />
+                    <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #FF8A4C 0%, #FF7A3C 50%, #E56A2C 100%)' }}>
                       Create Coloring Book
                     </Button>
                   </div>
@@ -194,10 +194,10 @@ const Menu = () => {
                 <div className="absolute" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%', background: '#e5e5e5' }} />
                 <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%' }}>
                   <div className="relative w-12 h-12 mb-2 flex-shrink-0">
-                    <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
-                    <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
-                    <div className="absolute rounded flex items-center justify-center" style={{ top: '4px', left: '4px', right: '4px', bottom: '4px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
-                      <Smile className="w-5 h-5 text-white/90" />
+                    <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #3FD7C5 0%, #1FB7A5 50%, #0F9785 100%)' }} />
+                    <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0F9785 0%, #1FB7A5 50%, #3FD7C5 100%)' }} />
+                    <div className="absolute rounded flex items-center justify-center" style={{ top: '4px', left: '4px', right: '4px', bottom: '4px', background: 'linear-gradient(180deg, #2FC7B5 0%, #1FB7A5 50%, #0FA795 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3)' }}>
+                      <Smile className="w-5 h-5 text-white" />
                     </div>
                   </div>
                   <h3 className="text-lg font-semibold text-black mb-1">Cartoon Books</h3>
@@ -207,22 +207,22 @@ const Menu = () => {
                   </p>
                   <ul className="text-sm text-black/80 space-y-1 mb-3 text-left">
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#1FB7A5' }} strokeWidth={2.5} />
                       Bold cartoon style
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#1FB7A5' }} strokeWidth={2.5} />
                       Character preservation
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#1FB7A5' }} strokeWidth={2.5} />
                       Fun caricature effect
                     </li>
                   </ul>
                   <div className="relative h-10 mx-auto" style={{ width: '85%' }}>
-                    <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
-                    <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
-                    <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
+                    <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #3FD7C5 0%, #1FB7A5 50%, #0F9785 100%)' }} />
+                    <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0F9785 0%, #1FB7A5 50%, #3FD7C5 100%)' }} />
+                    <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #2FC7B5 0%, #1FB7A5 50%, #0FA795 100%)' }}>
                       Create Cartoon Book
                     </Button>
                   </div>
@@ -242,10 +242,10 @@ const Menu = () => {
                 <div className="absolute" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%', background: '#e5e5e5' }} />
                 <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%' }}>
                   <div className="relative w-12 h-12 mb-2 flex-shrink-0">
-                    <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
-                    <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
-                    <div className="absolute rounded flex items-center justify-center" style={{ top: '4px', left: '4px', right: '4px', bottom: '4px', background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)' }}>
-                      <RefreshCw className="w-5 h-5 text-white/90" />
+                    <div className="absolute inset-0 rounded-lg" style={{ background: 'linear-gradient(135deg, #FF6FAB 0%, #FF4F8B 50%, #DF2F6B 100%)' }} />
+                    <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #DF2F6B 0%, #FF4F8B 50%, #FF6FAB 100%)' }} />
+                    <div className="absolute rounded flex items-center justify-center" style={{ top: '4px', left: '4px', right: '4px', bottom: '4px', background: 'linear-gradient(180deg, #FF5F9B 0%, #FF4F8B 50%, #EF3F7B 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3)' }}>
+                      <RefreshCw className="w-5 h-5 text-white" />
                     </div>
                   </div>
                   <h3 className="text-lg font-semibold text-black mb-1">Image Refresh</h3>
@@ -255,22 +255,22 @@ const Menu = () => {
                   </p>
                   <ul className="text-sm text-black/80 space-y-1 mb-3 text-left">
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#FF4F8B' }} strokeWidth={2.5} />
                       Auto-normalize format
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#FF4F8B' }} strokeWidth={2.5} />
                       Optimal resizing
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#2a4055' }} strokeWidth={2.5} />
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#FF4F8B' }} strokeWidth={2.5} />
                       Batch processing
                     </li>
                   </ul>
                   <div className="relative h-10 mx-auto" style={{ width: '85%' }}>
-                    <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
-                    <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
-                    <Button onClick={() => navigate('/image-refresh')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
+                    <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #FF6FAB 0%, #FF4F8B 50%, #DF2F6B 100%)' }} />
+                    <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #DF2F6B 0%, #FF4F8B 50%, #FF6FAB 100%)' }} />
+                    <Button onClick={() => navigate('/image-refresh')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #FF5F9B 0%, #FF4F8B 50%, #EF3F7B 100%)' }}>
                       Refresh Images
                     </Button>
                   </div>
