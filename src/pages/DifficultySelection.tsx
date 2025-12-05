@@ -187,10 +187,11 @@ const DifficultySelection = () => {
                   className={`relative cursor-pointer transition-all duration-300 ${
                     isSelected ? "scale-[1.02]" : "hover:scale-[1.01]"
                   }`}
+                  style={{ aspectRatio: '1 / 1' }}
                   onClick={() => setSelectedDifficulty(difficulty.id)}
                 >
                   {/* Gray background behind frame */}
-                  <div className="relative w-full" style={{ aspectRatio: '1 / 1' }}>
+                  <div className="absolute inset-0">
                     {/* Light gray background - sits behind the frame */}
                     <div 
                       className={`absolute inset-[12%] bg-gradient-to-b from-gray-50 to-gray-100 ${
