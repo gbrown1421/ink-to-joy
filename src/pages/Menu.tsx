@@ -6,7 +6,7 @@ import { Upload, Download, Shield, CheckCircle, Sparkles, BookOpen, Smile, Refre
 import { useNavigate } from "react-router-dom";
 import heroTransformation from "@/assets/hero-transformation.png";
 import pixfixLogo from "@/assets/pixfix-logo-hero.png";
-import silverFrame from "@/assets/wide-frame.png";
+import silverFrame from "@/assets/deep-frame.png";
 
 const Menu = () => {
   const navigate = useNavigate();
