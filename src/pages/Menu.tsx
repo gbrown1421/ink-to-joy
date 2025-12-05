@@ -127,7 +127,7 @@ const Menu = () => {
       </section>
 
       {/* Products Section */}
-      <section id="products" className="py-20 scroll-mt-20" style={{ background: '#3d3d3d' }}>
+      <section id="products" className="py-20 scroll-mt-20" style={{ backgroundImage: 'url(/images/menu-background.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="px-4">
           <div className="mx-auto">
             <div className="text-center space-y-4 mb-16">
