@@ -152,8 +152,8 @@ const Menu = () => {
                       <Image className="w-5 h-5 text-white" />
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-black mb-1">Coloring Books</h3>
-                  <p className="text-sm text-black/70 mb-2">Realistic line art from photos</p>
+                  <h3 className="text-2xl font-semibold text-black mb-1">Coloring Books</h3>
+                  <p className="text-base text-black/70 mb-2">Realistic line art from photos</p>
                   <p className="text-sm text-black/80 mb-2">
                     Transform photos into beautiful line art pages. Multiple difficulty levels.
                   </p>
@@ -200,8 +200,8 @@ const Menu = () => {
                       <Smile className="w-5 h-5 text-white" />
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-black mb-1">Cartoon Books</h3>
-                  <p className="text-sm text-black/70 mb-2">Stylized caricature illustrations</p>
+                  <h3 className="text-2xl font-semibold text-black mb-1">Cartoon Books</h3>
+                  <p className="text-base text-black/70 mb-2">Stylized caricature illustrations</p>
                   <p className="text-sm text-black/80 mb-2">
                     Get playful cartoon caricatures with exaggerated features. Perfect for gifts.
                   </p>
@@ -248,8 +248,8 @@ const Menu = () => {
                       <RefreshCw className="w-5 h-5 text-white" />
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-black mb-1">Image Refresh</h3>
-                  <p className="text-sm text-black/70 mb-2">Optimize images for AI tools</p>
+                  <h3 className="text-2xl font-semibold text-black mb-1">Image Refresh</h3>
+                  <p className="text-base text-black/70 mb-2">Optimize images for AI tools</p>
                   <p className="text-sm text-black/80 mb-2">
                     Normalize and optimize photos for AI processing. Fix compatibility issues.
                   </p>
