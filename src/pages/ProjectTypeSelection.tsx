@@ -35,7 +35,7 @@ const ProjectTypeSelection = () => {
       id: "toon" as const,
       icon: Smile,
       title: "Cartoon Books",
-      subtitle: "Fun caricatures from photos",
+      subtitle: "Fun caricature line art from photos",
       description: "Turn photos into playful cartoons.",
       features: [
         "Expressive cartoon style",
@@ -76,26 +76,28 @@ const ProjectTypeSelection = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-12 max-w-5xl">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-3">What would you like to create?</h2>
-          <p className="text-muted-foreground text-lg">
-            Choose between realistic line art or cartoon caricatures
-          </p>
-        </div>
+      {/* Orange banner line */}
+      <div className="w-full h-2" style={{ backgroundColor: ORANGE }} />
 
-      </main>
-
-      {/* Full-width Orange Banner */}
+      {/* Full-width Orange Banner with content */}
       <div 
-        className="w-full py-16"
+        className="w-full"
         style={{
           backgroundImage: `url(${orangeTileBg})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
-        <div className="container mx-auto px-4 max-w-5xl">
+        {/* Text section with padding */}
+        <div className="container mx-auto px-4 pt-12 pb-8 max-w-5xl">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold mb-3 text-white">What would you like to create?</h2>
+            <p className="text-white/90 text-lg">
+              Choose between realistic line art or cartoon caricatures
+            </p>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 pb-16 max-w-5xl">
           {/* Tiles Grid */}
           <div className="grid md:grid-cols-2 gap-8 justify-items-center">
             {projectTypes.map((type) => {
