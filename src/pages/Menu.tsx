@@ -150,9 +150,7 @@ const Menu = () => {
                   </div>
                   <h3 className="text-2xl font-semibold text-black mb-1">Coloring Books</h3>
                   <p className="text-base font-bold text-black/70 mb-2">Realistic line art from photos</p>
-                  <p className="text-sm text-black/80 mb-2">
-                    Transform photos into beautiful line art pages. Multiple difficulty levels.
-                  </p>
+                  <p className="text-sm text-black/80 mb-2">Photos to line art with 4 levels.</p>
                   <ul className="text-sm text-black/80 space-y-1 mb-3 text-left">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#FF7A3C' }} strokeWidth={2.5} />
@@ -198,9 +196,7 @@ const Menu = () => {
                   </div>
                   <h3 className="text-2xl font-semibold text-black mb-1">Cartoon Books</h3>
                   <p className="text-base font-bold text-black/70 mb-2">Stylized caricatures</p>
-                  <p className="text-sm text-black/80 mb-2">
-                    Playful cartoon caricatures with exaggerated features.
-                  </p>
+                  <p className="text-sm text-black/80 mb-2">Fun caricatures perfect for gifts.</p>
                   <ul className="text-sm text-black/80 space-y-1 mb-3 text-left">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#1FB7A5' }} strokeWidth={2.5} />
