@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Palette, Smile, Home, CheckCircle2, Image } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -8,14 +7,7 @@ import orangeTileBg from "@/assets/orange-tile-bg.png";
 const ORANGE = "#FF7A3C";
 
 const ProjectTypeSelection = () => {
-  const [selectedType, setSelectedType] = useState<"coloring" | "toon" | null>(null);
   const navigate = useNavigate();
-
-  const handleContinue = () => {
-    if (selectedType) {
-      navigate(`/difficulty/${selectedType}`);
-    }
-  };
 
   const projectTypes = [
     {
@@ -102,27 +94,17 @@ const ProjectTypeSelection = () => {
           <div className="grid md:grid-cols-2 gap-8 justify-items-center">
             {projectTypes.map((type) => {
               const Icon = type.icon;
-              const isSelected = selectedType === type.id;
               
               return (
                 <div
                   key={type.id}
-                  className={`relative cursor-pointer transition-all duration-300 ${
-                    isSelected ? "scale-[1.02]" : "hover:scale-[1.01]"
-                  }`}
-                  onClick={() => setSelectedType(type.id)}
+                  className="relative cursor-pointer transition-all duration-300 hover:scale-[1.01]"
+                  onClick={() => navigate(`/difficulty/${type.id}`)}
                 >
                   {/* Gray background behind frame */}
                   <div className="relative">
                     {/* Light gray background - sits behind the frame */}
-                    <div 
-                      className={`absolute inset-[12%] bg-gradient-to-b from-gray-50 to-gray-100 ${
-                        isSelected ? "ring-2 ring-offset-2" : ""
-                      }`}
-                      style={{ 
-                        ...(isSelected && { boxShadow: `0 0 0 2px ${ORANGE}` })
-                      }}
-                    />
+                    <div className="absolute inset-[12%] bg-gradient-to-b from-gray-50 to-gray-100" />
                     
                     {/* Frame overlay */}
                     <img 
@@ -173,7 +155,6 @@ const ProjectTypeSelection = () => {
                         style={{ backgroundColor: ORANGE }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedType(type.id);
                           navigate(`/difficulty/${type.id}`);
                         }}
                       >
@@ -188,19 +169,6 @@ const ProjectTypeSelection = () => {
         </div>
       </div>
 
-      {/* Continue section */}
-      <div className="bg-gray-100 py-8">
-        <div className="container mx-auto px-4 max-w-5xl flex justify-center">
-          <Button
-            onClick={handleContinue}
-            disabled={!selectedType}
-            size="lg"
-            className="px-8"
-          >
-            Continue
-          </Button>
-        </div>
-      </div>
     </div>
   );
 };
