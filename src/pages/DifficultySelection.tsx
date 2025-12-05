@@ -173,9 +173,10 @@ const DifficultySelection = () => {
         {/* Difficulty tiles */}
         <div className="relative mx-auto px-8 pb-16" style={{ maxWidth: difficulties.length === 2 ? '800px' : '1400px' }}>
           <div 
-            className="grid gap-6"
+            className="grid gap-6 items-stretch"
             style={{ 
               gridTemplateColumns: `repeat(${difficulties.length}, minmax(0, 1fr))`,
+              gridAutoRows: '1fr',
             }}
           >
             {difficulties.map((difficulty) => {
@@ -187,10 +188,10 @@ const DifficultySelection = () => {
                   className={`relative cursor-pointer transition-all duration-300 ${
                     isSelected ? "scale-[1.02]" : "hover:scale-[1.01]"
                   }`}
-                  style={{ aspectRatio: '1 / 1' }}
+                  style={{ paddingBottom: '100%' }}
                   onClick={() => setSelectedDifficulty(difficulty.id)}
                 >
-                  {/* Gray background behind frame */}
+                  {/* Container for frame content */}
                   <div className="absolute inset-0">
                     {/* Light gray background - sits behind the frame */}
                     <div 
