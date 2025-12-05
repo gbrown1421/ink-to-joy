@@ -176,7 +176,7 @@ const Menu = () => {
                       Print-ready PDF export
                     </li>
                   </ul>
-                  <div className="relative w-full h-10">
+                  <div className="relative h-10 mx-auto" style={{ width: '85%' }}>
                     <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                     <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
                     <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
@@ -221,7 +221,7 @@ const Menu = () => {
                       Fun caricature effect
                     </li>
                   </ul>
-                  <div className="relative w-full h-10">
+                  <div className="relative h-10 mx-auto" style={{ width: '85%' }}>
                     <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                     <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
                     <Button onClick={() => navigate('/project-type')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
@@ -266,7 +266,7 @@ const Menu = () => {
                       Batch processing
                     </li>
                   </ul>
-                  <div className="relative w-full h-10">
+                  <div className="relative h-10 mx-auto" style={{ width: '85%' }}>
                     <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #5a7a9a 0%, #3d5a75 20%, #2a4055 50%, #1a2a3a 80%, #0d1520 100%)' }} />
                     <div className="absolute rounded" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0d1520 0%, #1a2a3a 20%, #2a4a60 50%, #4a7090 80%, #6a90b0 100%)' }} />
                     <Button onClick={() => navigate('/image-refresh')} className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] text-white text-sm hover:opacity-90 border-0" style={{ background: 'linear-gradient(180deg, #4a6d8a 0%, #3d5a70 50%, #2c4a5e 100%)' }}>
