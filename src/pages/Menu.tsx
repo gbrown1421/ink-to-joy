@@ -134,7 +134,7 @@ const Menu = () => {
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white">Transformation that fits your creative vision</h2>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-0">
+            <div className="flex flex-wrap justify-center gap-2">
               {/* Card 1 - with silver frame image */}
               <div className="relative group" style={{ width: '430px', height: '480px' }}>
                 {/* Gray background inside frame */}
