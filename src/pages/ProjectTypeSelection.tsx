@@ -73,15 +73,18 @@ const ProjectTypeSelection = () => {
 
       {/* Full-width Orange Banner with content */}
       <div 
-        className="w-full"
+        className="w-full relative"
         style={{
           backgroundImage: `url(${orangeTileBg})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/30" />
+        
         {/* Text section with padding */}
-        <div className="container mx-auto px-4 pt-12 pb-8 max-w-5xl">
+        <div className="relative container mx-auto px-4 pt-12 pb-8 max-w-5xl">
           <div className="text-center">
             <h2 className="text-3xl font-bold mb-3 text-white">What would you like to create?</h2>
             <p className="text-white/90 text-lg">
@@ -89,7 +92,7 @@ const ProjectTypeSelection = () => {
             </p>
           </div>
         </div>
-        <div className="container mx-auto px-4 pb-16 max-w-5xl">
+        <div className="relative container mx-auto px-4 pb-16 max-w-5xl">
           {/* Tiles Grid */}
           <div className="grid md:grid-cols-2 gap-8 justify-items-center">
             {projectTypes.map((type) => {

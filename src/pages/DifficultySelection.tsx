@@ -150,15 +150,18 @@ const DifficultySelection = () => {
 
       {/* Full-width Orange Banner with content */}
       <div 
-        className="w-full"
+        className="w-full relative"
         style={{
           backgroundImage: `url(${orangeTileBg})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/30" />
+        
         {/* Text section with padding */}
-        <div className="container mx-auto px-4 pt-12 pb-8 max-w-5xl">
+        <div className="relative container mx-auto px-4 pt-12 pb-8 max-w-5xl">
           <div className="text-center">
             <h2 className="text-3xl font-bold mb-3 text-white">Select Difficulty Level</h2>
             <p className="text-white/90 text-lg">
@@ -168,7 +171,7 @@ const DifficultySelection = () => {
         </div>
 
         {/* Difficulty tiles */}
-        <div className="container mx-auto px-4 pb-16 max-w-6xl">
+        <div className="relative container mx-auto px-4 pb-16 max-w-6xl">
           <div className={`grid gap-6 justify-items-center ${
             difficulties.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'
           }`}>
