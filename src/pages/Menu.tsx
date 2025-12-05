@@ -127,8 +127,9 @@ const Menu = () => {
       </section>
 
       {/* Products Section */}
-      <section id="products" className="py-20 scroll-mt-20" style={{ backgroundImage: 'url(/images/menu-background.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <div className="px-4">
+      <section id="products" className="py-20 scroll-mt-20 relative" style={{ backgroundImage: 'url(/images/menu-background.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="absolute inset-0 bg-black/30" />
+        <div className="px-4 relative z-10">
           <div className="mx-auto">
             <div className="text-center space-y-4 mb-16">
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white max-w-[850px] mx-auto leading-tight">Transformation that fits your creative vision</h2>
