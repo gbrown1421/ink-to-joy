@@ -2,13 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Pix Fix Studio Design System - Sleek, Professional, Modern
-   Color palette: Black, Silver, White, Silver-Blue accents
-   All colors MUST be HSL.
-*/
+/* ================================
+   PIX FIX STUDIO – DESIGN SYSTEM
+   ================================ */
 
 @layer base {
   :root {
+    /* Core */
+    --pf-bg: 0 0% 100%;
+    --pf-fg: 220 15% 10%;
+    --pf-primary: 210 15% 25%;
+    --pf-accent: 205 65% 55%;
+
+    /* Neutrals / metal */
+    --pf-silver-100: 220 10% 90%;
+    --pf-silver-500: 220 10% 75%;
+    --pf-silver-600: 205 25% 70%;
+
+    /* Product palettes */
+    --pf-coloring-main: 22 100% 62%;
+    --pf-coloring-hover: 18 85% 50%;
+
+    --pf-cartoon-main: 170 71% 39%;
+    --pf-cartoon-hover: 170 85% 33%;
+
+    --pf-refresh-main: 338 100% 65%;
+    --pf-refresh-hover: 338 75% 53%;
+
+    /* Frame + UI */
+    --pf-frame-silver-bg: 0 0% 90%;
+    --pf-frame-blue-outer: 210 30% 15%;
+    --pf-frame-blue-inner: 210 35% 26%;
+    --pf-frame-shadow: 0 0% 0% / 0.45;
+
+    --pf-text-muted: 0 0% 0% / 0.7;
+    --pf-border-strong: 0 0% 0%;
+
+    /* Existing Tailwind/shadcn tokens */
     --background: 0 0% 100%;
     --foreground: 220 15% 10%;
 
@@ -141,7 +171,212 @@
   }
 }
 
-/* Custom utility classes for the new design */
+/* ================================
+   PRODUCT CTAS (home page cards)
+   ================================ */
+
+@layer components {
+  .pf-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.6rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    transition: transform 120ms ease-out, box-shadow 120ms ease-out,
+      filter 120ms ease-out;
+  }
+
+  .pf-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+    filter: brightness(1.03);
+  }
+
+  .pf-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Coloring Books – orange */
+  .pf-btn-coloring {
+    background: linear-gradient(90deg, #ff9a5c, #ff7a3c, #e55a1c);
+  }
+
+  /* Cartoon Books – teal */
+  .pf-btn-cartoon {
+    background: linear-gradient(90deg, #3fd7c5, #1fb7a5, #0f9785);
+  }
+
+  /* Image Refresh – pink */
+  .pf-btn-refresh {
+    background: linear-gradient(90deg, #ff6fab, #ff4f8b, #df2f6b);
+  }
+
+  /* ================================
+     SILVER FRAME – HOME PRODUCT CARDS
+     ================================ */
+
+  .pf-frame-silver {
+    position: relative;
+    background: radial-gradient(circle at 15% 0%, #f5f7fa, #e5e5e5);
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+  }
+
+  .pf-frame-silver-inner {
+    border-radius: 8px;
+    background: linear-gradient(135deg, #ffffff, #f5f5f5);
+    border: 2px solid hsl(var(--pf-silver-500));
+    padding: 24px 20px 20px;
+  }
+
+  /* ================================
+     BLUE FRAME – STEP 2 & STEP 3 MAIN PREVIEW
+     ================================ */
+
+  .pf-frame-blue {
+    position: relative;
+    max-width: 750px;
+    margin: 0 auto;
+    padding: 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #1b2834, #29445b);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  }
+
+  .pf-frame-blue-inner {
+    border-radius: 10px;
+    background: #ffffff;
+    border: 2px solid #1f2933;
+    padding: 26px;
+  }
+
+  .pf-frame-preview-image {
+    display: block;
+    width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    background: #ffffff;
+  }
+
+  .pf-frame-page-title {
+    margin: 12px 0 4px;
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+
+  /* ================================
+     FILMSTRIP – STEP 2 & STEP 3 SIDE THUMBNAILS
+     ================================ */
+
+  .pf-filmstrip {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 6px;
+    width: 190px;
+    background: radial-gradient(circle at 0 0, #111827, #020617);
+    border-right: 1px solid #111827;
+    overflow-y: auto;
+  }
+
+  .pf-filmstrip-tile {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 8px;
+    padding: 4px;
+    background: linear-gradient(135deg, #111827, #1f2937);
+    border: 1px solid #1f2937;
+    cursor: pointer;
+    transition: transform 110ms ease-out, box-shadow 110ms ease-out,
+      border-color 110ms ease-out, background 110ms ease-out;
+  }
+
+  .pf-filmstrip-tile-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    background: #ffffff;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pf-filmstrip-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Active (currently selected) – orange border */
+  .pf-filmstrip-tile--active {
+    border-color: #f97316;
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.8);
+    transform: translateY(-1px);
+  }
+
+  /* Accepted – green glow */
+  .pf-filmstrip-tile--accepted::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.9);
+    pointer-events: none;
+  }
+
+  .pf-filmstrip-tile-label {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 4px;
+    padding: 2px 4px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.85);
+    color: #e5e7eb;
+    font-size: 0.65rem;
+    text-align: center;
+  }
+
+  /* Filmstrip scrollbar */
+  .pf-filmstrip::-webkit-scrollbar {
+    width: 6px;
+  }
+  .pf-filmstrip::-webkit-scrollbar-track {
+    background: #020617;
+  }
+  .pf-filmstrip::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 999px;
+  }
+
+  /* ================================
+     MISC UTILITIES
+     ================================ */
+
+  .pf-muted {
+    color: rgba(0, 0, 0, 0.7);
+  }
+
+  .pf-section-dark {
+    background: radial-gradient(circle at 10% 0%, #111827, #020617);
+    color: #f9fafb;
+  }
+}
+
+/* Custom utility classes */
 @layer utilities {
   .text-gradient-chrome {
     background: linear-gradient(135deg, hsl(220 10% 95%), hsl(220 10% 70%), hsl(220 10% 95%));
