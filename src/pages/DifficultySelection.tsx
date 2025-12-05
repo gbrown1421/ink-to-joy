@@ -250,9 +250,9 @@ const DifficultySelection = () => {
 
       {/* Name input and continue section */}
       <div className="bg-gray-100 py-8">
-        <div className="container mx-auto px-4 max-w-xl">
-          <div className="space-y-6">
-            <div className="space-y-2">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="flex items-end gap-4">
+            <div className="flex-1 space-y-2">
               <Label htmlFor="bookName" className="text-lg font-semibold">
                 {projectType === "toon" ? "Cartoon Book" : "Coloring Book"} Name
               </Label>
@@ -265,18 +265,16 @@ const DifficultySelection = () => {
               />
             </div>
 
-            <div className="flex justify-center">
-              <Button 
-                onClick={handleContinue} 
-                size="lg"
-                disabled={isCreating}
-                className="text-white font-semibold rounded-full shadow-md hover:opacity-90 px-8"
-                style={{ backgroundColor: ORANGE }}
-              >
-                {isCreating ? "Creating..." : "Continue to Upload"}
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </div>
+            <Button 
+              onClick={handleContinue} 
+              size="lg"
+              disabled={isCreating}
+              className="text-white font-semibold rounded-full shadow-md hover:opacity-90 px-8 h-12"
+              style={{ backgroundColor: ORANGE }}
+            >
+              {isCreating ? "Creating..." : "Continue to Upload"}
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
           </div>
         </div>
       </div>
