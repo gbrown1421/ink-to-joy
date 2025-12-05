@@ -6,7 +6,7 @@ import { Upload, Download, Shield, CheckCircle, Sparkles, BookOpen, Smile, Refre
 import { useNavigate } from "react-router-dom";
 import heroTransformation from "@/assets/hero-transformation.png";
 import pixfixLogo from "@/assets/pixfix-logo-hero.png";
-import silverFrame from "@/assets/silver-frame.png";
+import silverFrame from "@/assets/small-frame-2.png";
 
 const Menu = () => {
   const navigate = useNavigate();
@@ -140,7 +140,7 @@ const Menu = () => {
 
             <div className="flex flex-wrap justify-center gap-4">
               {/* Card 1 - with silver frame image */}
-              <div className="relative group" style={{ width: '380px', height: '480px' }}>
+              <div className="relative group" style={{ width: '340px', height: '440px' }}>
                 {/* Frame image as background */}
                 <img 
                   src={silverFrame} 
@@ -187,7 +187,7 @@ const Menu = () => {
               </div>
 
               {/* Card 2 - with silver frame image */}
-              <div className="relative group" style={{ width: '380px', height: '480px' }}>
+              <div className="relative group" style={{ width: '340px', height: '440px' }}>
                 <img 
                   src={silverFrame} 
                   alt="" 
@@ -232,7 +232,7 @@ const Menu = () => {
               </div>
 
               {/* Card 3 - with silver frame image */}
-              <div className="relative group" style={{ width: '380px', height: '480px' }}>
+              <div className="relative group" style={{ width: '340px', height: '440px' }}>
                 <img 
                   src={silverFrame} 
                   alt="" 
