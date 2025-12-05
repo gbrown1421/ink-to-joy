@@ -187,7 +187,7 @@ const DifficultySelection = () => {
                   onClick={() => setSelectedDifficulty(difficulty.id)}
                 >
                   {/* Gray background behind frame */}
-                  <div className="relative" style={{ width: '380px' }}>
+                  <div className="relative" style={{ width: '380px', aspectRatio: '1 / 1' }}>
                     {/* Light gray background - sits behind the frame */}
                     <div 
                       className={`absolute inset-[12%] bg-gradient-to-b from-gray-50 to-gray-100 ${
@@ -202,7 +202,7 @@ const DifficultySelection = () => {
                     <img 
                       src={wideFrame} 
                       alt="" 
-                      className="relative w-full h-auto pointer-events-none"
+                      className="absolute inset-0 w-full h-full pointer-events-none"
                     />
                     
                     {/* Content positioned inside the frame */}
