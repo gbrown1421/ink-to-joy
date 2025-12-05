@@ -142,12 +142,8 @@ const Menu = () => {
                 <div className="absolute" style={{ top: '10%', left: '10%', right: '10%', bottom: '10%', background: '#e5e5e5' }} />
                 {/* Content positioned inside the frame opening */}
                 <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%' }}>
-                  <div className="relative w-12 h-12 mb-2 flex-shrink-0 border-[3px] border-black rounded-lg">
-                    <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #FF9A5C 0%, #FF7A3C 50%, #E55A1C 100%)' }} />
-                    <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #E55A1C 0%, #FF7A3C 50%, #FF9A5C 100%)' }} />
-                    <div className="absolute rounded flex items-center justify-center" style={{ top: '4px', left: '4px', right: '4px', bottom: '4px', background: 'linear-gradient(180deg, #FF8A4C 0%, #FF7A3C 50%, #E56A2C 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3)' }}>
-                      <Image className="w-5 h-5 text-white" />
-                    </div>
+                  <div className="pf-icon pf-icon-coloring mb-2">
+                    <Image className="w-5 h-5 text-white" />
                   </div>
                   <h3 className="text-2xl font-semibold text-black mb-1">Coloring Books</h3>
                   <p className="text-base font-bold text-black/70 mb-2">Realistic line art from photos</p>
@@ -184,12 +180,8 @@ const Menu = () => {
                 {/* Gray background inside frame */}
                 <div className="absolute" style={{ top: '10%', left: '10%', right: '10%', bottom: '10%', background: '#e5e5e5' }} />
                 <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '19%', left: '19%', right: '19%', bottom: '19%' }}>
-                  <div className="relative w-12 h-12 mb-2 flex-shrink-0 border-[3px] border-black rounded-lg">
-                    <div className="absolute inset-0 rounded-md" style={{ background: 'linear-gradient(135deg, #3FD7C5 0%, #1FB7A5 50%, #0F9785 100%)' }} />
-                    <div className="absolute rounded-md" style={{ top: '2px', left: '2px', right: '2px', bottom: '2px', background: 'linear-gradient(135deg, #0F9785 0%, #1FB7A5 50%, #3FD7C5 100%)' }} />
-                    <div className="absolute rounded flex items-center justify-center" style={{ top: '4px', left: '4px', right: '4px', bottom: '4px', background: 'linear-gradient(180deg, #2FC7B5 0%, #1FB7A5 50%, #0FA795 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3)' }}>
-                      <Smile className="w-5 h-5 text-white" />
-                    </div>
+                  <div className="pf-icon pf-icon-cartoon mb-2">
+                    <Smile className="w-5 h-5 text-white" />
                   </div>
                   <h3 className="text-2xl font-semibold text-black mb-1">Cartoon Books</h3>
                   <p className="text-base font-bold text-black/70 mb-2">Stylized caricatures</p>
