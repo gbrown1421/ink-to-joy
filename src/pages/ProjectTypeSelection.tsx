@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Palette, Smile, Home, CheckCircle2, Image } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import wideFrame from "@/assets/wide-frame-2.png";
+import wideFrame from "@/assets/wide-frame.png";
 import orangeTileBg from "@/assets/orange-tile-bg.png";
 
 const ORANGE = "#FF7A3C";
