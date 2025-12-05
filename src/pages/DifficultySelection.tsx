@@ -171,24 +171,23 @@ const DifficultySelection = () => {
         </div>
 
         {/* Difficulty tiles */}
-        <div className="relative container mx-auto px-4 pb-16 max-w-6xl">
-          <div className={`grid gap-6 ${
+        <div className="relative container mx-auto px-4 pb-16" style={{ maxWidth: '1400px' }}>
+          <div className={`grid gap-4 ${
             difficulties.length === 2 ? 'md:grid-cols-2 justify-items-center' : 'grid-cols-1 md:grid-cols-3'
-          }`}>
+          }`} style={{ gridTemplateColumns: difficulties.length === 3 ? 'repeat(3, 1fr)' : undefined }}>
             {difficulties.map((difficulty) => {
               const isSelected = selectedDifficulty === difficulty.id;
               
               return (
                 <div
                   key={difficulty.id}
-                  className={`relative cursor-pointer transition-all duration-300 mx-auto ${
+                  className={`relative cursor-pointer transition-all duration-300 flex justify-center ${
                     isSelected ? "scale-[1.02]" : "hover:scale-[1.01]"
                   }`}
-                  style={{ width: '100%', maxWidth: '420px' }}
                   onClick={() => setSelectedDifficulty(difficulty.id)}
                 >
                   {/* Gray background behind frame */}
-                  <div className="relative">
+                  <div className="relative" style={{ width: '380px' }}>
                     {/* Light gray background - sits behind the frame */}
                     <div 
                       className={`absolute inset-[12%] bg-gradient-to-b from-gray-50 to-gray-100 ${
