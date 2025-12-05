@@ -158,7 +158,7 @@ const Menu = () => {
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#FF7A3C' }} strokeWidth={2.5} />
-                      Custom borders & text
+                      Custom borders & titles
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#FF7A3C' }} strokeWidth={2.5} />
