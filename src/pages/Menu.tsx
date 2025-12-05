@@ -140,7 +140,7 @@ const Menu = () => {
 
             <div className="flex flex-wrap justify-center gap-4">
               {/* Card 1 - with silver frame image */}
-              <div className="relative group" style={{ width: '400px', height: '420px' }}>
+              <div className="relative group" style={{ width: '420px', height: '460px' }}>
                 {/* Gray background inside frame */}
                 <div className="absolute" style={{ top: '8%', left: '8%', right: '8%', bottom: '8%', background: '#e5e5e5' }} />
                 {/* Content positioned inside the frame opening */}
@@ -189,7 +189,7 @@ const Menu = () => {
               </div>
 
               {/* Card 2 - with silver frame image */}
-              <div className="relative group" style={{ width: '400px', height: '420px' }}>
+              <div className="relative group" style={{ width: '420px', height: '460px' }}>
                 {/* Gray background inside frame */}
                 <div className="absolute" style={{ top: '8%', left: '8%', right: '8%', bottom: '8%', background: '#e5e5e5' }} />
                 <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '8%', left: '8%', right: '8%', bottom: '8%' }}>
@@ -237,7 +237,7 @@ const Menu = () => {
               </div>
 
               {/* Card 3 - with silver frame image */}
-              <div className="relative group" style={{ width: '400px', height: '420px' }}>
+              <div className="relative group" style={{ width: '420px', height: '460px' }}>
                 {/* Gray background inside frame */}
                 <div className="absolute" style={{ top: '8%', left: '8%', right: '8%', bottom: '8%', background: '#e5e5e5' }} />
                 <div className="absolute z-10 flex flex-col items-center justify-center text-center p-4" style={{ top: '8%', left: '8%', right: '8%', bottom: '8%' }}>
