@@ -47,7 +47,7 @@ const ProjectTypeSelection = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-gray-100">
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between gap-3">
@@ -84,99 +84,101 @@ const ProjectTypeSelection = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
-          {projectTypes.map((type) => {
-            const Icon = type.icon;
-            const isSelected = selectedType === type.id;
-            
-            return (
-              <div
-                key={type.id}
-                className={`relative cursor-pointer transition-all duration-300 ${
-                  isSelected ? "scale-[1.02]" : "hover:scale-[1.01]"
-                }`}
-                onClick={() => setSelectedType(type.id)}
-              >
-                {/* Orange Background Layer */}
-                <div 
-                  className="absolute inset-0 rounded-lg"
-                  style={{
-                    backgroundImage: `url(${orangeTileBg})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                  }}
-                />
-                {/* Wide Frame on top */}
-                <div 
-                  className="relative p-8"
-                  style={{
-                    backgroundImage: `url(${wideFrame})`,
-                    backgroundSize: '100% 100%',
-                    backgroundRepeat: 'no-repeat',
-                  }}
+        {/* Orange Banner Background */}
+        <div 
+          className="relative rounded-2xl py-12 px-8"
+          style={{
+            backgroundImage: `url(${orangeTileBg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          {/* Tiles Grid */}
+          <div className="grid md:grid-cols-2 gap-8 justify-items-center">
+            {projectTypes.map((type) => {
+              const Icon = type.icon;
+              const isSelected = selectedType === type.id;
+              
+              return (
+                <div
+                  key={type.id}
+                  className={`relative cursor-pointer transition-all duration-300 ${
+                    isSelected ? "scale-[1.02]" : "hover:scale-[1.01]"
+                  }`}
+                  onClick={() => setSelectedType(type.id)}
                 >
-                  {/* Inner Content Area */}
+                  {/* Wide Frame */}
                   <div 
-                    className={`bg-white p-8 flex flex-col items-center text-center ${
-                      isSelected ? "ring-2 ring-offset-2" : ""
-                    }`}
-                    style={{ 
-                      ...(isSelected && { boxShadow: `0 0 0 2px ${ORANGE}` })
+                    className="relative p-6"
+                    style={{
+                      backgroundImage: `url(${wideFrame})`,
+                      backgroundSize: '100% 100%',
+                      backgroundRepeat: 'no-repeat',
                     }}
                   >
-                    {/* Icon */}
+                    {/* Inner Content Area - Light Gray Background */}
                     <div 
-                      className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 shadow-md"
-                      style={{ backgroundColor: ORANGE }}
-                    >
-                      <Icon className="w-7 h-7 text-white" />
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                      {type.title}
-                    </h3>
-
-                    {/* Subtitle */}
-                    <p className="font-medium mb-3" style={{ color: ORANGE }}>
-                      {type.subtitle}
-                    </p>
-
-                    {/* Description */}
-                    <p className="text-gray-600 text-sm mb-5">
-                      {type.description}
-                    </p>
-
-                    {/* Features List */}
-                    <ul className="space-y-2 mb-6 w-full max-w-xs">
-                      {type.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-gray-700 text-sm">
-                          <CheckCircle2 className="w-5 h-5 flex-shrink-0" style={{ color: ORANGE }} />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* CTA Button */}
-                    <Button
-                      className="w-full max-w-xs text-white font-semibold py-3 rounded-full shadow-md hover:opacity-90"
-                      style={{ backgroundColor: ORANGE }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedType(type.id);
-                        navigate(`/difficulty/${type.id}`);
+                      className={`bg-gradient-to-b from-gray-50 to-gray-100 p-8 flex flex-col items-center text-center ${
+                        isSelected ? "ring-2 ring-offset-2" : ""
+                      }`}
+                      style={{ 
+                        ...(isSelected && { boxShadow: `0 0 0 2px ${ORANGE}` })
                       }}
                     >
-                      {type.cta}
-                    </Button>
+                      {/* Icon */}
+                      <div 
+                        className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 shadow-md"
+                        style={{ backgroundColor: ORANGE }}
+                      >
+                        <Icon className="w-7 h-7 text-white" />
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="text-2xl font-bold text-gray-900 mb-1">
+                        {type.title}
+                      </h3>
+
+                      {/* Subtitle */}
+                      <p className="font-medium mb-3" style={{ color: ORANGE }}>
+                        {type.subtitle}
+                      </p>
+
+                      {/* Description */}
+                      <p className="text-gray-600 text-sm mb-5">
+                        {type.description}
+                      </p>
+
+                      {/* Features List */}
+                      <ul className="space-y-2 mb-6 w-full max-w-xs">
+                        {type.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-center gap-2 text-gray-700 text-sm">
+                            <CheckCircle2 className="w-5 h-5 flex-shrink-0" style={{ color: ORANGE }} />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      {/* CTA Button */}
+                      <Button
+                        className="w-full max-w-xs text-white font-semibold py-3 rounded-full shadow-md hover:opacity-90"
+                        style={{ backgroundColor: ORANGE }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedType(type.id);
+                          navigate(`/difficulty/${type.id}`);
+                        }}
+                      >
+                        {type.cta}
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
-        <div className="flex justify-center">
+        <div className="flex justify-center mt-8">
           <Button
             onClick={handleContinue}
             disabled={!selectedType}
