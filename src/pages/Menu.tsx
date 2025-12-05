@@ -138,7 +138,7 @@ const Menu = () => {
               </p>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-12">
+            <div className="flex flex-wrap justify-center gap-4">
               {/* Card 1 - with silver frame image */}
               <div className="relative group" style={{ width: '400px', height: '500px' }}>
                 {/* Frame image as background */}
