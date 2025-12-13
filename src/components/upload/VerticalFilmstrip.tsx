@@ -60,6 +60,7 @@ export function VerticalFilmstrip({
         {tiles.map(tile => {
           const isSelected = selectedTileId === tile.id;
           const isProcessing = tile.status === "uploading" || tile.status === "generating";
+          const isFallback = tile.status === "fallback";
           
           return (
             <div
@@ -70,9 +71,10 @@ export function VerticalFilmstrip({
                 relative cursor-pointer rounded-lg overflow-hidden transition-all
                 ${isSelected ? "ring-2 ring-orange-500 ring-offset-2 ring-offset-background" : ""}
                 ${tile.accepted && !isSelected ? "ring-2 ring-green-500" : ""}
+                ${isFallback && !isSelected ? "ring-2 ring-blue-500" : ""}
               `}
             >
-              <Card className="aspect-[4/3] overflow-hidden">
+              <Card className={`aspect-[4/3] overflow-hidden ${isFallback ? "bg-blue-50 dark:bg-blue-950/20" : ""}`}>
                 {/* Thumbnail content */}
                 {tile.status === "ready" && tile.coloringImageUrl ? (
                   <img
@@ -81,9 +83,9 @@ export function VerticalFilmstrip({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-muted">
-                    {isProcessing && (
-                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <div className={`w-full h-full flex items-center justify-center ${isFallback ? "bg-blue-50 dark:bg-blue-950/20" : "bg-muted"}`}>
+                    {(isProcessing || isFallback) && (
+                      <Loader2 className={`w-8 h-8 animate-spin ${isFallback ? "text-blue-500" : "text-primary"}`} />
                     )}
                     {tile.status === "failed" && (
                       <AlertCircle className="w-8 h-8 text-destructive" />

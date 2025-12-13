@@ -33,7 +33,22 @@ export function useUploadTiles(bookId: string | undefined) {
         return;
       }
 
-      // Check response
+      // Check response - handle fallback_pending (moderation blocked) silently
+      if (data.status === "fallback_pending") {
+        console.log("Page queued for fallback processing:", data.pageId);
+        // Don't show error toast - just indicate fallback processing
+        setTiles(prev => prev.map(t =>
+          t.id === tileId ? {
+            ...t,
+            pageId: data.pageId,
+            status: "fallback" as const,
+            error: undefined,
+          } : t
+        ));
+        return;
+      }
+
+      // Check response - hard failure
       if (data.status === "failed") {
         const msg = data.error || "Image processing failed";
         console.error("upload-page failed:", msg);

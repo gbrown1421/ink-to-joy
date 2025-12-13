@@ -352,7 +352,33 @@ serve(async (req) => {
           rawError: errorText.slice(0, 1000),
         });
 
-        // Build a human-readable error message
+        // Check if this is a moderation block - route to fallback pipeline
+        if (code === "moderation_blocked") {
+          console.log("Queueing page for fallback pipeline", page.id);
+          // TODO: enqueue pageId for non-OpenAI fallback processing
+          
+          await supabase
+            .from("pages")
+            .update({
+              status: "fallback_pending",
+              error_message: message ?? "moderation_blocked",
+            })
+            .eq("id", page.id);
+
+          return new Response(
+            JSON.stringify({
+              pageId: page.id,
+              status: "fallback_pending",
+              error: "moderation_blocked",
+            }),
+            {
+              status: 200,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            },
+          );
+        }
+
+        // Build a human-readable error message for non-moderation errors
         const errorMessage = `OpenAI ${aiRes.status}: ${code} – ${message}`;
 
         // Update page with failed status AND the error message

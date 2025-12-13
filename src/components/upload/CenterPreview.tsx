@@ -22,11 +22,12 @@ export function CenterPreview({ tile, onOpenTroubleshooting }: CenterPreviewProp
   }
 
   const isProcessing = tile.status === "uploading" || tile.status === "generating";
+  const isFallback = tile.status === "fallback";
 
   return (
     <Card className={`flex-1 overflow-auto relative flex items-center justify-center ${
       tile.accepted ? "ring-2 ring-green-500" : ""
-    }`}>
+    } ${isFallback ? "ring-2 ring-blue-500 bg-blue-50/50 dark:bg-blue-950/20" : ""}`}>
       {/* Processing State */}
       {isProcessing && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 z-10">
@@ -36,6 +37,19 @@ export function CenterPreview({ tile, onOpenTroubleshooting }: CenterPreviewProp
           </p>
           <p className="text-sm text-muted-foreground mt-2">
             This may take a moment
+          </p>
+        </div>
+      )}
+
+      {/* Fallback Processing State - looks like normal processing with blue tint */}
+      {isFallback && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-blue-50/80 dark:bg-blue-950/50 z-10">
+          <Loader2 className="w-16 h-16 animate-spin text-blue-500 mb-4" />
+          <p className="text-lg text-muted-foreground">
+            Processing...
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            This may take a little longer
           </p>
         </div>
       )}
