@@ -8,7 +8,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-type Difficulty = "Quick and Easy" | "Beginner" | "Intermediate";
+type Difficulty = "easy" | "medium" | "hard";
 
 const MAX_DIMENSION = 2048;
 
@@ -48,12 +48,13 @@ function normalizeDifficulty(raw: string | null): Difficulty {
   const v = (raw || "").toLowerCase().trim();
 
   if (v === "quick" || v === "quick and easy" || v === "quick & easy") {
-    return "Quick and Easy";
+    return "easy";
   }
   if (v === "beginner") {
-    return "Beginner";
+    return "medium";
   }
-  return "Intermediate";
+  // Intermediate or anything else maps to hard
+  return "hard";
 }
 
 /**
@@ -92,60 +93,31 @@ async function prepareOpenAIImage(original: File): Promise<File> {
 }
 
 function buildColoringPrompt(difficulty: Difficulty): string {
-  switch (difficulty) {
-    case "Quick and Easy":
-      return `
-Create a very simple black-and-white line-art coloring page based on the uploaded photo.
+  const base =
+    "Convert this photo into clean black-and-white coloring-book line art. " +
+    "Keep all people, clothing, and objects recognizable and in the same pose. " +
+    "Remove shading and gradients and use simple outlines only. " +
+    "Do not change the body, clothing, or background content; only simplify into line art.";
 
-Style:
-- Thick bold black outlines only.
-- Big, simple shapes that are easy for young kids to color.
-- Very few small details.
-
-Background:
-- Mostly empty OR only 1–2 large simple shapes.
-- No dense clutter, no tiny objects.
-
-Rules:
-- Output must be pure black line art on a white background.
-- No shading, gradients, grey tones, or cross-hatching.
-`.trim();
-
-    case "Beginner":
-      return `
-Create a black-and-white line-art coloring page based on the uploaded photo for early elementary kids.
-
-Style:
-- Medium-thick, clean black outlines.
-- Moderate detail in clothing and hair.
-- Lines should be clear and easy to color inside.
-
-Background:
-- Simple background with a few large and medium-sized elements.
-- Avoid tiny clutter and dense patterns.
-
-Rules:
-- Output must be pure black line art on a white background.
-- No shading, gradients, grey tones, or cross-hatching.
-`.trim();
-
-    case "Intermediate":
-      return `
-Create a detailed black-and-white line-art coloring page based on the uploaded photo.
-
-Style:
-- Finer, controlled black outlines, still clear for coloring.
-- More folds, textures, and elements to color.
-- Richer detail than Beginner, but not chaotic.
-
-Background:
-- Fuller background scene with more elements, still readable.
-
-Rules:
-- Output must be pure black line art on a white background.
-- No shading, gradients, grey tones, or cross-hatching.
-`.trim();
+  if (difficulty === "easy") {
+    return (
+      base +
+      " Make it very simple with bold lines, large areas to color, minimal small details, and a simplified background."
+    );
   }
+
+  if (difficulty === "medium") {
+    return (
+      base +
+      " Use medium detail with clear outlines, some background elements, and shapes that are easy but still interesting to color."
+    );
+  }
+
+  // hard
+  return (
+    base +
+    " Use high detail with fine lines, more background elements, and lots of smaller areas to color while still keeping everything clear."
+  );
 }
 
 /**
