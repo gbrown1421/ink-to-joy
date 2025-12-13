@@ -148,6 +148,24 @@ Rules:
   }
 }
 
+/**
+ * Parse OpenAI error response and extract meaningful error info
+ */
+function parseOpenAIError(errorText: string): { code: string; message: string } {
+  try {
+    const parsed = JSON.parse(errorText);
+    return {
+      code: parsed?.error?.code ?? "unknown_error",
+      message: parsed?.error?.message ?? "Unknown OpenAI error",
+    };
+  } catch {
+    return {
+      code: "parse_error",
+      message: errorText.slice(0, 500),
+    };
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -178,6 +196,10 @@ serve(async (req) => {
       },
     );
   }
+
+  // Debug: log first 8 chars of API key to verify which key is in use
+  const keyPrefix = openaiKey.slice(0, 8);
+  console.log(`[DEBUG] Using OpenAI API key prefix: ${keyPrefix}...`);
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
@@ -349,19 +371,66 @@ serve(async (req) => {
 
       if (!aiRes.ok) {
         const errorText = await aiRes.text();
-        console.error("OpenAI API error:", {
+        const { code, message } = parseOpenAIError(errorText);
+        
+        console.error("OpenAI API error details:", {
           status: aiRes.status,
-          error: errorText.slice(0, 500),
+          code,
+          message,
+          rawError: errorText.slice(0, 1000),
         });
-        throw new Error(`OpenAI API error ${aiRes.status}`);
+
+        // Build a human-readable error message
+        const errorMessage = `OpenAI ${aiRes.status}: ${code} – ${message}`;
+
+        // Update page with failed status AND the error message
+        await supabase
+          .from("pages")
+          .update({ 
+            status: "failed",
+            error_message: errorMessage,
+          })
+          .eq("id", page.id);
+
+        return new Response(
+          JSON.stringify({
+            pageId: page.id,
+            status: "failed",
+            error: errorMessage,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       const aiJson = await aiRes.json();
       const b64 = aiJson?.data?.[0]?.b64_json;
 
       if (!b64) {
-        console.error("No b64_json from OpenAI:", JSON.stringify(aiJson));
-        throw new Error("No b64_json returned from OpenAI");
+        const errorMessage = "No b64_json returned from OpenAI";
+        console.error(errorMessage, JSON.stringify(aiJson));
+        
+        await supabase
+          .from("pages")
+          .update({ 
+            status: "failed",
+            error_message: errorMessage,
+          })
+          .eq("id", page.id);
+
+        return new Response(
+          JSON.stringify({
+            pageId: page.id,
+            status: "failed",
+            error: errorMessage,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       const binary = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
@@ -378,8 +447,28 @@ serve(async (req) => {
         });
 
       if (resultUploadError) {
+        const errorMessage = "Failed to upload coloring image to storage";
         console.error("Result upload error:", resultUploadError);
-        throw new Error("Failed to upload coloring image to storage");
+        
+        await supabase
+          .from("pages")
+          .update({ 
+            status: "failed",
+            error_message: errorMessage,
+          })
+          .eq("id", page.id);
+
+        return new Response(
+          JSON.stringify({
+            pageId: page.id,
+            status: "failed",
+            error: errorMessage,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       const {
@@ -397,6 +486,7 @@ serve(async (req) => {
         .update({
           coloring_image_url: coloringImageUrl,
           status: "ready",
+          error_message: null, // Clear any previous error
         })
         .eq("id", page.id);
 
@@ -412,21 +502,22 @@ serve(async (req) => {
         },
       );
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error during image processing";
       console.error("Error during OpenAI processing:", err);
 
       await supabase
         .from("pages")
-        .update({ status: "failed" })
+        .update({ 
+          status: "failed",
+          error_message: errorMessage,
+        })
         .eq("id", page.id);
-
-      const message =
-        err instanceof Error ? err.message : "Unknown error during image processing";
 
       return new Response(
         JSON.stringify({
           pageId: page.id,
           status: "failed",
-          error: message,
+          error: errorMessage,
         }),
         {
           status: 200,

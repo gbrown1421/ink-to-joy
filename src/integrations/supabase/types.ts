@@ -65,6 +65,7 @@ export type Database = {
           border_style: string | null
           coloring_image_url: string | null
           created_at: string
+          error_message: string | null
           heading_text: string | null
           id: string
           keep: boolean | null
@@ -78,6 +79,7 @@ export type Database = {
           border_style?: string | null
           coloring_image_url?: string | null
           created_at?: string
+          error_message?: string | null
           heading_text?: string | null
           id?: string
           keep?: boolean | null
@@ -91,6 +93,7 @@ export type Database = {
           border_style?: string | null
           coloring_image_url?: string | null
           created_at?: string
+          error_message?: string | null
           heading_text?: string | null
           id?: string
           keep?: boolean | null
