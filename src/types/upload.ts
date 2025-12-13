@@ -1,4 +1,4 @@
-export type TileStatus = "uploading" | "generating" | "ready" | "failed";
+export type TileStatus = "uploading" | "generating" | "ready" | "failed" | "fallback";
 
 export interface UploadTile {
   id: string; // local uuid
