@@ -25,6 +25,18 @@ const Subscribe = () => {
     };
   }, []);
 
+  // Load GHL form embed script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://link.msgsndr.com/js/form_embed.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   // Listen for form submission events from embedded forms
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -110,25 +122,28 @@ const Subscribe = () => {
               Claim Your Discount
             </h2>
             
-            {/* GHL Embed Placeholder */}
+            {/* GHL Form Embed */}
             <div 
               ref={embedContainerRef}
-              className="min-h-[200px] border-2 border-dashed border-muted-foreground/30 rounded-lg p-6 flex items-center justify-center bg-muted/30"
+              className="min-h-[709px]"
             >
-              <div className="text-center text-muted-foreground">
-                <p className="font-medium mb-2">Paste GHL Embed Code Here</p>
-                <p className="text-sm">Supports script embeds and iframe embeds</p>
-              </div>
-            </div>
-
-            {/* Manual trigger for testing */}
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => setShowSuccess(true)}
-                className="text-xs text-muted-foreground hover:text-foreground underline"
-              >
-                Test success state
-              </button>
+              <iframe
+                src="https://api.leadconnectorhq.com/widget/form/QKurzGXJdhxMLIuJCjzO"
+                style={{ width: '100%', height: '709px', border: 'none', borderRadius: '3px' }}
+                id="inline-QKurzGXJdhxMLIuJCjzO"
+                data-layout="{'id':'INLINE'}"
+                data-trigger-type="alwaysShow"
+                data-trigger-value=""
+                data-activation-type="alwaysActivated"
+                data-activation-value=""
+                data-deactivation-type="neverDeactivate"
+                data-deactivation-value=""
+                data-form-name="PixFix – 20% Off Lead Gen"
+                data-height="709"
+                data-layout-iframe-id="inline-QKurzGXJdhxMLIuJCjzO"
+                data-form-id="QKurzGXJdhxMLIuJCjzO"
+                title="PixFix – 20% Off Lead Gen"
+              />
             </div>
           </div>
         </div>
