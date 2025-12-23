@@ -2,14 +2,16 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Upload, Download, Shield, CheckCircle, Sparkles, BookOpen, Smile, RefreshCw, Layers, Zap, Image, ArrowRight } from "lucide-react";
+import { Upload, Download, Shield, CheckCircle, Sparkles, BookOpen, Smile, RefreshCw, Layers, Zap, Image, ArrowRight, LogIn, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import heroTransformation from "@/assets/hero-transformation.png";
 import pixfixLogo from "@/assets/pixfix-logo-hero.png";
 import silverFrame from "@/assets/wide-frame.png";
 
 const Menu = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [selectedProjectType, setSelectedProjectType] = useState<'coloring' | 'cartoon'>('coloring');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('beginner');
 
@@ -52,6 +54,17 @@ const Menu = () => {
               <button onClick={() => scrollToSection("faq")} className="text-xl font-medium text-black hover:text-black/70 transition-colors">
                 FAQ
               </button>
+              {user ? (
+                <Button variant="outline" size="sm" onClick={signOut} className="ml-4">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => navigate("/auth")} className="ml-4">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Sign In
+                </Button>
+              )}
             </nav>
           </div>
         </div>
