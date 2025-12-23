@@ -11,6 +11,7 @@ import Review from "./pages/Review";
 import Finalize from "./pages/Finalize";
 import ImageRefresh from "./pages/ImageRefresh";
 import Subscribe from "./pages/Subscribe";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
       >
         <Routes>
           <Route path="/" element={<Menu />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/project-type" element={<ProjectTypeSelection />} />
           <Route path="/difficulty/:type" element={<DifficultySelection />} />
           <Route path="/upload/:bookId" element={<Upload />} />

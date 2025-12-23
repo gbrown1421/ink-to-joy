@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,6 +6,7 @@ import { Palette, ArrowRight, Home, ArrowLeft, CheckCircle2 } from "lucide-react
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import wideFrame from "@/assets/wide-frame.png";
 import orangeTileBg from "@/assets/orange-tile-bg.png";
 
@@ -72,6 +73,7 @@ const toonDifficulties: DifficultyOption[] = [
 const DifficultySelection = () => {
   const navigate = useNavigate();
   const { type } = useParams();
+  const { user, loading: authLoading } = useAuth();
   const projectType = (type as "coloring" | "toon") || "coloring";
   
   const difficulties = projectType === "toon" ? toonDifficulties : coloringDifficulties;
@@ -80,6 +82,13 @@ const DifficultySelection = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>(defaultDifficulty);
   const [bookName, setBookName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
 
   const handleContinue = async () => {
     if (!bookName.trim()) {
