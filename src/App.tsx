@@ -10,6 +10,7 @@ import Upload from "./pages/Upload";
 import Review from "./pages/Review";
 import Finalize from "./pages/Finalize";
 import ImageRefresh from "./pages/ImageRefresh";
+import Subscribe from "./pages/Subscribe";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/review/:bookId" element={<Review />} />
           <Route path="/finalize/:bookId" element={<Finalize />} />
           <Route path="/image-refresh" element={<ImageRefresh />} />
+          <Route path="/subscribe" element={<Subscribe />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
